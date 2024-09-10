@@ -1,0 +1,80 @@
+{
+    "name": "akeyless-server-commons",
+    "version": "1.0.0",
+    "main": "dist/cjs/index.js",
+    "types": "dist/cjs/index.d.ts",
+    "exports": {
+        ".": {
+            "require": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js",
+            "types": "./dist/cjs/index.d.ts"
+        },
+        "./helpers": {
+            "require": "./dist/cjs/helpers/index.js",
+            "import": "./dist/esm/helpers/index.js",
+            "types": "./dist/cjs/helpers/index.d.ts"
+        },
+        "./managers": {
+            "require": "./dist/cjs/managers/index.js",
+            "import": "./dist/esm/managers/index.js",
+            "types": "./dist/cjs/managers/index.d.ts"
+        },
+        "./middlewares": {
+            "require": "./dist/cjs/middlewares/index.js",
+            "import": "./dist/esm/middlewares/index.js",
+            "types": "./dist/cjs/middlewares/index.d.ts"
+        },
+        "./types": {
+            "require": "./dist/cjs/types/index.js",
+            "import": "./dist/esm/types/index.js",
+            "types": "./dist/cjs/types/index.d.ts"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "helpers": [
+                "dist/esm/helpers"
+            ],
+            "middlewares": [
+                "dist/esm/middlewares"
+            ],
+            "managers": [
+                "dist/esm/managers"
+            ],
+            "types": [
+                "dist/esm/types"
+            ]
+        }
+    },
+    "scripts": {
+        "build:cjs": "tsc --project tsconfig.cjs.json",
+        "build:esm": "tsc --project tsconfig.esm.json",
+        "build": "npm run build:cjs && npm run build:esm",
+        "deploy": "npm run build && git add . && git commit -am '.' && git push"
+    },
+    "files": [
+        "dist/",
+        "README.md",
+        "package.json"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/akeylesspro/akeyless-server-commons.git"
+    },
+    "dependencies": {
+        "axios": "^1.7.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "firebase-admin": "^12.4.0",
+        "lodash": "^4.17.21",
+        "moment": "^2.30.1",
+        "moment-timezone": "^0.5.45"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.17.7",
+        "@types/moment": "^2.11.29",
+        "@types/node": "^22.5.2",
+        "typescript": "^5.5.4"
+    }
+}
