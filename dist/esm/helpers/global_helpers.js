@@ -1,5 +1,4 @@
 import { readFileSync } from "fs";
-import { join } from "path";
 import dotenv from "dotenv";
 dotenv.config();
 export const init_env_variables = (required_vars) => {
@@ -31,8 +30,7 @@ export const json_failed = (error, msg) => {
 export const parse_error = (error) => {
     return error instanceof Error ? { name: error.name, message: error.message } : error;
 };
-export const get_version = (filePath) => {
-    const packageJsonPath = join(__dirname, filePath);
+export const get_version = (packageJsonPath) => {
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     return packageJson.version;
 };

@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sleep = exports.get_version = exports.parse_error = exports.json_failed = exports.json_ok = exports.init_env_variables = void 0;
 const fs_1 = require("fs");
-const path_1 = require("path");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const init_env_variables = (required_vars) => {
@@ -41,8 +40,7 @@ const parse_error = (error) => {
     return error instanceof Error ? { name: error.name, message: error.message } : error;
 };
 exports.parse_error = parse_error;
-const get_version = (filePath) => {
-    const packageJsonPath = (0, path_1.join)(__dirname, filePath);
+const get_version = (packageJsonPath) => {
     const packageJson = JSON.parse((0, fs_1.readFileSync)(packageJsonPath, "utf8"));
     return packageJson.version;
 };
