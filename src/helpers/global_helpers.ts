@@ -4,7 +4,6 @@ import { join } from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
-
 export const init_env_variables = (required_vars: string[]) => {
     const data: TObject<string> = {};
     required_vars.forEach((varName) => {
@@ -40,12 +39,10 @@ export const parse_error = (error: any) => {
     return error instanceof Error ? { name: error.name, message: error.message } : error;
 };
 
-export const get_version = (): string => {
-    const packageJsonPath = join(__dirname, "../../version.json");
+export const get_version = (filePath: string): string => {
+    const packageJsonPath = join(__dirname, filePath);
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     return packageJson.version;
 };
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
-
-

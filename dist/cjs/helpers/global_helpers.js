@@ -41,8 +41,8 @@ const parse_error = (error) => {
     return error instanceof Error ? { name: error.name, message: error.message } : error;
 };
 exports.parse_error = parse_error;
-const get_version = () => {
-    const packageJsonPath = (0, path_1.join)(__dirname, "../../version.json");
+const get_version = (filePath) => {
+    const packageJsonPath = (0, path_1.join)(__dirname, filePath);
     const packageJson = JSON.parse((0, fs_1.readFileSync)(packageJsonPath, "utf8"));
     return packageJson.version;
 };
