@@ -61,7 +61,7 @@
         "type": "git",
         "url": "https://github.com/akeylesspro/akeyless-server-commons.git"
     },
-    "dependencies": {
+    "optionalDependencies": {
         "axios": "^1.7.7",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
