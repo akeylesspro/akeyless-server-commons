@@ -17,3 +17,4 @@ export declare const parse_translations: (documents: any[]) => void;
 export declare const parse_settings: (documents: any[], name: string) => void;
 export declare const snapshot: (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
 export declare const init_snapshots: () => Promise<void>;
+export declare const snapshots_template: (promises: Promise<void>[], name?: string) => Promise<void>;

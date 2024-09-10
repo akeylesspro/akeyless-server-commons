@@ -257,13 +257,18 @@ export const snapshot = (collection_name, config) => {
     });
 };
 export const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
-    logger.log("==> init_snapshots start... ");
+    logger.log("==> init snapshots start... ");
     const promises = [
         snapshot("nx-translations", { parse: parse_translations }),
         snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
         snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
     ];
     yield Promise.all(promises);
-    logger.log("==> init_snapshots end ✅");
+    logger.log("==> init snapshots end ✅");
+});
+export const snapshots_template = (promises, name) => __awaiter(void 0, void 0, void 0, function* () {
+    logger.log(`==> ${name || "custom snapshots"} start... `);
+    yield Promise.all(promises);
+    logger.log(`==> ${name || "custom snapshots"} end ✅`);
 });
 //# sourceMappingURL=firebase_helpers.js.map

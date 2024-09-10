@@ -274,12 +274,17 @@ export const snapshot = (collection_name: string, config: OnSnapshotConfig): Pro
 };
 
 export const init_snapshots = async (): Promise<void> => {
-    logger.log("==> init_snapshots start... ");
+    logger.log("==> init snapshots start... ");
     const promises: Promise<void>[] = [
         snapshot("nx-translations", { parse: parse_translations }),
         snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
         snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
     ];
     await Promise.all(promises);
-    logger.log("==> init_snapshots end ✅");
+    logger.log("==> init snapshots end ✅");
+};
+export const snapshots_template = async (promises: Promise<void>[], name?: string): Promise<void> => {
+    logger.log(`==> ${name || "custom snapshots"} start... `);
+    await Promise.all(promises);
+    logger.log(`==> ${name || "custom snapshots"} end ✅`);
 };

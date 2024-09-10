@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.init_snapshots = exports.snapshot = exports.parse_settings = exports.parse_translations = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.db = void 0;
+exports.snapshots_template = exports.init_snapshots = exports.snapshot = exports.parse_settings = exports.parse_translations = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.db = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const global_helpers_1 = require("./global_helpers");
 const managers_1 = require("../managers");
@@ -277,14 +277,20 @@ const snapshot = (collection_name, config) => {
 };
 exports.snapshot = snapshot;
 const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
-    managers_1.logger.log("==> init_snapshots start... ");
+    managers_1.logger.log("==> init snapshots start... ");
     const promises = [
         (0, exports.snapshot)("nx-translations", { parse: exports.parse_translations }),
         (0, exports.snapshot)("nx-settings", { parse: (docs) => (0, exports.parse_settings)(docs, "nx-settings") }),
         (0, exports.snapshot)("settings", { parse: (docs) => (0, exports.parse_settings)(docs, "settings") }),
     ];
     yield Promise.all(promises);
-    managers_1.logger.log("==> init_snapshots end ✅");
+    managers_1.logger.log("==> init snapshots end ✅");
 });
 exports.init_snapshots = init_snapshots;
+const snapshots_template = (promises, name) => __awaiter(void 0, void 0, void 0, function* () {
+    managers_1.logger.log(`==> ${name || "custom snapshots"} start... `);
+    yield Promise.all(promises);
+    managers_1.logger.log(`==> ${name || "custom snapshots"} end ✅`);
+});
+exports.snapshots_template = snapshots_template;
 //# sourceMappingURL=firebase_helpers.js.map
