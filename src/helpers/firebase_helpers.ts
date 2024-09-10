@@ -283,8 +283,8 @@ export const init_snapshots = async (): Promise<void> => {
     await Promise.all(promises);
     logger.log("==> init snapshots end ✅");
 };
-export const snapshots_template = async (promises: Promise<void>[], name?: string): Promise<void> => {
-    logger.log(`==> ${name || "custom snapshots"} start... `);
+export const snapshots_template = async (promises: Promise<void>[], label?: string): Promise<void> => {
+    logger.log(`==> ${label || "custom snapshots"} start... `);
     await Promise.all(promises);
-    logger.log(`==> ${name || "custom snapshots"} end ✅`);
+    logger.log(`==> ${label || "custom snapshots"} end ✅`);
 };

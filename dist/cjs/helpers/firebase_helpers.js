@@ -287,10 +287,10 @@ const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
     managers_1.logger.log("==> init snapshots end ✅");
 });
 exports.init_snapshots = init_snapshots;
-const snapshots_template = (promises, name) => __awaiter(void 0, void 0, void 0, function* () {
-    managers_1.logger.log(`==> ${name || "custom snapshots"} start... `);
+const snapshots_template = (promises, label) => __awaiter(void 0, void 0, void 0, function* () {
+    managers_1.logger.log(`==> ${label || "custom snapshots"} start... `);
     yield Promise.all(promises);
-    managers_1.logger.log(`==> ${name || "custom snapshots"} end ✅`);
+    managers_1.logger.log(`==> ${label || "custom snapshots"} end ✅`);
 });
 exports.snapshots_template = snapshots_template;
 //# sourceMappingURL=firebase_helpers.js.map
