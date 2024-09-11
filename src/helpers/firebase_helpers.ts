@@ -284,7 +284,7 @@ export const init_snapshots = async (): Promise<void> => {
     await Promise.all(promises);
     logger.log("==> init snapshots end ✅");
 };
-export const snapshots_bulk = async (snapshots: Snapshot[], label?: string): Promise<void> => {
+export const snapshots_bulk = async (snapshots: ReturnType<Snapshot>[], label?: string): Promise<void> => {
     logger.log(`==> ${label || "custom snapshots"} start... `);
     await Promise.all(snapshots);
     logger.log(`==> ${label || "custom snapshots"} end ✅`);
