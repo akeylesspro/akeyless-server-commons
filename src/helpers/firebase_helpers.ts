@@ -6,6 +6,7 @@ import {
     QueryDocumentOptional,
     QueryDocuments,
     QueryDocumentsByConditions,
+    Snapshot,
     TObject,
 } from "../types";
 import { init_env_variables } from "./global_helpers";
@@ -233,7 +234,7 @@ export const parse_settings = (documents: any[], name: string): void => {
 /// snapshots
 let snapshots_first_time: string[] = [];
 
-export const snapshot = (collection_name: string, config: OnSnapshotConfig): Promise<void> => {
+export const snapshot: Snapshot = (collection_name, config) => {
     config.is_ignore_first_time_changes = config.is_ignore_first_time_changes ?? true;
     return new Promise<void>((resolve) => {
         db.collection(collection_name).onSnapshot(
@@ -283,8 +284,8 @@ export const init_snapshots = async (): Promise<void> => {
     await Promise.all(promises);
     logger.log("==> init snapshots end ✅");
 };
-export const snapshots_template = async (promises: Promise<void>[], label?: string): Promise<void> => {
+export const snapshots_bulk = async (snapshots: Snapshot[], label?: string): Promise<void> => {
     logger.log(`==> ${label || "custom snapshots"} start... `);
-    await Promise.all(promises);
+    await Promise.all(snapshots);
     logger.log(`==> ${label || "custom snapshots"} end ✅`);
 };

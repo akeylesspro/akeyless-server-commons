@@ -40,3 +40,5 @@ export interface OnSnapshotConfig {
     on_remove?: OnSnapshotCallback;
     is_ignore_first_time_changes?: boolean;
 }
+
+export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;

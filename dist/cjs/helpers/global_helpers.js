@@ -12,7 +12,7 @@ const init_env_variables = (required_vars) => {
     required_vars.forEach((varName) => {
         const env_val = process.env[varName];
         if (!env_val) {
-            managers_1.logger.error(`--- Error: Missing environment variable ${varName} ---`);
+            managers_1.logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
             process.exit(1);
         }
         data[varName] = env_val;

@@ -9,7 +9,7 @@ export const init_env_variables = (required_vars: string[]) => {
     required_vars.forEach((varName) => {
         const env_val = process.env[varName];
         if (!env_val) {
-            logger.error(`--- Error: Missing environment variable ${varName} ---`);
+            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
             process.exit(1);
         }
         data[varName] = env_val;

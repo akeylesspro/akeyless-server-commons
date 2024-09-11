@@ -266,9 +266,9 @@ export const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* 
     yield Promise.all(promises);
     logger.log("==> init snapshots end ✅");
 });
-export const snapshots_template = (promises, label) => __awaiter(void 0, void 0, void 0, function* () {
+export const snapshots_bulk = (snapshots, label) => __awaiter(void 0, void 0, void 0, function* () {
     logger.log(`==> ${label || "custom snapshots"} start... `);
-    yield Promise.all(promises);
+    yield Promise.all(snapshots);
     logger.log(`==> ${label || "custom snapshots"} end ✅`);
 });
 //# sourceMappingURL=firebase_helpers.js.map
