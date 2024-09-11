@@ -276,7 +276,7 @@ export const snapshot: Snapshot = (collection_name, config) => {
 
 export const init_snapshots = async (): Promise<void> => {
     logger.log("==> init snapshots start... ");
-    const promises: Promise<void>[] = [
+    const promises: ReturnType<Snapshot>[] = [
         snapshot("nx-translations", { parse: parse_translations }),
         snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
         snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
