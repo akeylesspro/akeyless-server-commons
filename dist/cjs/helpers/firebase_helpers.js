@@ -278,12 +278,12 @@ const snapshot = (collection_name, config) => {
 exports.snapshot = snapshot;
 const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
     managers_1.logger.log("==> init snapshots start... ");
-    const promises = [
+    const snapshots = [
         (0, exports.snapshot)("nx-translations", { parse: exports.parse_translations }),
         (0, exports.snapshot)("nx-settings", { parse: (docs) => (0, exports.parse_settings)(docs, "nx-settings") }),
         (0, exports.snapshot)("settings", { parse: (docs) => (0, exports.parse_settings)(docs, "settings") }),
     ];
-    yield Promise.all(promises);
+    yield Promise.all(snapshots);
     managers_1.logger.log("==> init snapshots end ✅");
 });
 exports.init_snapshots = init_snapshots;

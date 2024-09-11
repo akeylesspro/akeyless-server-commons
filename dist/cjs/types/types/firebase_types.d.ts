@@ -18,3 +18,4 @@ export interface OnSnapshotConfig {
     is_ignore_first_time_changes?: boolean;
 }
 export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;

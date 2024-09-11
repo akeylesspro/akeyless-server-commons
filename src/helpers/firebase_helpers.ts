@@ -7,6 +7,7 @@ import {
     QueryDocuments,
     QueryDocumentsByConditions,
     Snapshot,
+    SnapshotBulk,
     TObject,
 } from "../types";
 import { init_env_variables } from "./global_helpers";
@@ -276,15 +277,15 @@ export const snapshot: Snapshot = (collection_name, config) => {
 
 export const init_snapshots = async (): Promise<void> => {
     logger.log("==> init snapshots start... ");
-    const promises: ReturnType<Snapshot>[] = [
+    const snapshots: ReturnType<Snapshot>[] = [
         snapshot("nx-translations", { parse: parse_translations }),
         snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
         snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
     ];
-    await Promise.all(promises);
+    await Promise.all(snapshots);
     logger.log("==> init snapshots end ✅");
 };
-export const snapshots_bulk = async (snapshots: ReturnType<Snapshot>[], label?: string): Promise<void> => {
+export const snapshots_bulk: SnapshotBulk = async (snapshots, label?) => {
     logger.log(`==> ${label || "custom snapshots"} start... `);
     await Promise.all(snapshots);
     logger.log(`==> ${label || "custom snapshots"} end ✅`);

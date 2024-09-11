@@ -1,5 +1,5 @@
 import firebase_admin from "firebase-admin";
-import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryDocuments, QueryDocumentsByConditions, Snapshot, TObject } from "../types";
+import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryDocuments, QueryDocumentsByConditions, Snapshot, SnapshotBulk, TObject } from "../types";
 import { DecodedIdToken } from "firebase-admin/auth";
 export declare const db: firebase_admin.firestore.Firestore;
 export declare const get_all_documents: (collection_path: string) => Promise<any[]>;
@@ -17,4 +17,4 @@ export declare const parse_translations: (documents: any[]) => void;
 export declare const parse_settings: (documents: any[], name: string) => void;
 export declare const snapshot: Snapshot;
 export declare const init_snapshots: () => Promise<void>;
-export declare const snapshots_bulk: (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+export declare const snapshots_bulk: SnapshotBulk;

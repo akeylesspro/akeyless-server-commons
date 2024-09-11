@@ -258,12 +258,12 @@ export const snapshot = (collection_name, config) => {
 };
 export const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
     logger.log("==> init snapshots start... ");
-    const promises = [
+    const snapshots = [
         snapshot("nx-translations", { parse: parse_translations }),
         snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
         snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
     ];
-    yield Promise.all(promises);
+    yield Promise.all(snapshots);
     logger.log("==> init snapshots end ✅");
 });
 export const snapshots_bulk = (snapshots, label) => __awaiter(void 0, void 0, void 0, function* () {

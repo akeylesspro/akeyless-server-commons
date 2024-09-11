@@ -42,3 +42,4 @@ export interface OnSnapshotConfig {
 }
 
 export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
