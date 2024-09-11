@@ -10,13 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.get_users_by_phone = exports.convert_to_short_phone_number = void 0;
-const types_1 = require("../types");
+const akeyless_types_commons_1 = require("akeyless-types-commons");
 const firebase_helpers_1 = require("./firebase_helpers");
 const convert_to_short_phone_number = (phone_number) => {
     return `0${phone_number.split("+972")[1]}`;
 };
 exports.convert_to_short_phone_number = convert_to_short_phone_number;
-const get_users_by_phone = (phone_number_1, ...args_1) => __awaiter(void 0, [phone_number_1, ...args_1], void 0, function* (phone_number, default_client_key = types_1.DefaultClient.default) {
+const get_users_by_phone = (phone_number_1, ...args_1) => __awaiter(void 0, [phone_number_1, ...args_1], void 0, function* (phone_number, default_client_key = akeyless_types_commons_1.DefaultClient.default) {
     var _a;
     let installer;
     let nx_user;

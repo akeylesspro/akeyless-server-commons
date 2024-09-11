@@ -1,4 +1,4 @@
-import { NxUser, Installer, DefaultClient } from "../types";
+import { NxUser, Installer, DefaultClient } from "akeyless-types-commons";
 import { query_document, query_document_optional } from "./firebase_helpers";
 
 export const convert_to_short_phone_number = (phone_number: string): string => {

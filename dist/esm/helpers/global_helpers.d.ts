@@ -1,5 +1,6 @@
-import { TObject, JsonFailed, JsonOK } from "../types";
+import { JsonFailed, JsonOK } from "../types";
 export declare const init_env_variables: (required_vars: string[]) => TObject<string>;
+import { TObject } from "akeyless-types-commons";
 export declare const json_ok: JsonOK<TObject<any> | TObject<any>[]>;
 export declare const json_failed: JsonFailed;
 export declare const parse_error: (error: any) => any;

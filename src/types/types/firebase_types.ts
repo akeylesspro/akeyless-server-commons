@@ -1,5 +1,5 @@
-import { TObject } from "./global";
-
+import { TObject } from "akeyless-types-commons";
+import firbase_admin from "firebase-admin";
 export type QueryDocuments = (
     collection_path: string,
     field_name: string,

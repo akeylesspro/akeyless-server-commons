@@ -1,4 +1,4 @@
-import { TObject, JsonFailed, JsonOK } from "../types";
+import {  JsonFailed, JsonOK } from "../types";
 import { readFileSync } from "fs";
 import { join } from "path";
 import dotenv from "dotenv";
@@ -19,6 +19,7 @@ export const init_env_variables = (required_vars: string[]) => {
 
 import { logger } from "../managers";
 import { init_snapshots } from "./firebase_helpers";
+import { TObject } from "akeyless-types-commons";
 
 export const json_ok: JsonOK<TObject<any> | TObject<any>[]> = (data) => {
     return {

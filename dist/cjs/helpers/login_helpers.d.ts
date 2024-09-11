@@ -1,4 +1,4 @@
-import { NxUser, Installer, DefaultClient } from "../types";
+import { NxUser, Installer, DefaultClient } from "akeyless-types-commons";
 export declare const convert_to_short_phone_number: (phone_number: string) => string;
 interface Users {
     installer?: Installer;

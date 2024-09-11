@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { DefaultClient } from "../types";
+import { DefaultClient } from "akeyless-types-commons";
 import { query_document, query_document_optional } from "./firebase_helpers";
 export const convert_to_short_phone_number = (phone_number) => {
     return `0${phone_number.split("+972")[1]}`;

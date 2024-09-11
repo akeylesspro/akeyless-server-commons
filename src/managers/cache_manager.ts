@@ -1,4 +1,4 @@
-import { TObject } from "../types";
+import { TObject } from "akeyless-types-commons";
 
 class CacheManager {
     private static instance: CacheManager;

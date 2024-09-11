@@ -1,5 +1,5 @@
 import moment_timezone from "moment-timezone";
-import { TObject } from "../types";
+import { TObject } from "akeyless-types-commons";
 import axios from "axios";
 import { isObject } from "lodash";
 import { parse_error } from "../helpers";

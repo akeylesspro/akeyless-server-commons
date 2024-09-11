@@ -1,4 +1,4 @@
-import { TObject } from "../types";
+import { TObject } from "akeyless-types-commons";
 declare class LoggerManager {
     private static instance;
     private constructor();

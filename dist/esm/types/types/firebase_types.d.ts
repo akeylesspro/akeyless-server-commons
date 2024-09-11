@@ -1,4 +1,4 @@
-import { TObject } from "./global";
+import { TObject } from "akeyless-types-commons";
 export type QueryDocuments = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any) => Promise<TObject<any>[]>;
 export type WhereCondition = {
     field_name: string;

@@ -1,6 +1,4 @@
-export var DefaultClient;
-(function (DefaultClient) {
-    DefaultClient["default"] = "akeyless";
-    DefaultClient["camera_installation"] = "akeyless";
-})(DefaultClient || (DefaultClient = {}));
+export var SomeEnum;
+(function (SomeEnum) {
+})(SomeEnum || (SomeEnum = {}));
 //# sourceMappingURL=global.js.map

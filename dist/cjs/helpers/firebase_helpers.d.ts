@@ -1,6 +1,7 @@
 import firebase_admin from "firebase-admin";
-import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryDocuments, QueryDocumentsByConditions, Snapshot, SnapshotBulk, TObject } from "../types";
+import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryDocuments, QueryDocumentsByConditions, Snapshot, SnapshotBulk } from "../types";
 import { DecodedIdToken } from "firebase-admin/auth";
+import { TObject } from "akeyless-types-commons";
 export declare const db: firebase_admin.firestore.Firestore;
 export declare const get_all_documents: (collection_path: string) => Promise<any[]>;
 export declare const query_documents: QueryDocuments;

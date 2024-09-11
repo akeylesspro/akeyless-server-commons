@@ -1,6 +1,7 @@
 import { verify_token, json_failed, get_users_by_phone, query_document, get_document_by_id, convert_to_short_phone_number } from "../helpers";
 import { logger } from "../managers";
-import { NxUser, Installer, MW, TObject } from "../types";
+import { MW } from "../types";
+import { NxUser, Installer, TObject } from "akeyless-types-commons";
 
 export const verify_user_auth: MW = async (req, res, next) => {
     try {

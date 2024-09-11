@@ -1,4 +1,2 @@
-export declare enum DefaultClient {
-    default = "akeyless",
-    camera_installation = "akeyless"
+export declare enum SomeEnum {
 }

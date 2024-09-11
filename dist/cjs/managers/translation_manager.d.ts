@@ -1,4 +1,4 @@
-import { TObject } from "../types";
+import { TObject } from "akeyless-types-commons";
 export declare class TranslationManager {
     private static instance;
     private data;

@@ -8,11 +8,11 @@ import {
     QueryDocumentsByConditions,
     Snapshot,
     SnapshotBulk,
-    TObject,
 } from "../types";
 import { init_env_variables } from "./global_helpers";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { DecodedIdToken } from "firebase-admin/auth";
+import { TObject } from "akeyless-types-commons";
 // initial firebase
 const required_env_vars = [
     "mode",
