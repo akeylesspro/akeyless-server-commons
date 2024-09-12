@@ -244,15 +244,16 @@ exports.parse_settings = parse_settings;
 /// snapshots
 let snapshots_first_time = [];
 const snapshot = (collection_name, config) => {
-    var _a;
-    config.is_ignore_first_time_changes = (_a = config.is_ignore_first_time_changes) !== null && _a !== void 0 ? _a : true;
     return new Promise((resolve) => {
         exports.db.collection(collection_name).onSnapshot((snapshot) => {
             var _a, _b, _c, _d;
-            const is_first_time = !snapshots_first_time.includes(collection_name);
             const documents = snapshot.docs.flatMap((doc) => simple_extract_data(doc));
-            (_a = config.parse) === null || _a === void 0 ? void 0 : _a.call(config, documents);
-            if (!is_first_time || !config.is_ignore_first_time_changes) {
+            if (!snapshots_first_time.includes(collection_name)) {
+                (_a = config.on_first_time) === null || _a === void 0 ? void 0 : _a.call(config, documents);
+                snapshots_first_time.push(collection_name);
+                resolve();
+            }
+            else {
                 (_b = config.on_add) === null || _b === void 0 ? void 0 : _b.call(config, snapshot
                     .docChanges()
                     .filter((change) => change.type === "added")
@@ -266,10 +267,6 @@ const snapshot = (collection_name, config) => {
                     .filter((change) => change.type === "removed")
                     .map((change) => simple_extract_data(change.doc)));
             }
-            if (is_first_time) {
-                snapshots_first_time.push(collection_name);
-                resolve();
-            }
         }, (error) => {
             managers_1.logger.error(`Error listening to collection: ${collection_name}`, error);
         });
@@ -279,9 +276,12 @@ exports.snapshot = snapshot;
 const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
     managers_1.logger.log("==> init snapshots start... ");
     const snapshots = [
-        (0, exports.snapshot)("nx-translations", { parse: exports.parse_translations }),
-        (0, exports.snapshot)("nx-settings", { parse: (docs) => (0, exports.parse_settings)(docs, "nx-settings") }),
-        (0, exports.snapshot)("settings", { parse: (docs) => (0, exports.parse_settings)(docs, "settings") }),
+        (0, exports.snapshot)("nx-translations", { on_first_time: exports.parse_translations, on_add: exports.parse_translations }),
+        (0, exports.snapshot)("nx-settings", {
+            on_first_time: (docs) => (0, exports.parse_settings)(docs, "nx-settings"),
+            on_add: (docs) => (0, exports.parse_settings)(docs, "nx-settings"),
+        }),
+        (0, exports.snapshot)("settings", { on_first_time: (docs) => (0, exports.parse_settings)(docs, "settings"), on_add: (docs) => (0, exports.parse_settings)(docs, "settings") }),
     ];
     yield Promise.all(snapshots);
     managers_1.logger.log("==> init snapshots end ✅");

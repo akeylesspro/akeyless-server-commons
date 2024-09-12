@@ -236,14 +236,15 @@ export const parse_settings = (documents: any[], name: string): void => {
 let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (collection_name, config) => {
-    config.is_ignore_first_time_changes = config.is_ignore_first_time_changes ?? true;
     return new Promise<void>((resolve) => {
         db.collection(collection_name).onSnapshot(
             (snapshot) => {
-                const is_first_time = !snapshots_first_time.includes(collection_name);
                 const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
-                config.parse?.(documents);
-                if (!is_first_time || !config.is_ignore_first_time_changes) {
+                if (!snapshots_first_time.includes(collection_name)) {
+                    config.on_first_time?.(documents);
+                    snapshots_first_time.push(collection_name);
+                    resolve();
+                } else {
                     config.on_add?.(
                         snapshot
                             .docChanges()
@@ -263,10 +264,6 @@ export const snapshot: Snapshot = (collection_name, config) => {
                             .map((change) => simple_extract_data(change.doc))
                     );
                 }
-                if (is_first_time) {
-                    snapshots_first_time.push(collection_name);
-                    resolve();
-                }
             },
             (error) => {
                 logger.error(`Error listening to collection: ${collection_name}`, error);
@@ -278,9 +275,12 @@ export const snapshot: Snapshot = (collection_name, config) => {
 export const init_snapshots = async (): Promise<void> => {
     logger.log("==> init snapshots start... ");
     const snapshots: ReturnType<Snapshot>[] = [
-        snapshot("nx-translations", { parse: parse_translations }),
-        snapshot("nx-settings", { parse: (docs) => parse_settings(docs, "nx-settings") }),
-        snapshot("settings", { parse: (docs) => parse_settings(docs, "settings") }),
+        snapshot("nx-translations", { on_first_time: parse_translations, on_add: parse_translations }),
+        snapshot("nx-settings", {
+            on_first_time: (docs) => parse_settings(docs, "nx-settings"),
+            on_add: (docs) => parse_settings(docs, "nx-settings"),
+        }),
+        snapshot("settings", { on_first_time: (docs) => parse_settings(docs, "settings"), on_add: (docs) => parse_settings(docs, "settings") }),
     ];
     await Promise.all(snapshots);
     logger.log("==> init snapshots end ✅");

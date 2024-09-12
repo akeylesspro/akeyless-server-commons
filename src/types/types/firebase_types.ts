@@ -34,11 +34,10 @@ export type QueryDocumentOptional = (
 
 export type OnSnapshotCallback = (documents: any[]) => void;
 export interface OnSnapshotConfig {
-    parse?: OnSnapshotCallback;
+    on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    is_ignore_first_time_changes?: boolean;
 }
 
 export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
