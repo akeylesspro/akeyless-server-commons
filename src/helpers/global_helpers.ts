@@ -1,4 +1,4 @@
-import {  JsonFailed, JsonOK } from "../types";
+import { AddAuditRecord, JsonFailed, JsonOK } from "../types";
 import { readFileSync } from "fs";
 import { join } from "path";
 import dotenv from "dotenv";
@@ -18,8 +18,9 @@ export const init_env_variables = (required_vars: string[]) => {
 };
 
 import { logger } from "../managers";
-import { init_snapshots } from "./firebase_helpers";
+import { db, init_snapshots } from "./firebase_helpers";
 import { TObject } from "akeyless-types-commons";
+import { Timestamp } from "firebase-admin/firestore";
 
 export const json_ok: JsonOK<TObject<any> | TObject<any>[]> = (data) => {
     return {
@@ -46,3 +47,18 @@ export const get_version = (packageJsonPath: string): string => {
 };
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {
+    const data = {
+        action,
+        entity,
+        details,
+        datetime: Timestamp.now(),
+        user: user || null,
+    };
+    try {
+        await db.collection("nx-audit").add(data);
+    } catch (error: any) {
+        throw { msg: "unable to add audit record", data };
+    }
+};

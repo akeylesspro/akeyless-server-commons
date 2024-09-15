@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { readFileSync } from "fs";
 import dotenv from "dotenv";
 dotenv.config();
@@ -14,6 +23,8 @@ export const init_env_variables = (required_vars) => {
     return data;
 };
 import { logger } from "../managers";
+import { db } from "./firebase_helpers";
+import { Timestamp } from "firebase-admin/firestore";
 export const json_ok = (data) => {
     return {
         success: true,
@@ -35,4 +46,19 @@ export const get_version = (packageJsonPath) => {
     return packageJson.version;
 };
 export const sleep = (ms = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
+export const add_audit_record = (action, entity, details, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = {
+        action,
+        entity,
+        details,
+        datetime: Timestamp.now(),
+        user: user || null,
+    };
+    try {
+        yield db.collection("nx-audit").add(data);
+    }
+    catch (error) {
+        throw { msg: "unable to add audit record", data };
+    }
+});
 //# sourceMappingURL=global_helpers.js.map
