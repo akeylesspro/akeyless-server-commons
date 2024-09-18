@@ -45,7 +45,7 @@ firebase_admin.initializeApp({
 });
 export const db = firebase_admin.firestore();
 /// extract
-const simple_extract_data = (doc) => {
+export const simple_extract_data = (doc) => {
     const doc_data = doc.data();
     return Object.assign(Object.assign({}, doc_data), { id: doc.id });
 };

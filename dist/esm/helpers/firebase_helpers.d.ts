@@ -3,6 +3,7 @@ import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryD
 import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
 export declare const db: firebase_admin.firestore.Firestore;
+export declare const simple_extract_data: (doc: FirebaseFirestore.DocumentSnapshot) => TObject<any>;
 export declare const get_all_documents: (collection_path: string) => Promise<any[]>;
 export declare const query_documents: QueryDocuments;
 export declare const query_documents_by_conditions: QueryDocumentsByConditions;

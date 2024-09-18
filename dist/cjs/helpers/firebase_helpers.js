@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings = exports.parse_translations = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.db = void 0;
+exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings = exports.parse_translations = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.db = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const global_helpers_1 = require("./global_helpers");
 const managers_1 = require("../managers");
@@ -55,12 +55,13 @@ const simple_extract_data = (doc) => {
     const doc_data = doc.data();
     return Object.assign(Object.assign({}, doc_data), { id: doc.id });
 };
+exports.simple_extract_data = simple_extract_data;
 /// documents
 const get_all_documents = (collection_path) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const snapshot = yield exports.db.collection(collection_path).get();
         const documents = snapshot.docs.flatMap((doc) => {
-            return simple_extract_data(doc);
+            return (0, exports.simple_extract_data)(doc);
         });
         return documents;
     }
@@ -74,7 +75,7 @@ const query_documents = (collection_path, field_name, operator, value) => __awai
     try {
         const querySnapshot = yield exports.db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
-        const documents = documentsData.flatMap((doc) => simple_extract_data(doc));
+        const documents = documentsData.flatMap((doc) => (0, exports.simple_extract_data)(doc));
         return documents;
     }
     catch (error) {
@@ -91,7 +92,7 @@ const query_documents_by_conditions = (collection_path, where_conditions) => __a
         });
         const querySnapshot = yield query.get();
         const documentsData = querySnapshot.docs;
-        const documents = documentsData.flatMap((doc) => simple_extract_data(doc));
+        const documents = documentsData.flatMap((doc) => (0, exports.simple_extract_data)(doc));
         return documents;
     }
     catch (error) {
@@ -108,7 +109,7 @@ const query_document_by_conditions = (collection_path_1, where_conditions_1, ...
         });
         const querySnapshot = yield query.get();
         const documentsData = querySnapshot.docs;
-        const documents = documentsData.flatMap((doc) => simple_extract_data(doc));
+        const documents = documentsData.flatMap((doc) => (0, exports.simple_extract_data)(doc));
         if (!documents[0]) {
             throw "no data returned from DB";
         }
@@ -127,7 +128,7 @@ const query_document = (collection_path_1, field_name_1, operator_1, value_1, ..
     try {
         const querySnapshot = yield exports.db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
-        const documents = documentsData.flatMap((doc) => simple_extract_data(doc));
+        const documents = documentsData.flatMap((doc) => (0, exports.simple_extract_data)(doc));
         if (documents.length < 1) {
             throw `No data to return from: 
       collection: ${collection_path}, 
@@ -149,7 +150,7 @@ const query_document_optional = (collection_path, field_name, operator, value) =
     try {
         const querySnapshot = yield exports.db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
-        const documents = documentsData.flatMap((doc) => simple_extract_data(doc));
+        const documents = documentsData.flatMap((doc) => (0, exports.simple_extract_data)(doc));
         return documents[0] || null;
     }
     catch (error) {
@@ -165,7 +166,7 @@ const get_document_by_id = (collection_path, doc_id) => __awaiter(void 0, void 0
         if (!doc.exists) {
             throw "Document not found, document id: " + doc_id;
         }
-        return simple_extract_data(doc);
+        return (0, exports.simple_extract_data)(doc);
     }
     catch (error) {
         managers_1.logger.error("error from get_document_by_id", error);
@@ -247,7 +248,7 @@ const snapshot = (collection_name, config) => {
     return new Promise((resolve) => {
         exports.db.collection(collection_name).onSnapshot((snapshot) => {
             var _a, _b, _c, _d;
-            const documents = snapshot.docs.flatMap((doc) => simple_extract_data(doc));
+            const documents = snapshot.docs.flatMap((doc) => (0, exports.simple_extract_data)(doc));
             if (!snapshots_first_time.includes(collection_name)) {
                 (_a = config.on_first_time) === null || _a === void 0 ? void 0 : _a.call(config, documents);
                 snapshots_first_time.push(collection_name);
@@ -257,15 +258,15 @@ const snapshot = (collection_name, config) => {
                 (_b = config.on_add) === null || _b === void 0 ? void 0 : _b.call(config, snapshot
                     .docChanges()
                     .filter((change) => change.type === "added")
-                    .map((change) => simple_extract_data(change.doc)));
+                    .map((change) => (0, exports.simple_extract_data)(change.doc)));
                 (_c = config.on_modify) === null || _c === void 0 ? void 0 : _c.call(config, snapshot
                     .docChanges()
                     .filter((change) => change.type === "modified")
-                    .map((change) => simple_extract_data(change.doc)));
+                    .map((change) => (0, exports.simple_extract_data)(change.doc)));
                 (_d = config.on_remove) === null || _d === void 0 ? void 0 : _d.call(config, snapshot
                     .docChanges()
                     .filter((change) => change.type === "removed")
-                    .map((change) => simple_extract_data(change.doc)));
+                    .map((change) => (0, exports.simple_extract_data)(change.doc)));
             }
         }, (error) => {
             managers_1.logger.error(`Error listening to collection: ${collection_name}`, error);

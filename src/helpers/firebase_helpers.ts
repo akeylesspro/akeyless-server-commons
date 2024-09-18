@@ -49,7 +49,7 @@ firebase_admin.initializeApp({
 export const db = firebase_admin.firestore();
 
 /// extract
-const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
+export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
     const doc_data = doc.data();
     return {
         ...doc_data,
