@@ -8,9 +8,16 @@ exports.timestamp_to_millis = timestamp_to_millis;
 exports.sort_by_timestamp = sort_by_timestamp;
 const firestore_1 = require("firebase-admin/firestore");
 const moment_1 = __importDefault(require("moment"));
-function timestamp_to_string(firebaseTimestamp) {
+/**
+ * Converts a Firebase Timestamp object into a formatted string.
+ *
+ * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
+ * @param {string} [format="DD-MM-YYYY HH:mm:ss"] - Optional the format string used to format the date. Default is "DD-MM-YYYY HH:mm:ss".
+ * @returns {string} - A formatted date string according to the specified format or the default format.
+ */
+function timestamp_to_string(firebaseTimestamp, format = "DD-MM-YYYY HH:mm:ss") {
     const timestamp = new firestore_1.Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return (0, moment_1.default)(timestamp.toDate()).format("DD-MM-YYYY HH:mm:ss");
+    return (0, moment_1.default)(timestamp.toDate()).format(format);
 }
 function timestamp_to_millis(firebaseTimestamp) {
     const timestamp = new firestore_1.Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
