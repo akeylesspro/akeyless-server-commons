@@ -17,8 +17,14 @@ const moment_1 = __importDefault(require("moment"));
  */
 function timestamp_to_string(firebaseTimestamp, format = "DD-MM-YYYY HH:mm:ss") {
     const timestamp = new firestore_1.Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return (0, moment_1.default)(timestamp.toDate()).format(format);
+    return (0, moment_1.default)(timestamp.toDate()).utc().format(format);
 }
+/**
+ * Converts a Firebase Timestamp object into milliseconds since the Unix epoch.
+ *
+ * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
+ * @returns {number} - Time in milliseconds
+ */
 function timestamp_to_millis(firebaseTimestamp) {
     const timestamp = new firestore_1.Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
     return timestamp.toMillis();

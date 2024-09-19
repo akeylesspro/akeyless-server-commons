@@ -11,9 +11,14 @@ import { firebase_timestamp } from "akeyless-types-commons";
  */
 export function timestamp_to_string(firebaseTimestamp: firebase_timestamp, format: string = "DD-MM-YYYY HH:mm:ss"): string {
     const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return moment(timestamp.toDate()).format(format);
+    return moment(timestamp.toDate()).utc().format(format);
 }
-
+/**
+ * Converts a Firebase Timestamp object into milliseconds since the Unix epoch.
+ *
+ * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
+ * @returns {number} - Time in milliseconds
+ */
 export function timestamp_to_millis(firebaseTimestamp: firebase_timestamp): number {
     const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
     return timestamp.toMillis();

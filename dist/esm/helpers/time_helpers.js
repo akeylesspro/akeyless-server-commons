@@ -9,8 +9,14 @@ import moment from "moment";
  */
 export function timestamp_to_string(firebaseTimestamp, format = "DD-MM-YYYY HH:mm:ss") {
     const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return moment(timestamp.toDate()).format(format);
+    return moment(timestamp.toDate()).utc().format(format);
 }
+/**
+ * Converts a Firebase Timestamp object into milliseconds since the Unix epoch.
+ *
+ * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
+ * @returns {number} - Time in milliseconds
+ */
 export function timestamp_to_millis(firebaseTimestamp) {
     const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
     return timestamp.toMillis();
