@@ -15,8 +15,10 @@ export declare const set_document: (collection_path: string, doc_id: string, dat
 export declare const add_document: (collection_path: string, data: {}, include_id?: boolean) => Promise<void>;
 export declare const delete_document: (collection_path: string, doc_id: string) => Promise<void>;
 export declare const verify_token: (bearer_token: string) => Promise<DecodedIdToken>;
-export declare const parse_translations: (documents: any[]) => void;
-export declare const parse_settings: (documents: any[], name: string) => void;
+export declare const parse_translations_add_update: (documents: any[]) => void;
+export declare const parse_translations_delete: (documents: any[]) => void;
+export declare const parse_settings_add_update: (documents: any[], name: string) => void;
+export declare const parse_settings_delete: (documents: any[], name: string) => void;
 export declare const snapshot: Snapshot;
 export declare const init_snapshots: () => Promise<void>;
 export declare const snapshots_bulk: SnapshotBulk;

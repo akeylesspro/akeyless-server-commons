@@ -10,8 +10,11 @@ export class TranslationManager {
         }
         return TranslationManager.instance;
     }
-    public setTranslation(data: TObject<any>): void {
+    public setTranslationData(data: TObject<any>): void {
         this.data = data;
+    }
+    public getTranslationData(): TObject<any> {
+        return this.data;
     }
     public get_translation(scope: string, lang: string, entity: string, key: string): string {
         return this.data[scope][lang][entity + "__" + key] || "N/A";
