@@ -22,7 +22,7 @@ const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const emails_settings = (yield (0, _1.get_document_by_id)("nx-settings", "emails"));
         const { sendgrid_api_key, groups, default_from } = emails_settings;
-        let { from, to, cc, group_name, html, text, subject } = mail;
+        let { from, to, cc, group_name, html, text, subject, entity_for_audit } = mail;
         // validate data
         if (from && (typeof from !== "string" || !(0, lodash_1.isObject)(from))) {
             throw "invalid 'from' email address";
@@ -59,6 +59,7 @@ const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
             };
         // send email
         yield mail_1.default.send(msg);
+        yield (0, _1.add_audit_record)("send_email", entity_for_audit, mail);
         managers_1.logger.log("email send successfully", msg);
     }
     catch (error) {
