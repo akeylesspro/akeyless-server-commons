@@ -20,6 +20,9 @@ class TranslationManager {
     get_sms(key) {
         return this.data["sms"]["he"]["nx_devices__" + key] || "N/A";
     }
+    get_email(key) {
+        return this.data["email"]["he"]["nx_devices__" + key] || "N/A";
+    }
 }
 exports.TranslationManager = TranslationManager;
 exports.translation_manager = TranslationManager.getInstance();

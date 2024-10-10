@@ -19,6 +19,9 @@ export class TranslationManager {
     public get_sms(key: string): string {
         return this.data["sms"]["he"]["nx_devices__" + key] || "N/A";
     }
+    public get_email(key: string): string {
+        return this.data["email"]["he"]["nx_devices__" + key] || "N/A";
+    }
 }
 
 export const translation_manager = TranslationManager.getInstance();

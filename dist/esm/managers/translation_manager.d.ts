@@ -7,5 +7,6 @@ export declare class TranslationManager {
     setTranslation(data: TObject<any>): void;
     get_translation(scope: string, lang: string, entity: string, key: string): string;
     get_sms(key: string): string;
+    get_email(key: string): string;
 }
 export declare const translation_manager: TranslationManager;
