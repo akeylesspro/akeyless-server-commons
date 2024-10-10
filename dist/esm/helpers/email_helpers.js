@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import sendgrid from "@sendgrid/mail";
-import { get_document_by_id } from ".";
+import { add_audit_record, get_document_by_id } from ".";
 import { isObject } from "lodash";
 import { logger } from "../managers";
 export const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
@@ -16,7 +16,7 @@ export const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const emails_settings = (yield get_document_by_id("nx-settings", "emails"));
         const { sendgrid_api_key, groups, default_from } = emails_settings;
-        let { from, to, cc, group_name, html, text, subject } = mail;
+        let { from, to, cc, group_name, html, text, subject, entity_for_audit } = mail;
         // validate data
         if (from && (typeof from !== "string" || !isObject(from))) {
             throw "invalid 'from' email address";
@@ -53,6 +53,7 @@ export const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* 
             };
         // send email
         yield sendgrid.send(msg);
+        yield add_audit_record("send_email", entity_for_audit, mail);
         logger.log("email send successfully", msg);
     }
     catch (error) {
