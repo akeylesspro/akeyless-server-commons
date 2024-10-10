@@ -1,5 +1,5 @@
 import sendgrid from "@sendgrid/mail";
-import { get_document_by_id } from ".";
+import { add_audit_record, get_document_by_id } from ".";
 import { isObject } from "lodash";
 import { EmailSettings, Mail } from "../types";
 import { logger } from "../managers";
@@ -8,7 +8,7 @@ export const send_email = async (mail: Mail) => {
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
         const { sendgrid_api_key, groups, default_from } = emails_settings;
-        let { from, to, cc, group_name, html, text, subject } = mail;
+        let { from, to, cc, group_name, html, text, subject, entity_for_audit } = mail;
         // validate data
         if (from && (typeof from !== "string" || !isObject(from))) {
             throw "invalid 'from' email address";
@@ -45,6 +45,7 @@ export const send_email = async (mail: Mail) => {
               };
         // send email
         await sendgrid.send(msg);
+        await add_audit_record("send_email", entity_for_audit, mail);
         logger.log("email send successfully", msg);
     } catch (error) {
         logger.error("error sending email", error);

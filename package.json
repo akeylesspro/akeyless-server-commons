@@ -54,9 +54,7 @@
         "deploy": "npm run build && git add . && git commit -am '.' && git push"
     },
     "files": [
-        "dist/",
-        "README.md",
-        "package.json"
+        "dist/"
     ],
     "repository": {
         "type": "git",
