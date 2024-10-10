@@ -23,7 +23,7 @@ const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
         const emails_settings = (yield (0, _1.get_document_by_id)("nx-settings", "emails"));
         const { sendgrid_api_key, groups, default_from } = emails_settings;
         let { from, to, cc, group_name, html, text, subject, entity_for_audit } = mail;
-        // validate data
+        /// validate data
         if (from && (typeof from !== "string" || !(0, lodash_1.isObject)(from))) {
             throw "invalid 'from' email address";
         }
@@ -39,9 +39,9 @@ const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
                 cc = groups[group_name].cc;
             }
         }
-        // set sendgrid account
+        /// set sendgrid account
         mail_1.default.setApiKey(sendgrid_api_key);
-        // prepare message
+        /// prepare message
         const msg = html
             ? {
                 subject,
@@ -57,10 +57,11 @@ const send_email = (mail) => __awaiter(void 0, void 0, void 0, function* () {
                 cc,
                 text: text,
             };
-        // send email
+        /// send email
         yield mail_1.default.send(msg);
-        yield (0, _1.add_audit_record)("send_email", entity_for_audit, mail);
-        managers_1.logger.log("email send successfully", msg);
+        /// add audit
+        yield (0, _1.add_audit_record)("send_email", entity_for_audit, { subject, from, to, cc: cc || [], group_name: group_name || "" });
+        managers_1.logger.log("email send successfully", { subject, from, to, cc: cc || [], group_name: group_name || "" });
     }
     catch (error) {
         managers_1.logger.error("error sending email", error);
