@@ -8,8 +8,11 @@ export class TranslationManager {
         }
         return TranslationManager.instance;
     }
-    setTranslation(data) {
+    setTranslationData(data) {
         this.data = data;
+    }
+    getTranslationData() {
+        return this.data;
     }
     get_translation(scope, lang, entity, key) {
         return this.data[scope][lang][entity + "__" + key] || "N/A";

@@ -215,19 +215,39 @@ export const verify_token = async (bearer_token: string): Promise<DecodedIdToken
 };
 
 /// parsers
-export const parse_translations = (documents: any[]): void => {
-    const data: TObject<any> = {};
+export const parse_translations_add_update = (documents: any[]): void => {
+    const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
         delete data[doc.id].id;
     });
-    translation_manager.setTranslation(data);
+    translation_manager.setTranslationData(data);
 };
 
-export const parse_settings = (documents: any[], name: string): void => {
-    const data: TObject<any> = {};
+export const parse_translations_delete = (documents: any[]): void => {
+    const data: TObject<any> = translation_manager.getTranslationData();
+    documents.forEach((doc: TObject<any>) => {
+        if (data[doc.id]) {
+            delete data[doc.id];
+        }
+    });
+    translation_manager.setTranslationData(data);
+};
+
+export const parse_settings_add_update = (documents: any[], name: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
+    });
+    cache_manager.setObjectData(name, data);
+};
+
+export const parse_settings_delete = (documents: any[], name: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name, {});
+    documents.forEach((doc: TObject<any>) => {
+        if (data[doc.id]) {
+            delete data[doc.id];
+        }
     });
     cache_manager.setObjectData(name, data);
 };
@@ -275,12 +295,24 @@ export const snapshot: Snapshot = (collection_name, config) => {
 export const init_snapshots = async (): Promise<void> => {
     logger.log("==> init snapshots start... ");
     const snapshots: ReturnType<Snapshot>[] = [
-        snapshot("nx-translations", { on_first_time: parse_translations, on_add: parse_translations }),
-        snapshot("nx-settings", {
-            on_first_time: (docs) => parse_settings(docs, "nx-settings"),
-            on_add: (docs) => parse_settings(docs, "nx-settings"),
+        snapshot("nx-translations", {
+            on_first_time: parse_translations_add_update,
+            on_add: parse_translations_add_update,
+            on_modify: parse_translations_add_update,
+            on_remove: parse_translations_delete,
         }),
-        snapshot("settings", { on_first_time: (docs) => parse_settings(docs, "settings"), on_add: (docs) => parse_settings(docs, "settings") }),
+        snapshot("nx-settings", {
+            on_first_time: (docs) => parse_settings_add_update(docs, "nx-settings"),
+            on_add: (docs) => parse_settings_add_update(docs, "nx-settings"),
+            on_modify: (docs) => parse_settings_add_update(docs, "nx-settings"),
+            on_remove: (docs) => parse_settings_delete(docs, "nx-settings"),
+        }),
+        snapshot("settings", {
+            on_first_time: (docs) => parse_settings_add_update(docs, "settings"),
+            on_add: (docs) => parse_settings_add_update(docs, "settings"),
+            on_modify: (docs) => parse_settings_add_update(docs, "settings"),
+            on_remove: (docs) => parse_settings_delete(docs, "settings"),
+        }),
     ];
     await Promise.all(snapshots);
     logger.log("==> init snapshots end ✅");

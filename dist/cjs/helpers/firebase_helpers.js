@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings = exports.parse_translations = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.db = void 0;
+exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings_delete = exports.parse_settings_add_update = exports.parse_translations_delete = exports.parse_translations_add_update = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.db = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const global_helpers_1 = require("./global_helpers");
 const managers_1 = require("../managers");
@@ -225,23 +225,43 @@ const verify_token = (bearer_token) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.verify_token = verify_token;
 /// parsers
-const parse_translations = (documents) => {
-    const data = {};
+const parse_translations_add_update = (documents) => {
+    const data = managers_1.translation_manager.getTranslationData();
     documents.forEach((doc) => {
         data[doc.id] = doc;
         delete data[doc.id].id;
     });
-    managers_1.translation_manager.setTranslation(data);
+    managers_1.translation_manager.setTranslationData(data);
 };
-exports.parse_translations = parse_translations;
-const parse_settings = (documents, name) => {
-    const data = {};
+exports.parse_translations_add_update = parse_translations_add_update;
+const parse_translations_delete = (documents) => {
+    const data = managers_1.translation_manager.getTranslationData();
+    documents.forEach((doc) => {
+        if (data[doc.id]) {
+            delete data[doc.id];
+        }
+    });
+    managers_1.translation_manager.setTranslationData(data);
+};
+exports.parse_translations_delete = parse_translations_delete;
+const parse_settings_add_update = (documents, name) => {
+    const data = managers_1.cache_manager.getObjectData(name, {});
     documents.forEach((doc) => {
         data[doc.id] = doc;
     });
     managers_1.cache_manager.setObjectData(name, data);
 };
-exports.parse_settings = parse_settings;
+exports.parse_settings_add_update = parse_settings_add_update;
+const parse_settings_delete = (documents, name) => {
+    const data = managers_1.cache_manager.getObjectData(name, {});
+    documents.forEach((doc) => {
+        if (data[doc.id]) {
+            delete data[doc.id];
+        }
+    });
+    managers_1.cache_manager.setObjectData(name, data);
+};
+exports.parse_settings_delete = parse_settings_delete;
 /// snapshots
 let snapshots_first_time = [];
 const snapshot = (collection_name, config) => {
@@ -277,12 +297,24 @@ exports.snapshot = snapshot;
 const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* () {
     managers_1.logger.log("==> init snapshots start... ");
     const snapshots = [
-        (0, exports.snapshot)("nx-translations", { on_first_time: exports.parse_translations, on_add: exports.parse_translations }),
-        (0, exports.snapshot)("nx-settings", {
-            on_first_time: (docs) => (0, exports.parse_settings)(docs, "nx-settings"),
-            on_add: (docs) => (0, exports.parse_settings)(docs, "nx-settings"),
+        (0, exports.snapshot)("nx-translations", {
+            on_first_time: exports.parse_translations_add_update,
+            on_add: exports.parse_translations_add_update,
+            on_modify: exports.parse_translations_add_update,
+            on_remove: exports.parse_translations_delete,
         }),
-        (0, exports.snapshot)("settings", { on_first_time: (docs) => (0, exports.parse_settings)(docs, "settings"), on_add: (docs) => (0, exports.parse_settings)(docs, "settings") }),
+        (0, exports.snapshot)("nx-settings", {
+            on_first_time: (docs) => (0, exports.parse_settings_add_update)(docs, "nx-settings"),
+            on_add: (docs) => (0, exports.parse_settings_add_update)(docs, "nx-settings"),
+            on_modify: (docs) => (0, exports.parse_settings_add_update)(docs, "nx-settings"),
+            on_remove: (docs) => (0, exports.parse_settings_delete)(docs, "nx-settings"),
+        }),
+        (0, exports.snapshot)("settings", {
+            on_first_time: (docs) => (0, exports.parse_settings_add_update)(docs, "settings"),
+            on_add: (docs) => (0, exports.parse_settings_add_update)(docs, "settings"),
+            on_modify: (docs) => (0, exports.parse_settings_add_update)(docs, "settings"),
+            on_remove: (docs) => (0, exports.parse_settings_delete)(docs, "settings"),
+        }),
     ];
     yield Promise.all(snapshots);
     managers_1.logger.log("==> init snapshots end ✅");
