@@ -1,5 +1,4 @@
-export type EmailGroupNames = "general";
-export interface Mail {
+export interface EmailData {
     subject: string;
     entity_for_audit: string;
     to?: string | string[];
@@ -7,17 +6,17 @@ export interface Mail {
         email: string;
         name?: string;
     };
-    group_name?: EmailGroupNames;
+    group_name?: string;
     cc?: string | string[];
-    text?: string;
-    html?: string;
+    body_plain_text?: string;
+    body_html?: string;
 }
 export interface EmailSettings {
     default_from: {
         email: string;
         name?: string;
     };
-    groups: Record<EmailGroupNames, {
+    groups: Record<string, {
         cc?: string[];
         to: string[];
     }>;

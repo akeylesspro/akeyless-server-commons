@@ -1,14 +1,13 @@
-export type EmailGroupNames = "general";
 
-export interface Mail {
+export interface EmailData {
     subject: string;
-    entity_for_audit:string
+    entity_for_audit: string;
     to?: string | string[];
     from?: string | { email: string; name?: string };
-    group_name?: EmailGroupNames;
+    group_name?: string;
     cc?: string | string[];
-    text?: string;
-    html?: string;
+    body_plain_text?: string;
+    body_html?: string;
 }
 
 export interface EmailSettings {
@@ -16,6 +15,6 @@ export interface EmailSettings {
         email: string;
         name?: string;
     };
-    groups: Record<EmailGroupNames, { cc?: string[]; to: string[] }>;
+    groups: Record<string, { cc?: string[]; to: string[] }>;
     sendgrid_api_key: string;
 }

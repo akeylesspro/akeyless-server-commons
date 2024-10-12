@@ -1,2 +1,2 @@
-import { Mail } from "../types";
-export declare const send_email: (mail: Mail) => Promise<void>;
+import { EmailData } from "../types";
+export declare const send_email: (email_data: EmailData) => Promise<void>;
