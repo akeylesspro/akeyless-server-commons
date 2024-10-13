@@ -58,8 +58,8 @@ export const send_email = async (email_data: EmailData) => {
             throw email_result[0].body;
         }
         /// add audit
-        logger.log("email send successfully", email_data);
-        await add_audit_record("send_email", entity_for_audit, email_data);
+        logger.log("email send successfully", { ...email_data, ...msg });
+        await add_audit_record("send_email", entity_for_audit, { ...email_data, ...msg });
     } catch (error) {
         logger.error("error sending email", { error, email_data });
     }

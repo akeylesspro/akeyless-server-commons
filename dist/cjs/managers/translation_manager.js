@@ -20,11 +20,21 @@ class TranslationManager {
     get_translation(scope, lang, entity, key) {
         return this.data[scope][lang][entity + "__" + key] || "N/A";
     }
-    get_sms(key, options) {
-        return this.data["sms"][(options === null || options === void 0 ? void 0 : options.lang) || "he"][(options === null || options === void 0 ? void 0 : options.entity) || "nx_devices" + "__" + key] || "N/A";
+    get_sms(lang, entity, key) {
+        try {
+            return this.data["sms"][lang][entity + "__" + key];
+        }
+        catch (error) {
+            return "N/A";
+        }
     }
-    get_email(key, options) {
-        return this.data["email"][(options === null || options === void 0 ? void 0 : options.lang) || "he"][(options === null || options === void 0 ? void 0 : options.entity) || "nx_devices" + "__" + key] || "N/A";
+    get_email(lang, entity, key) {
+        try {
+            return this.data["email"][lang][entity + "__" + key];
+        }
+        catch (error) {
+            return "N/A";
+        }
     }
 }
 exports.TranslationManager = TranslationManager;

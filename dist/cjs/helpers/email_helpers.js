@@ -73,8 +73,8 @@ const send_email = (email_data) => __awaiter(void 0, void 0, void 0, function* (
             throw email_result[0].body;
         }
         /// add audit
-        managers_1.logger.log("email send successfully", email_data);
-        yield (0, _1.add_audit_record)("send_email", entity_for_audit, email_data);
+        managers_1.logger.log("email send successfully", Object.assign(Object.assign({}, email_data), msg));
+        yield (0, _1.add_audit_record)("send_email", entity_for_audit, Object.assign(Object.assign({}, email_data), msg));
     }
     catch (error) {
         managers_1.logger.error("error sending email", { error, email_data });

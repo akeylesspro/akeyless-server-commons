@@ -67,8 +67,8 @@ export const send_email = (email_data) => __awaiter(void 0, void 0, void 0, func
             throw email_result[0].body;
         }
         /// add audit
-        logger.log("email send successfully", email_data);
-        yield add_audit_record("send_email", entity_for_audit, email_data);
+        logger.log("email send successfully", Object.assign(Object.assign({}, email_data), msg));
+        yield add_audit_record("send_email", entity_for_audit, Object.assign(Object.assign({}, email_data), msg));
     }
     catch (error) {
         logger.error("error sending email", { error, email_data });
