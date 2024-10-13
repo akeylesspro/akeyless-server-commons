@@ -1,5 +1,5 @@
 import { TObject } from "akeyless-types-commons";
-import { TranslationOptions } from "../types";
+import { EntityOptions, LangOptions } from "../types";
 
 export class TranslationManager {
     private static instance: TranslationManager;
@@ -20,11 +20,19 @@ export class TranslationManager {
     public get_translation(scope: string, lang: string, entity: string, key: string): string {
         return this.data[scope][lang][entity + "__" + key] || "N/A";
     }
-    public get_sms(key: string, options?: TranslationOptions): string {
-        return this.data["sms"][options?.lang || "he"][options?.entity || "nx_devices" + "__" + key] || "N/A";
+    public get_sms(lang: LangOptions, entity: EntityOptions, key: string): string {
+        try {
+            return this.data["sms"][lang][entity + "__" + key];
+        } catch (error) {
+            return "N/A";
+        }
     }
-    public get_email(key: string, options?: TranslationOptions): string {
-        return this.data["email"][options?.lang || "he"][options?.entity || "nx_devices" + "__" + key] || "N/A";
+    public get_email(lang: LangOptions, entity: EntityOptions, key: string): string {
+        try {
+            return this.data["email"][lang][entity + "__" + key];
+        } catch (error) {
+            return "N/A";
+        }
     }
 }
 

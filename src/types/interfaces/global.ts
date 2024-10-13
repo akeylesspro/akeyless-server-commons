@@ -10,7 +10,6 @@ export interface MandatoryParams {
     headers?: MandatoryObject[];
 }
 
-export interface TranslationOptions {
-    lang?: "he" | "en" | (string & {});
-    entity?: string;
-}
+export type LangOptions =  "he" | "en" | "ru" | (string & {});
+export type EntityOptions = "nx-devices" | (string & {});
+
