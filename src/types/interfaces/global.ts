@@ -9,3 +9,7 @@ export interface MandatoryParams {
     body?: MandatoryObject[];
     headers?: MandatoryObject[];
 }
+
+export type LangOptions =  "he" | "en" | "ru" | (string & {});
+export type EntityOptions = "nx-devices" | (string & {});
+
