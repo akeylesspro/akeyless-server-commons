@@ -11,5 +11,5 @@ export interface MandatoryParams {
 }
 
 export type LangOptions =  "he" | "en" | "ru" | (string & {});
-export type EntityOptions = "nx-devices" | (string & {});
+export type EntityOptions = "nx_devices" | (string & {});
 
