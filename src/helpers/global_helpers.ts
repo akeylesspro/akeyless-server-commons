@@ -1,6 +1,5 @@
 import { AddAuditRecord, JsonFailed, JsonOK } from "../types";
 import { readFileSync } from "fs";
-import { join } from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
