@@ -15,7 +15,7 @@ export type WhereCondition = {
 
 export type QueryDocumentsByConditions = (collection_path: string, where_conditions: WhereCondition[]) => Promise<TObject<any>[]>;
 
-export type QueryDocumentByConditions = (collection_path: string, where_conditions: WhereCondition[]) => Promise<TObject<any>>;
+export type QueryDocumentByConditions = (collection_path: string, where_conditions: WhereCondition[], log?: boolean) => Promise<TObject<any>>;
 
 export type QueryDocument = (
     collection_path: string,
