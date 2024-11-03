@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -16,10 +39,10 @@ exports.nextjs_init = exports.basic_init = exports.start_server = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const managers_1 = require("../managers");
-const firebase_helpers_1 = require("./firebase_helpers");
 const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
-    const env_data = (0, firebase_helpers_1.init_env_variables)(["port", "mode"]);
+    const { init_env_variables } = yield Promise.resolve().then(() => __importStar(require("./firebase_helpers")));
+    const env_data = init_env_variables(["port", "mode"]);
     app.use((0, cors_1.default)());
     app.use(express_1.default.json());
     main_router(app);
@@ -34,7 +57,8 @@ const start_server = (main_router, project_name, version) => __awaiter(void 0, v
 exports.start_server = start_server;
 const basic_init = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield (0, firebase_helpers_1.init_snapshots)();
+        const { init_snapshots } = yield Promise.resolve().then(() => __importStar(require("./firebase_helpers")));
+        yield init_snapshots();
         yield (0, exports.start_server)(main_router, project_name, version);
     }
     catch (error) {
@@ -45,7 +69,8 @@ const basic_init = (main_router, project_name, version) => __awaiter(void 0, voi
 exports.basic_init = basic_init;
 const nextjs_init = (project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield (0, firebase_helpers_1.init_snapshots)();
+        const { init_snapshots } = yield Promise.resolve().then(() => __importStar(require("./firebase_helpers")));
+        yield init_snapshots();
         console.log("project name:", project_name);
         console.log("version :", version);
     }

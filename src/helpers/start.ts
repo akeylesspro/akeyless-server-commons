@@ -1,11 +1,13 @@
 import express, { Express } from "express";
 import cors from "cors";
 import { logger } from "../managers";
-import { init_env_variables, init_snapshots } from "./firebase_helpers";
+// import { init_env_variables, init_snapshots } from "./firebase_helpers";
 import { MainRouter } from "../types";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string) => {
     const app: Express = express();
+    const { init_env_variables } = await import("./firebase_helpers");
+
     const env_data = init_env_variables(["port", "mode"]);
     app.use(cors());
     app.use(express.json());
@@ -21,6 +23,8 @@ export const start_server = async (main_router: MainRouter, project_name: string
 
 export const basic_init = async (main_router: MainRouter, project_name: string, version: string) => {
     try {
+        const { init_snapshots } = await import("./firebase_helpers");
+
         await init_snapshots();
         await start_server(main_router, project_name, version);
     } catch (error) {
@@ -30,6 +34,8 @@ export const basic_init = async (main_router: MainRouter, project_name: string, 
 };
 export const nextjs_init = async (project_name: string, version: string) => {
     try {
+        const { init_snapshots } = await import("./firebase_helpers");
+
         await init_snapshots();
         console.log("project name:", project_name);
         console.log("version :", version);
