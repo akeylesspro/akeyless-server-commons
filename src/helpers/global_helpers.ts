@@ -1,8 +1,7 @@
 import { AddAuditRecord, JsonFailed, JsonOK } from "../types";
 import { readFileSync } from "fs";
-
 import { logger } from "../managers";
-import { db, init_snapshots } from "./firebase_helpers";
+import { db, init_snapshots } from "./";
 import { TObject } from "akeyless-types-commons";
 import { Timestamp } from "firebase-admin/firestore";
 
