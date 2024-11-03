@@ -29,3 +29,13 @@ export const basic_init = async (main_router: MainRouter, project_name: string, 
         process.exit(1);
     }
 };
+export const nextjs_init = async (project_name: string, version: string) => {
+    try {
+        await init_snapshots();
+        console.log("project name:", project_name);
+        console.log("version :", version);
+    } catch (error) {
+        logger.error("Error from init function: ", error);
+        process.exit(1);
+    }
+};

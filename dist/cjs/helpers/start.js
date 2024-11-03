@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.basic_init = exports.start_server = void 0;
+exports.nextjs_init = exports.basic_init = exports.start_server = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const global_helpers_1 = require("./global_helpers");
@@ -44,4 +44,16 @@ const basic_init = (main_router, project_name, version) => __awaiter(void 0, voi
     }
 });
 exports.basic_init = basic_init;
+const nextjs_init = (project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield (0, firebase_helpers_1.init_snapshots)();
+        console.log("project name:", project_name);
+        console.log("version :", version);
+    }
+    catch (error) {
+        managers_1.logger.error("Error from init function: ", error);
+        process.exit(1);
+    }
+});
+exports.nextjs_init = nextjs_init;
 //# sourceMappingURL=start.js.map

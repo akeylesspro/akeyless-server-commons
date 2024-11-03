@@ -36,4 +36,15 @@ export const basic_init = (main_router, project_name, version) => __awaiter(void
         process.exit(1);
     }
 });
+export const nextjs_init = (project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield init_snapshots();
+        console.log("project name:", project_name);
+        console.log("version :", version);
+    }
+    catch (error) {
+        logger.error("Error from init function: ", error);
+        process.exit(1);
+    }
+});
 //# sourceMappingURL=start.js.map
