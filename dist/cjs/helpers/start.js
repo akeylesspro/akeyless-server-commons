@@ -15,12 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.nextjs_init = exports.basic_init = exports.start_server = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const global_helpers_1 = require("./global_helpers");
 const managers_1 = require("../managers");
 const firebase_helpers_1 = require("./firebase_helpers");
 const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
-    const env_data = (0, global_helpers_1.init_env_variables)(["port", "mode"]);
+    const env_data = (0, firebase_helpers_1.init_env_variables)(["port", "mode"]);
     app.use((0, cors_1.default)());
     app.use(express_1.default.json());
     main_router(app);

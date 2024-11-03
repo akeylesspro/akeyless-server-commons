@@ -1,8 +1,7 @@
 import express, { Express } from "express";
 import cors from "cors";
-import { init_env_variables } from "./global_helpers";
 import { logger } from "../managers";
-import { init_snapshots } from "./firebase_helpers";
+import { init_env_variables, init_snapshots } from "./firebase_helpers";
 import { MainRouter } from "../types";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string) => {

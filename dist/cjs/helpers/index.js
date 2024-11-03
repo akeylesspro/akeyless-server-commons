@@ -16,9 +16,9 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./global_helpers"), exports);
 __exportStar(require("./firebase_helpers"), exports);
+__exportStar(require("./start"), exports);
 __exportStar(require("./time_helpers"), exports);
 __exportStar(require("./login_helpers"), exports);
 __exportStar(require("./sms_helpers"), exports);
-__exportStar(require("./start"), exports);
 __exportStar(require("./email_helpers"), exports);
 //# sourceMappingURL=index.js.map

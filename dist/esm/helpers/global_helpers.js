@@ -8,21 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { readFileSync } from "fs";
-import dotenv from "dotenv";
-dotenv.config();
-export const init_env_variables = (required_vars) => {
-    const data = {};
-    required_vars.forEach((varName) => {
-        const env_val = process.env[varName];
-        if (!env_val) {
-            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
-            process.exit(1);
-        }
-        data[varName] = env_val;
-    });
-    return data;
-};
-import { logger } from "../managers";
 import { db } from "./firebase_helpers";
 import { Timestamp } from "firebase-admin/firestore";
 export const json_ok = (data) => {

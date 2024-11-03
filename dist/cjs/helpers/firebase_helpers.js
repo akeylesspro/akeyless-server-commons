@@ -12,10 +12,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings_delete = exports.parse_settings_add_update = exports.parse_translations_delete = exports.parse_translations_add_update = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.db = void 0;
+exports.snapshots_bulk = exports.init_snapshots = exports.snapshot = exports.parse_settings_delete = exports.parse_settings_add_update = exports.parse_translations_delete = exports.parse_translations_add_update = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.db = exports.init_env_variables = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
-const global_helpers_1 = require("./global_helpers");
 const managers_1 = require("../managers");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const init_env_variables = (required_vars) => {
+    const data = {};
+    required_vars.forEach((varName) => {
+        const env_val = process.env[varName];
+        if (!env_val) {
+            managers_1.logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
+            process.exit(1);
+        }
+        data[varName] = env_val;
+    });
+    return data;
+};
+exports.init_env_variables = init_env_variables;
 // initial firebase
 const required_env_vars = [
     "mode",
@@ -32,7 +46,7 @@ const required_env_vars = [
     "client_x509_cert_url",
     "universe_domain",
 ];
-const env_data = (0, global_helpers_1.init_env_variables)(required_env_vars);
+const env_data = (0, exports.init_env_variables)(required_env_vars);
 const service_account_firebase = {
     type: env_data.type,
     project_id: env_data.project_id,

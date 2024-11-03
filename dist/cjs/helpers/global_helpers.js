@@ -8,28 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.add_audit_record = exports.sleep = exports.get_version = exports.parse_error = exports.json_failed = exports.json_ok = exports.init_env_variables = void 0;
+exports.add_audit_record = exports.sleep = exports.get_version = exports.parse_error = exports.json_failed = exports.json_ok = void 0;
 const fs_1 = require("fs");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const init_env_variables = (required_vars) => {
-    const data = {};
-    required_vars.forEach((varName) => {
-        const env_val = process.env[varName];
-        if (!env_val) {
-            managers_1.logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
-            process.exit(1);
-        }
-        data[varName] = env_val;
-    });
-    return data;
-};
-exports.init_env_variables = init_env_variables;
-const managers_1 = require("../managers");
 const firebase_helpers_1 = require("./firebase_helpers");
 const firestore_1 = require("firebase-admin/firestore");
 const json_ok = (data) => {

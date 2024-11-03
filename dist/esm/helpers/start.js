@@ -9,9 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import express from "express";
 import cors from "cors";
-import { init_env_variables } from "./global_helpers";
 import { logger } from "../managers";
-import { init_snapshots } from "./firebase_helpers";
+import { init_env_variables, init_snapshots } from "./firebase_helpers";
 export const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = express();
     const env_data = init_env_variables(["port", "mode"]);

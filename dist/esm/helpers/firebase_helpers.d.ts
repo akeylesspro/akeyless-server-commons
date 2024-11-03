@@ -2,6 +2,7 @@ import firebase_admin from "firebase-admin";
 import { QueryDocument, QueryDocumentByConditions, QueryDocumentOptional, QueryDocuments, QueryDocumentsByConditions, Snapshot, SnapshotBulk } from "../types";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
+export declare const init_env_variables: (required_vars: string[]) => TObject<string>;
 export declare const db: firebase_admin.firestore.Firestore;
 export declare const simple_extract_data: (doc: FirebaseFirestore.DocumentSnapshot) => TObject<any>;
 export declare const get_all_documents: (collection_path: string) => Promise<any[]>;

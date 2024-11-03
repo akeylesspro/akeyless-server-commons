@@ -8,8 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import firebase_admin from "firebase-admin";
-import { init_env_variables } from "./global_helpers";
 import { cache_manager, logger, translation_manager } from "../managers";
+import dotenv from "dotenv";
+dotenv.config();
+export const init_env_variables = (required_vars) => {
+    const data = {};
+    required_vars.forEach((varName) => {
+        const env_val = process.env[varName];
+        if (!env_val) {
+            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
+            process.exit(1);
+        }
+        data[varName] = env_val;
+    });
+    return data;
+};
 // initial firebase
 const required_env_vars = [
     "mode",
