@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import express from "express";
 import cors from "cors";
 import { logger } from "../managers";
+import { init_env_variables, init_snapshots } from "./";
 export const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = express();
-    const { init_env_variables } = yield import("./firebase_helpers");
     const env_data = init_env_variables(["port", "mode"]);
     app.use(cors());
     app.use(express.json());
@@ -38,7 +38,6 @@ export const basic_init = (main_router, project_name, version) => __awaiter(void
 });
 export const nextjs_init = (project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { init_snapshots } = yield import("./firebase_helpers");
         yield init_snapshots();
         console.log("project name:", project_name);
         console.log("version :", version);

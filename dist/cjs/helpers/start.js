@@ -39,10 +39,10 @@ exports.nextjs_init = exports.basic_init = exports.start_server = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const managers_1 = require("../managers");
+const _1 = require("./");
 const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
-    const { init_env_variables } = yield Promise.resolve().then(() => __importStar(require("./firebase_helpers")));
-    const env_data = init_env_variables(["port", "mode"]);
+    const env_data = (0, _1.init_env_variables)(["port", "mode"]);
     app.use((0, cors_1.default)());
     app.use(express_1.default.json());
     main_router(app);
@@ -69,8 +69,7 @@ const basic_init = (main_router, project_name, version) => __awaiter(void 0, voi
 exports.basic_init = basic_init;
 const nextjs_init = (project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { init_snapshots } = yield Promise.resolve().then(() => __importStar(require("./firebase_helpers")));
-        yield init_snapshots();
+        yield (0, _1.init_snapshots)();
         console.log("project name:", project_name);
         console.log("version :", version);
     }
