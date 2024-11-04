@@ -1,6 +1,6 @@
 import { TObject } from "akeyless-types-commons";
 
-class CacheManager {
+export class CacheManager {
     private static instance: CacheManager;
     private data: TObject<any[]> | TObject<any> = {};
 

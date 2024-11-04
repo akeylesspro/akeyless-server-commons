@@ -40,4 +40,4 @@ declare class LoggerManager {
 }
 declare const logger: LoggerManager;
 
-export { TranslationManager, cache_manager, get_cache_manager, logger, translation_manager };
+export { CacheManager, TranslationManager, cache_manager, get_cache_manager, logger, translation_manager };
