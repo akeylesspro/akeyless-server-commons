@@ -1,62 +1,48 @@
 {
     "name": "akeyless-server-commons",
     "version": "1.0.0",
-    "main": "dist/cjs/index.js",
-    "types": "dist/cjs/index.d.ts",
-    "exports": {
-        ".": {
-            "require": "./dist/cjs/index.js",
-            "import": "./dist/esm/index.js",
-            "types": "./dist/cjs/index.d.ts"
-        },
-        "./helpers": {
-            "require": "./dist/cjs/helpers/index.js",
-            "import": "./dist/esm/helpers/index.js",
-            "types": "./dist/cjs/helpers/index.d.ts"
-        },
-        "./managers": {
-            "require": "./dist/cjs/managers/index.js",
-            "import": "./dist/esm/managers/index.js",
-            "types": "./dist/cjs/managers/index.d.ts"
-        },
-        "./middlewares": {
-            "require": "./dist/cjs/middlewares/index.js",
-            "import": "./dist/esm/middlewares/index.js",
-            "types": "./dist/cjs/middlewares/index.d.ts"
-        },
-        "./types": {
-            "require": "./dist/cjs/types/index.js",
-            "import": "./dist/esm/types/index.js",
-            "types": "./dist/cjs/types/index.d.ts"
-        }
-    },
-    "typesVersions": {
-        "*": {
-            "helpers": [
-                "dist/esm/helpers"
-            ],
-            "middlewares": [
-                "dist/esm/middlewares"
-            ],
-            "managers": [
-                "dist/esm/managers"
-            ],
-            "types": [
-                "dist/esm/types"
-            ]
-        }
-    },
     "scripts": {
         "build:cjs": "tsc --project tsconfig.cjs.json",
         "build:esm": "tsc --project tsconfig.esm.json",
-        "build": "npm run build:cjs && npm run build:esm",
+        "build": "powershell -ExecutionPolicy Bypass -File ./ps/build.ps1",
         "update_type": "npm i git+https://github.com/akeylesspro/akeyless-types-commons.git",
         "deploy": "npm run build && git add . && git commit -am '.' && git push",
         "start": "npm run build && node ./dist/cjs/"
     },
-    "files": [
-        "dist/"
-    ],
+    "exports": {
+        "./managers": {
+            "import": "./dist/managers/index.mjs",
+            "require": "./dist/managers/index.js"
+        },
+        "./middlewares": {
+            "import": "./dist/middlewares/index.mjs",
+            "require": "./dist/middlewares/index.js"
+        },
+        "./helpers": {
+            "import": "./dist/helpers/index.mjs",
+            "require": "./dist/helpers/index.js"
+        },
+        "./types": {
+            "import": "./dist/types/index.mjs",
+            "require": "./dist/types/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "managers": [
+                "./dist/managers/index.d.ts"
+            ],
+            "middlewares": [
+                "./dist/middlewares/index.d.ts"
+            ],
+            "helpers": [
+                "./dist/helpers/index.d.ts"
+            ],
+            "types": [
+                "./dist/types/index.d.ts"
+            ]
+        }
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/akeylesspro/akeyless-server-commons.git"
@@ -79,6 +65,7 @@
     },
     "dependencies": {
         "@sendgrid/mail": "^8.1.3",
-        "akeyless-types-commons": "github:akeylesspro/akeyless-types-commons"
+        "akeyless-types-commons": "github:akeylesspro/akeyless-types-commons",
+        "tsup": "^8.3.5"
     }
 }

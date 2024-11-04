@@ -1,23 +1,7 @@
 import { AddAuditRecord, JsonFailed, JsonOK } from "../types";
 import { readFileSync } from "fs";
-import dotenv from "dotenv";
-dotenv.config();
-
-export const init_env_variables = (required_vars: string[]) => {
-    const data: TObject<string> = {};
-    required_vars.forEach((varName) => {
-        const env_val = process.env[varName];
-        if (!env_val) {
-            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
-            process.exit(1);
-        }
-        data[varName] = env_val;
-    });
-    return data;
-};
-
 import { logger } from "../managers";
-import { db, init_snapshots } from "./firebase_helpers";
+import { db, init_snapshots } from "./";
 import { TObject } from "akeyless-types-commons";
 import { Timestamp } from "firebase-admin/firestore";
 

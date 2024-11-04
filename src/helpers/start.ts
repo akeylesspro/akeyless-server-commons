@@ -1,8 +1,7 @@
 import express, { Express } from "express";
 import cors from "cors";
-import { init_env_variables } from "./global_helpers";
 import { logger } from "../managers";
-import { init_snapshots } from "./firebase_helpers";
+import { init_env_variables, init_snapshots } from "./";
 import { MainRouter } from "../types";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string) => {
@@ -22,8 +21,20 @@ export const start_server = async (main_router: MainRouter, project_name: string
 
 export const basic_init = async (main_router: MainRouter, project_name: string, version: string) => {
     try {
+        const { init_snapshots } = await import("./firebase_helpers");
+
         await init_snapshots();
         await start_server(main_router, project_name, version);
+    } catch (error) {
+        logger.error("Error from init function: ", error);
+        process.exit(1);
+    }
+};
+export const nextjs_init = async (project_name: string, version: string) => {
+    try {
+        await init_snapshots();
+        console.log("project name:", project_name);
+        console.log("version :", version);
     } catch (error) {
         logger.error("Error from init function: ", error);
         process.exit(1);
