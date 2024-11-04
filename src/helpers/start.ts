@@ -21,8 +21,6 @@ export const start_server = async (main_router: MainRouter, project_name: string
 
 export const basic_init = async (main_router: MainRouter, project_name: string, version: string) => {
     try {
-        const { init_snapshots } = await import("./firebase_helpers");
-
         await init_snapshots();
         await start_server(main_router, project_name, version);
     } catch (error) {
@@ -36,7 +34,7 @@ export const nextjs_init = async (project_name: string, version: string) => {
         console.log("project name:", project_name);
         console.log("version :", version);
     } catch (error) {
-        logger.error("Error from init function: ", error);
+        logger.error("Error from nextjs init function: ", error);
         process.exit(1);
     }
 };

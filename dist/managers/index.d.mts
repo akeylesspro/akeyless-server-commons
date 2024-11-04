@@ -1,16 +1,6 @@
 import { TObject } from 'akeyless-types-commons';
 
-declare class CacheManager {
-    private static instance;
-    private data;
-    private constructor();
-    static getInstance(): CacheManager;
-    setArrayData(key: string, data: any[]): void;
-    getArrayData(key: string): any[];
-    setObjectData(key: string, data: any): void;
-    getObjectData(key: string, default_value?: any): any;
-}
-declare const cache_manager: CacheManager;
+declare const cache_manager: any;
 
 type LangOptions = "he" | "en" | "ru" | (string & {});
 type EntityOptions = "nx_devices" | (string & {});

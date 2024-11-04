@@ -34,4 +34,11 @@ class CacheManager {
     }
 }
 
-export const cache_manager = CacheManager.getInstance();
+// export const cache_manager = CacheManager.getInstance();
+// singleton.js
+
+const cache_manager = global.cache_manager || CacheManager.getInstance();
+if (process.env.NODE_ENV !== "production") {
+    global.cache_manager = CacheManager.getInstance();
+}
+export { cache_manager };
