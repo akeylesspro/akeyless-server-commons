@@ -8,7 +8,7 @@ class CacheManager {
 
     public static getInstance(): CacheManager {
         console.log("hello from get instance");
-        
+
         if (!CacheManager.instance) {
             CacheManager.instance = new CacheManager();
         }
@@ -39,7 +39,7 @@ class CacheManager {
 // export const cache_manager = CacheManager.getInstance();
 console.log("global exists: ", Boolean(global.cache_manager));
 
-const cache_manager = global.cache_manager || CacheManager.getInstance();
+const cache_manager: CacheManager = global.cache_manager || CacheManager.getInstance();
 if (process.env.NODE_ENV !== "production") {
     global.cache_manager = cache_manager;
 }
