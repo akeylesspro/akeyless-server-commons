@@ -36,12 +36,10 @@ class CacheManager {
     }
 }
 
-// export const cache_manager = CacheManager.getInstance();
-console.log("global exists: ", Boolean(global.cache_manager));
-
 const cache_manager: CacheManager = global.cache_manager || CacheManager.getInstance();
-if (process.env.NODE_ENV !== "production") {
-    global.cache_manager = cache_manager;
-}
+global.cache_manager = cache_manager;
 
-export { cache_manager };
+
+const get_global_cache_manager = (): CacheManager => global.cache_manager;
+
+export { cache_manager, get_global_cache_manager };
