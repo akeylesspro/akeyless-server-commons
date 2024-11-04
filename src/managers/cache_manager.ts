@@ -43,5 +43,7 @@ function get_cache_manager(): CacheManager {
     console.log("hello from get_cache_manager");
     return global.cache_manager;
 }
-
+export const stam = () => {
+    return "stam";
+};
 export { cache_manager, get_cache_manager };
