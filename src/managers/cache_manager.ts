@@ -41,4 +41,5 @@ const cache_manager = global.cache_manager || CacheManager.getInstance();
 if (process.env.NODE_ENV !== "production") {
     global.cache_manager = CacheManager.getInstance();
 }
+global.xyz= "sssss"
 export { cache_manager };
