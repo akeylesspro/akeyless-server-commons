@@ -5,6 +5,19 @@ import { db, init_snapshots } from "./";
 import { TObject } from "akeyless-types-commons";
 import { Timestamp } from "firebase-admin/firestore";
 
+export const init_env_variables = (required_vars: string[]) => {
+    const data: TObject<string> = {};
+    required_vars.forEach((varName) => {
+        const env_val = process.env[varName];
+        if (!env_val) {
+            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
+            process.exit(1);
+        }
+        data[varName] = env_val;
+    });
+    return data;
+};
+
 export const json_ok: JsonOK<TObject<any> | TObject<any>[]> = (data) => {
     return {
         success: true,

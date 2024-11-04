@@ -48,6 +48,7 @@ interface EmailData {
     body_html?: string;
 }
 
+declare const init_env_variables: (required_vars: string[]) => TObject<string>;
 declare const json_ok: JsonOK<TObject<any> | TObject<any>[]>;
 declare const json_failed: JsonFailed;
 declare const parse_error: (error: any) => any;
@@ -55,7 +56,6 @@ declare const get_version: (packageJsonPath: string) => string;
 declare const sleep: (ms?: number) => Promise<unknown>;
 declare const add_audit_record: AddAuditRecord;
 
-declare const init_env_variables: (required_vars: string[]) => TObject<string>;
 declare const db: firebase_admin.firestore.Firestore;
 declare const simple_extract_data: (doc: FirebaseFirestore.DocumentSnapshot) => TObject<any>;
 declare const get_all_documents: (collection_path: string) => Promise<any[]>;

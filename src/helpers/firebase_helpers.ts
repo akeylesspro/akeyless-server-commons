@@ -13,25 +13,13 @@ import { cache_manager, logger, translation_manager } from "../managers";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
+import { init_env_variables } from "./global_helpers";
 dotenv.config();
 
-export const init_env_variables = (required_vars: string[]) => {
-    const data: TObject<string> = {};
-    required_vars.forEach((varName) => {
-        const env_val = process.env[varName];
-        if (!env_val) {
-            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
-            process.exit(1);
-        }
-        data[varName] = env_val;
-    });
-    return data;
-};
+
 
 // initial firebase
 const required_env_vars = [
-    "mode",
-    "port",
     "type",
     "project_id",
     "private_key_id",
