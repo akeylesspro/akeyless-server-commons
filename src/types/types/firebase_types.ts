@@ -37,6 +37,7 @@ export interface OnSnapshotConfig {
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
+    alternative_name?: string;
 }
 
 export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;

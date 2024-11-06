@@ -18,5 +18,5 @@ const event: EventFromDevice = {
     await init_snapshots();
     await init_snapshots_cars();
     await init_snapshots_mobile();
-    await push_event_to_mobile_users(event);
+    //await push_event_to_mobile_users(event);
 })();

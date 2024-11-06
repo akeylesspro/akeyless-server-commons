@@ -232,34 +232,34 @@ const parse__delete__translations = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-const parse__add_update__settings = (documents: any[], cache_name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+const parse__add_update__settings = (documents: any[], name_for_cache: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
     });
-    cache_manager.setObjectData(cache_name, data);
+    cache_manager.setObjectData(name_for_cache, data);
 };
 
-const parse__delete__settings = (documents: any[], cache_name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+const parse__delete__settings = (documents: any[], name_for_cache: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
             delete data[doc.id];
         }
     });
-    cache_manager.setObjectData(cache_name, data);
+    cache_manager.setObjectData(name_for_cache, data);
 };
 
-const parse_add_update__as_object = (documents: any[], cache_name: string, doc_key_property: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+const parse_add_update__as_object = (documents: any[], name_for_cache: string, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc[doc_key_property]] = doc;
     });
     cache_manager.setObjectData(doc_key_property, data);
 };
 
-const parse__delete__as_object = (documents: any[], cache_name: string, doc_key_property: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+const parse__delete__as_object = (documents: any[], name_for_cache: string, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc[doc_key_property]]) {
             delete data[doc[doc_key_property]];
@@ -268,18 +268,18 @@ const parse__delete__as_object = (documents: any[], cache_name: string, doc_key_
     cache_manager.setObjectData(doc_key_property, data);
 };
 
-const parse__add_update__as_array = (documents: any[], cache_name: string): void => {
-    parse__delete__as_array(documents, cache_name);
-    const existing_array: any[] = cache_manager.getArrayData(cache_name);
+const parse__add_update__as_array = (documents: any[], name_for_cache: string): void => {
+    parse__delete__as_array(documents, name_for_cache);
+    const existing_array: any[] = cache_manager.getArrayData(name_for_cache);
     const updated_array = [...existing_array, ...documents];
-    cache_manager.setArrayData(cache_name, updated_array);
+    cache_manager.setArrayData(name_for_cache, updated_array);
 };
 
-const parse__delete__as_array = (documents: any[], cache_name: string): void => {
-    let array: any[] = cache_manager.getArrayData(cache_name);
+const parse__delete__as_array = (documents: any[], name_for_cache: string): void => {
+    const existing_array: any[] = cache_manager.getArrayData(name_for_cache);
     const keys_to_delete = documents.map((doc) => doc.id);
-    array = array.filter((doc) => !keys_to_delete.includes(doc.id));
-    cache_manager.setArrayData(cache_name, array);
+    const updated_array = existing_array.filter((doc) => !keys_to_delete.includes(doc.id));
+    cache_manager.setArrayData(name_for_cache, updated_array);
 };
 
 /// snapshots
@@ -290,9 +290,9 @@ export const snapshot: Snapshot = (collection_name, config) => {
         db.collection(collection_name).onSnapshot(
             (snapshot) => {
                 const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
-                if (!snapshots_first_time.includes(collection_name)) {
+                if (!snapshots_first_time.includes(config.alternative_name || collection_name)) {
                     config.on_first_time?.(documents);
-                    snapshots_first_time.push(collection_name);
+                    snapshots_first_time.push(config.alternative_name || collection_name);
                     resolve();
                 } else {
                     config.on_add?.(
@@ -364,12 +364,14 @@ export const init_snapshots_cars = async (): Promise<void> => {
             on_add: (docs) => parse__add_update__as_array(docs, "units"),
             on_modify: (docs) => parse__add_update__as_array(docs, "units"),
             on_remove: (docs) => parse__add_update__as_array(docs, "units"),
+            alternative_name: "units_simple",
         }),
         snapshot("usersUnits", {
             on_first_time: (docs) => parse__add_update__as_array(docs, "usersUnits"),
             on_add: (docs) => parse__add_update__as_array(docs, "usersUnits"),
             on_modify: (docs) => parse__add_update__as_array(docs, "usersUnits"),
             on_remove: (docs) => parse__add_update__as_array(docs, "usersUnits"),
+            alternative_name: "usersUnits_simple",
         }),
     ];
     await Promise.all(snapshots);
@@ -384,13 +386,13 @@ export const init_snapshots_mobile = async (): Promise<void> => {
             on_first_time: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
             on_add: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
             on_modify: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
-            on_remove: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
+            on_remove: (docs) => parse__delete__as_array(docs, "mobile_users_app_pro"),
         }),
         snapshot("app_pro_extra_pushes", {
             on_first_time: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
             on_add: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
             on_modify: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
-            on_remove: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
+            on_remove: (docs) => parse__delete__as_array(docs, "app_pro_extra_pushes"),
         }),
     ];
     await Promise.all(snapshots);

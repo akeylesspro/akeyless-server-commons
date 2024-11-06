@@ -1,7 +1,7 @@
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
-import { messaging, query_document, query_document_by_conditions, query_documents } from "./firebase_helpers";
+import { messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice } from "akeyless-types-commons";
 
