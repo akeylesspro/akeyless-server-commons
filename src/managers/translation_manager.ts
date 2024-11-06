@@ -1,5 +1,6 @@
 import { TObject } from "akeyless-types-commons";
 import { EntityOptions, LangOptions } from "../types";
+import { logger } from "./logger_manager";
 
 export class TranslationManager {
     private static instance: TranslationManager;
@@ -18,7 +19,8 @@ export class TranslationManager {
         return this.data;
     }
     public get_translation(scope: string, lang: string, entity: string, key: string): string {
-        return this.data[scope][lang][entity + "__" + key] || "N/A";
+        key = entity + (entity === "" ? "" : "__") + key;
+        return this.data[scope][lang][key] || key;
     }
     public get_sms(lang: LangOptions, entity: EntityOptions, key: string): string {
         try {

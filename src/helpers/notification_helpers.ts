@@ -1,8 +1,9 @@
 import axios from "axios";
-import { cache_manager, logger } from "../managers";
+import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
-import { messaging } from "./firebase_helpers";
+import { messaging, query_document, query_document_by_conditions, query_documents } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
+import { Car, EventFromDevice } from "akeyless-types-commons";
 
 export const send_sms = async (phone_number: string, text: string, entity_for_audit: string): Promise<void> => {
     try {
@@ -39,7 +40,45 @@ export const send_sms = async (phone_number: string, text: string, entity_for_au
     }
 };
 
-export const push_event_to_mobile_users = async (event: Event) => {};
+export const push_event_to_mobile_users = async (event: EventFromDevice) => {
+    const units = cache_manager.getArrayData("units");
+    const users_units = cache_manager.getArrayData("usersUnits");
+    const mobile_users_app_pro = cache_manager.getArrayData("mobile_users_app_pro");
+    const app_pro_extra_pushes = cache_manager.getArrayData("app_pro_extra_pushes");
+    if (!units.length || !users_units.length || !mobile_users_app_pro.length) {
+        throw "push_event_to_mobile_users. missing cached data for any of the following: units, usersUnits, mobile_users_app_pro, app_pro_extra_pushes";
+    }
+
+    ///-- main driver
+    const unit = units.find((unit) => unit.carId == event.car_number);
+    const main_driver = mobile_users_app_pro.find((user) => user.short_phone_number == unit.userPhone);
+
+    ///-- secondary drivers
+    const secondary_units = users_units.filter((unit) => unit.carId == event.car_number);
+    const secondary_phone_numbers = secondary_units.map((unit) => unit.phone);
+    const secondary_drivers = mobile_users_app_pro.filter((user) => secondary_phone_numbers.includes(user.long_phone_number));
+
+    ///-- extra users
+    const extra_uids = app_pro_extra_pushes.filter((doc) => doc.car_number == event.car_number).map((doc) => doc.uid);
+    const extra_drivers = extra_uids.length > 0 ? mobile_users_app_pro.filter((user) => extra_uids.includes(user.uid)) : [];
+
+    logger.log("drivers", { main_driver, secondary_drivers, extra_drivers });
+
+    const drivers = [main_driver, ...secondary_drivers, ...extra_drivers];
+    for (const mobile_user of drivers) {
+        const source = event.source == "erm" || event.source == "erm2" ? "erm" : event.source;
+        if (mobile_user.disabled_events?.[event.car_number]?.[source]?.includes(event.event_id)) {
+            logger.log(
+                `push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`
+            );
+            continue;
+        }
+        const language = { heb: "he", en: "en", ru: "ru" }[mobile_user.language];
+        const message_title = translation_manager.get_translation("push_notifications", language, "title", "event_from_device");
+        const message_body = translation_manager.get_translation("events_from_device", language, "", event.event_name);
+        await send_fcm_message(message_title, message_body, [mobile_user.fcm_token], "");
+    }
+};
 
 type FuncSendFcmMessage = (
     title: string,
@@ -48,7 +87,9 @@ type FuncSendFcmMessage = (
     custom_sound?: string
 ) => Promise<{ success: boolean; response: string; success_count?: number; failure_count?: number }>;
 
-export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_tokens, custom_sound) => {
+export const send_fcm_message: FuncSendFcmMessage = async (title: string, body: string, fcm_tokens: string[], custom_sound?: string) => {
+    logger.log(`send_fcm_message. title: ${title}, body: ${body}, fcm_tokens: ${fcm_tokens.join(", ")}`);
+    return;
     fcm_tokens = [...new Set(fcm_tokens)];
     if (fcm_tokens.length == 0) {
         return {
@@ -100,8 +141,7 @@ export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_toke
         const { successCount: success_count, failureCount: failure_count, responses } = response;
         if (success_count && !failure_count) {
             logger.log(`send_fcm_message. Successfully sent to all ${success_count} recipients. `, { title, body });
-        }
-        if (success_count && failure_count) {
+        } else if (success_count && failure_count) {
             logger.log(`send_fcm_message. Successfully sent to ${success_count} recipients, but failed to sent to ${failure_count} recipients`, {
                 title,
                 body,

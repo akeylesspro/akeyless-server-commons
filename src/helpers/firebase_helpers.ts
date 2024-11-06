@@ -1,3 +1,4 @@
+import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
     OnSnapshotConfig,
@@ -15,8 +16,6 @@ import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
 import { init_env_variables } from "./global_helpers";
 dotenv.config();
-
-
 
 // initial firebase
 const required_env_vars = [
@@ -131,11 +130,7 @@ export const query_document: QueryDocument = async (collection_path, field_name,
         const documentsData = querySnapshot.docs;
         const documents = documentsData.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
         if (documents.length < 1) {
-            throw `No data to return from: 
-      collection: ${collection_path}, 
-      field_name: ${field_name}, 
-      operator: ${operator}, 
-      value:${value}`;
+            throw `No data to return from: collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
         }
         return documents[0];
     } catch (error) {
@@ -219,7 +214,7 @@ export const verify_token = async (bearer_token: string): Promise<DecodedIdToken
 };
 
 /// parsers
-export const parse_translations_add_update = (documents: any[]): void => {
+const parse__add_update__translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
@@ -228,7 +223,7 @@ export const parse_translations_add_update = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-export const parse_translations_delete = (documents: any[]): void => {
+const parse__delete__translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
@@ -238,22 +233,54 @@ export const parse_translations_delete = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-export const parse_settings_add_update = (documents: any[], name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(name, {});
+const parse__add_update__settings = (documents: any[], cache_name: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
     });
-    cache_manager.setObjectData(name, data);
+    cache_manager.setObjectData(cache_name, data);
 };
 
-export const parse_settings_delete = (documents: any[], name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(name, {});
+const parse__delete__settings = (documents: any[], cache_name: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
             delete data[doc.id];
         }
     });
-    cache_manager.setObjectData(name, data);
+    cache_manager.setObjectData(cache_name, data);
+};
+
+const parse_add_update__as_object = (documents: any[], cache_name: string, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+    documents.forEach((doc: TObject<any>) => {
+        data[doc[doc_key_property]] = doc;
+    });
+    cache_manager.setObjectData(doc_key_property, data);
+};
+
+const parse__delete__as_object = (documents: any[], cache_name: string, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
+    documents.forEach((doc: TObject<any>) => {
+        if (data[doc[doc_key_property]]) {
+            delete data[doc[doc_key_property]];
+        }
+    });
+    cache_manager.setObjectData(doc_key_property, data);
+};
+
+const parse__add_update__as_array = (documents: any[], cache_name: string): void => {
+    parse__delete__as_array(documents, cache_name);
+    const existing_array: any[] = cache_manager.getArrayData(cache_name);
+    const updated_array = [...existing_array, ...documents];
+    cache_manager.setArrayData(cache_name, updated_array);
+};
+
+const parse__delete__as_array = (documents: any[], cache_name: string): void => {
+    let array: any[] = cache_manager.getArrayData(cache_name);
+    const keys_to_delete = documents.map((doc) => doc.id);
+    array = array.filter((doc) => !keys_to_delete.includes(doc.id));
+    cache_manager.setArrayData(cache_name, array);
 };
 
 /// snapshots
@@ -297,33 +324,76 @@ export const snapshot: Snapshot = (collection_name, config) => {
 };
 
 export const init_snapshots = async (): Promise<void> => {
-    logger.log("==> init snapshots start... ");
+    const start = performance.now();
+    logger.log("==> init snapshots started... ");
     const snapshots: ReturnType<Snapshot>[] = [
         snapshot("nx-translations", {
-            on_first_time: parse_translations_add_update,
-            on_add: parse_translations_add_update,
-            on_modify: parse_translations_add_update,
-            on_remove: parse_translations_delete,
+            on_first_time: parse__add_update__translations,
+            on_add: parse__add_update__translations,
+            on_modify: parse__add_update__translations,
+            on_remove: parse__delete__translations,
         }),
         snapshot("nx-settings", {
-            on_first_time: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_add: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_modify: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_remove: (docs) => parse_settings_delete(docs, "nx-settings"),
+            on_first_time: (docs) => parse__add_update__settings(docs, "nx-settings"),
+            on_add: (docs) => parse__add_update__settings(docs, "nx-settings"),
+            on_modify: (docs) => parse__add_update__settings(docs, "nx-settings"),
+            on_remove: (docs) => parse__delete__settings(docs, "nx-settings"),
         }),
         snapshot("settings", {
-            on_first_time: (docs) => parse_settings_add_update(docs, "settings"),
-            on_add: (docs) => parse_settings_add_update(docs, "settings"),
-            on_modify: (docs) => parse_settings_add_update(docs, "settings"),
-            on_remove: (docs) => parse_settings_delete(docs, "settings"),
+            on_first_time: (docs) => parse__add_update__settings(docs, "settings"),
+            on_add: (docs) => parse__add_update__settings(docs, "settings"),
+            on_modify: (docs) => parse__add_update__settings(docs, "settings"),
+            on_remove: (docs) => parse__delete__settings(docs, "settings"),
         }),
     ];
     await Promise.all(snapshots);
-    logger.log("==> init snapshots end ✅");
+    logger.log(`==> init snapshots ended in ${(performance.now() - start).toFixed(2)} ms`);
 };
 
 export const snapshots_bulk: SnapshotBulk = async (snapshots, label?) => {
     logger.log(`==> ${label || "custom snapshots"} start... `);
     await Promise.all(snapshots);
-    logger.log(`==> ${label || "custom snapshots"} end ✅`);
+    logger.log(`==> ${label || "custom snapshots"} end`);
+};
+
+export const init_snapshots_cars = async (): Promise<void> => {
+    const start = performance.now();
+    logger.log("==> init snapshots-cars started... ");
+    const snapshots: ReturnType<Snapshot>[] = [
+        snapshot("units", {
+            on_first_time: (docs) => parse__add_update__as_array(docs, "units"),
+            on_add: (docs) => parse__add_update__as_array(docs, "units"),
+            on_modify: (docs) => parse__add_update__as_array(docs, "units"),
+            on_remove: (docs) => parse__add_update__as_array(docs, "units"),
+        }),
+        snapshot("usersUnits", {
+            on_first_time: (docs) => parse__add_update__as_array(docs, "usersUnits"),
+            on_add: (docs) => parse__add_update__as_array(docs, "usersUnits"),
+            on_modify: (docs) => parse__add_update__as_array(docs, "usersUnits"),
+            on_remove: (docs) => parse__add_update__as_array(docs, "usersUnits"),
+        }),
+    ];
+    await Promise.all(snapshots);
+    logger.log(`==> init snapshots-cars ended in ${(performance.now() - start).toFixed(2)} ms`);
+};
+
+export const init_snapshots_mobile = async (): Promise<void> => {
+    const start = performance.now();
+    logger.log("==> init snapshots-mobile started... ");
+    const snapshots: ReturnType<Snapshot>[] = [
+        snapshot("mobile_users_app_pro", {
+            on_first_time: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
+            on_add: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
+            on_modify: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
+            on_remove: (docs) => parse__add_update__as_array(docs, "mobile_users_app_pro"),
+        }),
+        snapshot("app_pro_extra_pushes", {
+            on_first_time: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
+            on_add: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
+            on_modify: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
+            on_remove: (docs) => parse__add_update__as_array(docs, "app_pro_extra_pushes"),
+        }),
+    ];
+    await Promise.all(snapshots);
+    logger.log(`==> init snapshots-cars mobile in ${(performance.now() - start).toFixed(2)} ms`);
 };

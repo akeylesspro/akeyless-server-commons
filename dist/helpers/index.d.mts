@@ -1,5 +1,6 @@
 import { Express } from 'express';
-import { TObject, Installer, firebase_timestamp, DefaultClient, NxUser } from 'akeyless-types-commons';
+import { TObject, Installer, firebase_timestamp, DefaultClient, NxUser, EventFromDevice } from 'akeyless-types-commons';
+import * as firebase_admin_messaging from 'firebase-admin/messaging';
 import firebase_admin from 'firebase-admin';
 import { DecodedIdToken } from 'firebase-admin/auth';
 
@@ -57,6 +58,7 @@ declare const sleep: (ms?: number) => Promise<unknown>;
 declare const add_audit_record: AddAuditRecord;
 
 declare const db: firebase_admin.firestore.Firestore;
+declare const messaging: firebase_admin_messaging.Messaging;
 declare const simple_extract_data: (doc: FirebaseFirestore.DocumentSnapshot) => TObject<any>;
 declare const get_all_documents: (collection_path: string) => Promise<any[]>;
 declare const query_documents: QueryDocuments;
@@ -69,13 +71,11 @@ declare const set_document: (collection_path: string, doc_id: string, data: {}) 
 declare const add_document: (collection_path: string, data: {}, include_id?: boolean) => Promise<void>;
 declare const delete_document: (collection_path: string, doc_id: string) => Promise<void>;
 declare const verify_token: (bearer_token: string) => Promise<DecodedIdToken>;
-declare const parse_translations_add_update: (documents: any[]) => void;
-declare const parse_translations_delete: (documents: any[]) => void;
-declare const parse_settings_add_update: (documents: any[], name: string) => void;
-declare const parse_settings_delete: (documents: any[], name: string) => void;
 declare const snapshot: Snapshot;
 declare const init_snapshots: () => Promise<void>;
 declare const snapshots_bulk: SnapshotBulk;
+declare const init_snapshots_cars: () => Promise<void>;
+declare const init_snapshots_mobile: () => Promise<void>;
 
 declare const start_server: (main_router: MainRouter, project_name: string, version: string) => Promise<void>;
 declare const basic_init: (main_router: MainRouter, project_name: string, version: string) => Promise<void>;
@@ -106,7 +106,15 @@ interface Users {
 declare const get_users_by_phone: (phone_number: string, default_client_key?: DefaultClient) => Promise<Users>;
 
 declare const send_sms: (phone_number: string, text: string, entity_for_audit: string) => Promise<void>;
+declare const push_event_to_mobile_users: (event: EventFromDevice) => Promise<void>;
+type FuncSendFcmMessage = (title: string, body: string, fcm_tokens: string[], custom_sound?: string) => Promise<{
+    success: boolean;
+    response: string;
+    success_count?: number;
+    failure_count?: number;
+}>;
+declare const send_fcm_message: FuncSendFcmMessage;
 
 declare const send_email: (email_data: EmailData) => Promise<void>;
 
-export { add_audit_record, add_document, basic_init, convert_to_short_phone_number, db, delete_document, get_all_documents, get_document_by_id, get_users_by_phone, get_version, init_env_variables, init_snapshots, json_failed, json_ok, nextjs_init, parse_error, parse_settings_add_update, parse_settings_delete, parse_translations_add_update, parse_translations_delete, query_document, query_document_by_conditions, query_document_optional, query_documents, query_documents_by_conditions, send_email, send_sms, set_document, simple_extract_data, sleep, snapshot, snapshots_bulk, sort_by_timestamp, start_server, timestamp_to_millis, timestamp_to_string, verify_token };
+export { add_audit_record, add_document, basic_init, convert_to_short_phone_number, db, delete_document, get_all_documents, get_document_by_id, get_users_by_phone, get_version, init_env_variables, init_snapshots, init_snapshots_cars, init_snapshots_mobile, json_failed, json_ok, messaging, nextjs_init, parse_error, push_event_to_mobile_users, query_document, query_document_by_conditions, query_document_optional, query_documents, query_documents_by_conditions, send_email, send_fcm_message, send_sms, set_document, simple_extract_data, sleep, snapshot, snapshots_bulk, sort_by_timestamp, start_server, timestamp_to_millis, timestamp_to_string, verify_token };
