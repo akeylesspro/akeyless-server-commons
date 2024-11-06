@@ -1,7 +1,6 @@
 import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
-    OnSnapshotConfig,
     QueryDocument,
     QueryDocumentByConditions,
     QueryDocumentOptional,

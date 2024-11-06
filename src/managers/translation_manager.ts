@@ -1,6 +1,5 @@
 import { TObject } from "akeyless-types-commons";
 import { EntityOptions, LangOptions } from "../types";
-import { logger } from "./logger_manager";
 
 export class TranslationManager {
     private static instance: TranslationManager;

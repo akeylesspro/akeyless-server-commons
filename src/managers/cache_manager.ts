@@ -7,8 +7,6 @@ export class CacheManager {
     private constructor() {}
 
     public static getInstance(): CacheManager {
-        console.log("hello from get instance");
-
         if (!CacheManager.instance) {
             CacheManager.instance = new CacheManager();
         }
@@ -40,9 +38,5 @@ export const cache_manager: CacheManager = global.cache_manager || CacheManager.
 global.cache_manager = cache_manager;
 
 export function get_cache_manager(): CacheManager {
-    console.log("hello from get_cache_manager");
     return global.cache_manager;
-}
-export function stam() {
-    return "stam stam";
 }
