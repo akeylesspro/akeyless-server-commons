@@ -25,13 +25,13 @@ type QueryDocumentsByConditions = (collection_path: string, where_conditions: Wh
 type QueryDocumentByConditions = (collection_path: string, where_conditions: WhereCondition[], log?: boolean) => Promise<TObject<any>>;
 type QueryDocument = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log?: boolean) => Promise<TObject<any>>;
 type QueryDocumentOptional = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any) => Promise<TObject<any> | null>;
-type OnSnapshotCallback = (documents: any[]) => void;
+type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
 interface OnSnapshotConfig {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    alternative_name?: string;
+    name_for_cache?: string;
 }
 type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;

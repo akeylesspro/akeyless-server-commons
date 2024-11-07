@@ -31,13 +31,13 @@ export type QueryDocumentOptional = (
     value: any
 ) => Promise<TObject<any> | null>;
 
-export type OnSnapshotCallback = (documents: any[]) => void;
+export type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
 export interface OnSnapshotConfig {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    alternative_name?: string;
+    name_for_cache?: string;
 }
 
 export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
