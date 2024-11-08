@@ -32,13 +32,20 @@ export type QueryDocumentOptional = (
 ) => Promise<TObject<any> | null>;
 
 export type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
-export interface OnSnapshotConfig {
+
+export interface OnSnapshotParsers {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    name_for_cache?: string;
 }
 
-export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+export interface OnSnapshotConfig extends OnSnapshotParsers {
+    collection_name?: string;
+    extra_parsers?: OnSnapshotParsers[];
+}
+
+export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+export type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
+export type SnapshotBulkByNames = (collection_names: CollectionName[], label: string, extra_parsers?: OnSnapshotParsers[]) => Promise<void>;

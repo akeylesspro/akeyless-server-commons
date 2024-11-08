@@ -26,15 +26,20 @@ type QueryDocumentByConditions = (collection_path: string, where_conditions: Whe
 type QueryDocument = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log?: boolean) => Promise<TObject<any>>;
 type QueryDocumentOptional = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any) => Promise<TObject<any> | null>;
 type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
-interface OnSnapshotConfig {
+interface OnSnapshotParsers {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    name_for_cache?: string;
 }
-type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+interface OnSnapshotConfig extends OnSnapshotParsers {
+    collection_name?: string;
+    extra_parsers?: OnSnapshotParsers[];
+}
+type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
+type SnapshotBulkByNames = (collection_names: CollectionName[], label: string, extra_parsers?: OnSnapshotParsers[]) => Promise<void>;
 
 interface EmailData {
     subject: string;
@@ -74,9 +79,8 @@ declare const delete_document: (collection_path: string, doc_id: string) => Prom
 declare const verify_token: (bearer_token: string) => Promise<DecodedIdToken>;
 declare const snapshot: Snapshot;
 declare const init_snapshots: () => Promise<void>;
-declare const snapshots_bulk: SnapshotBulk;
-declare const init_snapshots_cars: () => Promise<void>;
-declare const init_snapshots_mobile: () => Promise<void>;
+declare const snapshot_bulk: SnapshotBulk;
+declare const snapshot_bulk_by_names: SnapshotBulkByNames;
 
 declare const start_server: (main_router: MainRouter, project_name: string, version: string) => Promise<void>;
 declare const basic_init: (main_router: MainRouter, project_name: string, version: string) => Promise<void>;
@@ -118,4 +122,4 @@ declare const send_fcm_message: FuncSendFcmMessage;
 
 declare const send_email: (email_data: EmailData) => Promise<void>;
 
-export { add_audit_record, add_document, basic_init, convert_to_short_phone_number, db, delete_document, get_all_documents, get_document_by_id, get_users_by_phone, get_version, init_env_variables, init_snapshots, init_snapshots_cars, init_snapshots_mobile, json_failed, json_ok, messaging, nextjs_init, parse_error, push_event_to_mobile_users, query_document, query_document_by_conditions, query_document_optional, query_documents, query_documents_by_conditions, send_email, send_fcm_message, send_sms, set_document, simple_extract_data, sleep, snapshot, snapshots_bulk, sort_by_timestamp, start_server, timestamp_to_millis, timestamp_to_string, verify_token };
+export { add_audit_record, add_document, basic_init, convert_to_short_phone_number, db, delete_document, get_all_documents, get_document_by_id, get_users_by_phone, get_version, init_env_variables, init_snapshots, json_failed, json_ok, messaging, nextjs_init, parse_error, push_event_to_mobile_users, query_document, query_document_by_conditions, query_document_optional, query_documents, query_documents_by_conditions, send_email, send_fcm_message, send_sms, set_document, simple_extract_data, sleep, snapshot, snapshot_bulk, snapshot_bulk_by_names, sort_by_timestamp, start_server, timestamp_to_millis, timestamp_to_string, verify_token };

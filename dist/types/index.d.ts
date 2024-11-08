@@ -26,15 +26,20 @@ type QueryDocumentByConditions = (collection_path: string, where_conditions: Whe
 type QueryDocument = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log?: boolean) => Promise<TObject<any>>;
 type QueryDocumentOptional = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any) => Promise<TObject<any> | null>;
 type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
-interface OnSnapshotConfig {
+interface OnSnapshotParsers {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
-    name_for_cache?: string;
 }
-type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+interface OnSnapshotConfig extends OnSnapshotParsers {
+    collection_name?: string;
+    extra_parsers?: OnSnapshotParsers[];
+}
+type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
+type SnapshotBulkByNames = (collection_names: CollectionName[], label: string, extra_parsers?: OnSnapshotParsers[]) => Promise<void>;
 
 interface MandatoryObject {
     key: string;
@@ -77,4 +82,4 @@ interface EmailSettings {
 declare enum SomeEnum {
 }
 
-export { type AddAuditRecord, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, SomeEnum, type WhereCondition };
+export { type AddAuditRecord, type CollectionName, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type OnSnapshotParsers, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, type SnapshotBulkByNames, SomeEnum, type WhereCondition };

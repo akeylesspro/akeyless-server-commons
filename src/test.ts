@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { init_snapshots, init_snapshots_cars, init_snapshots_mobile, push_event_to_mobile_users } from "./helpers";
+import { init_snapshots, push_event_to_mobile_users, snapshot_bulk_by_names } from "./helpers";
 import { EventFromDevice } from "akeyless-types-commons";
 
 const event: EventFromDevice = {
@@ -16,7 +16,21 @@ const event: EventFromDevice = {
 
 (async () => {
     await init_snapshots();
-    await init_snapshots_cars();
-    await init_snapshots_mobile();
+    await snapshot_bulk_by_names(["units", "usersUnits", "mobile_users_app_pro", "app_pro_extra_pushes"], "cars and mobile users", [
+        {
+            on_first_time: (docs, config) => {
+                console.log(`on_first_time: ${config.collection_name} / ${docs.length}`);
+            },
+            on_add: (docs, config) => {
+                console.log(`on_add: ${config.collection_name} / ${docs.length}`);
+            },
+            on_modify: (docs, config) => {
+                console.log(`on_modify: ${config.collection_name} / ${docs.length}`);
+            },
+            on_remove: (docs, config) => {
+                console.log(`on_remove: ${config.collection_name} / ${docs.length}`);
+            },
+        },
+    ]);
     await push_event_to_mobile_users(event);
 })();

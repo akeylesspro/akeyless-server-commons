@@ -45,6 +45,11 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
     const users_units = cache_manager.getArrayData("usersUnits");
     const mobile_users_app_pro = cache_manager.getArrayData("mobile_users_app_pro");
     const app_pro_extra_pushes = cache_manager.getArrayData("app_pro_extra_pushes");
+
+    console.log(
+        `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`
+    );
+
     if (!units.length || !users_units.length || !mobile_users_app_pro.length) {
         throw "push_event_to_mobile_users. missing cached data for any of the following: units, usersUnits, mobile_users_app_pro, app_pro_extra_pushes";
     }
