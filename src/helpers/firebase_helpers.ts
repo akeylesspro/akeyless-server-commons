@@ -363,19 +363,27 @@ export const snapshot_bulk: SnapshotBulk = async (snapshots, label?) => {
     logger.log(`==> ${label || "custom snapshots"} ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };
 
-export const snapshot_bulk_by_names: SnapshotBulkByNames = async (collection_names, label, extra_parsers?) => {
+export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
     const start = performance.now();
-    logger.log(`==> snapshot_bulk_by_names: ${label} started... `);
-    const snapshots = collection_names.map((collection_name) => {
-        return snapshot({
-            collection_name: collection_name,
-            extra_parsers: extra_parsers,
-            on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
-            on_add: (docs, config) => parse__add_update__as_array(docs, config),
-            on_modify: (docs, config) => parse__add_update__as_array(docs, config),
-            on_remove: (docs, config) => parse__delete__as_array(docs, config),
-        });
+    logger.log(`==> snapshot_bulk_by_names started... `);
+    const snapshots = params.map((param) => {
+        return typeof param === "string"
+            ? snapshot({
+                  collection_name: param,
+                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
+              })
+            : snapshot({
+                  collection_name: param.collection_name,
+                  extra_parsers: param.extra_parsers,
+                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
+              });
     });
     await Promise.all(snapshots);
-    logger.log(`==> snapshot_bulk_by_names: ${label} ended. It took ${(performance.now() - start).toFixed(2)} ms`);
+    logger.log(`==> snapshot_bulk_by_names ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };

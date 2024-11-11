@@ -39,7 +39,12 @@ interface OnSnapshotConfig extends OnSnapshotParsers {
 type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
 type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
-type SnapshotBulkByNames = (collection_names: CollectionName[], label: string, extra_parsers?: OnSnapshotParsers[]) => Promise<void>;
+type SnapshotBulkByNamesParamObject = {
+    collection_name: CollectionName;
+    extra_parsers: OnSnapshotParsers[];
+};
+type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
+type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
 
 interface EmailData {
     subject: string;

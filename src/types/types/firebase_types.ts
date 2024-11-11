@@ -47,5 +47,11 @@ export interface OnSnapshotConfig extends OnSnapshotParsers {
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+
 export type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
-export type SnapshotBulkByNames = (collection_names: CollectionName[], label: string, extra_parsers?: OnSnapshotParsers[]) => Promise<void>;
+export type SnapshotBulkByNamesParamObject = {
+    collection_name: CollectionName;
+    extra_parsers: OnSnapshotParsers[];
+};
+export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
+export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
