@@ -11,7 +11,6 @@ declare class CacheManager {
     getObjectData(key: string, default_value?: any): any;
 }
 declare const cache_manager: CacheManager;
-declare function get_cache_manager(): CacheManager;
 
 type LangOptions = "he" | "en" | "ru" | (string & {});
 type EntityOptions = "nx_devices" | (string & {});
@@ -40,4 +39,4 @@ declare class LoggerManager {
 }
 declare const logger: LoggerManager;
 
-export { CacheManager, TranslationManager, cache_manager, get_cache_manager, logger, translation_manager };
+export { CacheManager, TranslationManager, cache_manager, logger, translation_manager };
