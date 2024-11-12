@@ -1,5 +1,4 @@
 import { TObject } from "akeyless-types-commons";
-import firbase_admin from "firebase-admin";
 export type QueryDocuments = (
     collection_path: string,
     field_name: string,
@@ -32,13 +31,26 @@ export type QueryDocumentOptional = (
     value: any
 ) => Promise<TObject<any> | null>;
 
-export type OnSnapshotCallback = (documents: any[]) => void;
-export interface OnSnapshotConfig {
+export type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
+
+export interface OnSnapshotParsers {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
 }
 
-export type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+export interface OnSnapshotConfig extends OnSnapshotParsers {
+    collection_name?: string;
+    extra_parsers?: OnSnapshotParsers[];
+}
+
+export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+
+export type SnapshotBulkByNamesParamObject = {
+    collection_name: string;
+    extra_parsers: OnSnapshotParsers[];
+};
+export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
+export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;

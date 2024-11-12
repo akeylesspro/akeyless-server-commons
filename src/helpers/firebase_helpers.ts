@@ -1,3 +1,4 @@
+import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
     OnSnapshotConfig,
@@ -8,6 +9,7 @@ import {
     QueryDocumentsByConditions,
     Snapshot,
     SnapshotBulk,
+    SnapshotBulkByNames,
 } from "../types";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { DecodedIdToken } from "firebase-admin/auth";
@@ -15,8 +17,6 @@ import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
 import { init_env_variables } from "./global_helpers";
 dotenv.config();
-
-
 
 // initial firebase
 const required_env_vars = [
@@ -50,6 +50,7 @@ firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(service_account_firebase as firebase_admin.ServiceAccount),
 });
 export const db = firebase_admin.firestore();
+export const messaging = firebase_admin.messaging();
 
 /// extract
 export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
@@ -130,11 +131,7 @@ export const query_document: QueryDocument = async (collection_path, field_name,
         const documentsData = querySnapshot.docs;
         const documents = documentsData.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
         if (documents.length < 1) {
-            throw `No data to return from: 
-      collection: ${collection_path}, 
-      field_name: ${field_name}, 
-      operator: ${operator}, 
-      value:${value}`;
+            throw `No data to return from: collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
         }
         return documents[0];
     } catch (error) {
@@ -218,7 +215,7 @@ export const verify_token = async (bearer_token: string): Promise<DecodedIdToken
 };
 
 /// parsers
-export const parse_translations_add_update = (documents: any[]): void => {
+const parse__add_update__translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
@@ -227,7 +224,7 @@ export const parse_translations_add_update = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-export const parse_translations_delete = (documents: any[]): void => {
+const parse__delete__translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
@@ -237,92 +234,156 @@ export const parse_translations_delete = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-export const parse_settings_add_update = (documents: any[], name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(name, {});
+const parse__add_update__settings = (documents: any[], name_for_cache: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
     });
-    cache_manager.setObjectData(name, data);
+    cache_manager.setObjectData(name_for_cache, data);
 };
 
-export const parse_settings_delete = (documents: any[], name: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(name, {});
+const parse__delete__settings = (documents: any[], name_for_cache: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
             delete data[doc.id];
         }
     });
-    cache_manager.setObjectData(name, data);
+    cache_manager.setObjectData(name_for_cache, data);
+};
+
+const parse_add_update__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
+    documents.forEach((doc: TObject<any>) => {
+        data[doc[doc_key_property]] = doc;
+    });
+    cache_manager.setObjectData(doc_key_property, data);
+};
+
+const parse__delete__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
+    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
+    documents.forEach((doc: TObject<any>) => {
+        if (data[doc[doc_key_property]]) {
+            delete data[doc[doc_key_property]];
+        }
+    });
+    cache_manager.setObjectData(doc_key_property, data);
+};
+
+const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
+    config.on_remove?.(documents, config);
+    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+    const updated_array = [...existing_array, ...documents];
+    cache_manager.setArrayData(config.collection_name, updated_array);
+};
+
+const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
+    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+    const keys_to_delete = documents.map((doc) => doc.id);
+    const updated_array = existing_array.filter((doc) => !keys_to_delete.includes(doc.id));
+    cache_manager.setArrayData(config.collection_name, updated_array);
 };
 
 /// snapshots
 let snapshots_first_time: string[] = [];
 
-export const snapshot: Snapshot = (collection_name, config) => {
+export const snapshot: Snapshot = (config) => {
     return new Promise<void>((resolve) => {
-        db.collection(collection_name).onSnapshot(
+        db.collection(config.collection_name).onSnapshot(
             (snapshot) => {
-                const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
-                if (!snapshots_first_time.includes(collection_name)) {
-                    config.on_first_time?.(documents);
-                    snapshots_first_time.push(collection_name);
+                if (!snapshots_first_time.includes(config.collection_name)) {
+                    snapshots_first_time.push(config.collection_name);
+                    const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
+
+                    config.on_first_time?.(documents, config);
+                    config.extra_parsers?.forEach((extra_parser) => {
+                        extra_parser.on_first_time?.(documents, config);
+                    });
+
                     resolve();
                 } else {
-                    config.on_add?.(
-                        snapshot
+                    const get_docs_from_snapshot = (action: string): TObject<any>[] => {
+                        return snapshot
                             .docChanges()
-                            .filter((change) => change.type === "added")
-                            .map((change) => simple_extract_data(change.doc))
-                    );
-                    config.on_modify?.(
-                        snapshot
-                            .docChanges()
-                            .filter((change) => change.type === "modified")
-                            .map((change) => simple_extract_data(change.doc))
-                    );
-                    config.on_remove?.(
-                        snapshot
-                            .docChanges()
-                            .filter((change) => change.type === "removed")
-                            .map((change) => simple_extract_data(change.doc))
-                    );
+                            .filter((change) => change.type === action)
+                            .map((change) => simple_extract_data(change.doc));
+                    };
+
+                    config.on_add?.(get_docs_from_snapshot("added"), config);
+                    config.on_modify?.(get_docs_from_snapshot("modified"), config);
+                    config.on_remove?.(get_docs_from_snapshot("removed"), config);
+
+                    config.extra_parsers?.forEach((extra_parser) => {
+                        extra_parser.on_add?.(get_docs_from_snapshot("added"), config);
+                        extra_parser.on_modify?.(get_docs_from_snapshot("modified"), config);
+                        extra_parser.on_remove?.(get_docs_from_snapshot("removed"), config);
+                    });
                 }
             },
             (error) => {
-                logger.error(`Error listening to collection: ${collection_name}`, error);
+                logger.error(`Error listening to collection: ${config.collection_name}`, error);
             }
         );
     });
 };
 
 export const init_snapshots = async (): Promise<void> => {
-    logger.log("==> init snapshots start... ");
-    const snapshots: ReturnType<Snapshot>[] = [
-        snapshot("nx-translations", {
-            on_first_time: parse_translations_add_update,
-            on_add: parse_translations_add_update,
-            on_modify: parse_translations_add_update,
-            on_remove: parse_translations_delete,
-        }),
-        snapshot("nx-settings", {
-            on_first_time: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_add: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_modify: (docs) => parse_settings_add_update(docs, "nx-settings"),
-            on_remove: (docs) => parse_settings_delete(docs, "nx-settings"),
-        }),
-        snapshot("settings", {
-            on_first_time: (docs) => parse_settings_add_update(docs, "settings"),
-            on_add: (docs) => parse_settings_add_update(docs, "settings"),
-            on_modify: (docs) => parse_settings_add_update(docs, "settings"),
-            on_remove: (docs) => parse_settings_delete(docs, "settings"),
-        }),
-    ];
-    await Promise.all(snapshots);
-    logger.log("==> init snapshots end ✅");
+    await snapshot_bulk(
+        [
+            snapshot({
+                collection_name: "nx-translations",
+                on_first_time: parse__add_update__translations,
+                on_add: parse__add_update__translations,
+                on_modify: parse__add_update__translations,
+                on_remove: parse__delete__translations,
+            }),
+            snapshot({
+                collection_name: "nx-settings",
+                on_first_time: (docs) => parse__add_update__settings(docs, "nx-settings"),
+                on_add: (docs) => parse__add_update__settings(docs, "nx-settings"),
+                on_modify: (docs) => parse__add_update__settings(docs, "nx-settings"),
+                on_remove: (docs) => parse__delete__settings(docs, "nx-settings"),
+            }),
+            snapshot({
+                collection_name: "settings",
+                on_first_time: (docs) => parse__add_update__settings(docs, "settings"),
+                on_add: (docs) => parse__add_update__settings(docs, "settings"),
+                on_modify: (docs) => parse__add_update__settings(docs, "settings"),
+                on_remove: (docs) => parse__delete__settings(docs, "settings"),
+            }),
+        ],
+        "Snapshots for [nx-translations, nx-settings, settings]"
+    );
 };
 
-export const snapshots_bulk: SnapshotBulk = async (snapshots, label?) => {
-    logger.log(`==> ${label || "custom snapshots"} start... `);
+export const snapshot_bulk: SnapshotBulk = async (snapshots, label?) => {
+    const start = performance.now();
+    logger.log(`==> ${label || "custom snapshots"} started... `);
     await Promise.all(snapshots);
-    logger.log(`==> ${label || "custom snapshots"} end ✅`);
+    logger.log(`==> ${label || "custom snapshots"} ended. It took ${(performance.now() - start).toFixed(2)} ms`);
+};
+
+export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
+    const start = performance.now();
+    logger.log(`==> snapshot_bulk_by_names started... `);
+    const snapshots = params.map((param) => {
+        return typeof param === "string"
+            ? snapshot({
+                  collection_name: param,
+                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
+              })
+            : snapshot({
+                  collection_name: param.collection_name,
+                  extra_parsers: param.extra_parsers,
+                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
+                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
+              });
+    });
+    await Promise.all(snapshots);
+    logger.log(`==> snapshot_bulk_by_names ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };

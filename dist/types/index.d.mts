@@ -25,15 +25,25 @@ type QueryDocumentsByConditions = (collection_path: string, where_conditions: Wh
 type QueryDocumentByConditions = (collection_path: string, where_conditions: WhereCondition[], log?: boolean) => Promise<TObject<any>>;
 type QueryDocument = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log?: boolean) => Promise<TObject<any>>;
 type QueryDocumentOptional = (collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any) => Promise<TObject<any> | null>;
-type OnSnapshotCallback = (documents: any[]) => void;
-interface OnSnapshotConfig {
+type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;
+interface OnSnapshotParsers {
     on_first_time?: OnSnapshotCallback;
     on_add?: OnSnapshotCallback;
     on_modify?: OnSnapshotCallback;
     on_remove?: OnSnapshotCallback;
 }
-type Snapshot = (collection_name: string, config: OnSnapshotConfig) => Promise<void>;
+interface OnSnapshotConfig extends OnSnapshotParsers {
+    collection_name?: string;
+    extra_parsers?: OnSnapshotParsers[];
+}
+type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
+type SnapshotBulkByNamesParamObject = {
+    collection_name: string;
+    extra_parsers: OnSnapshotParsers[];
+};
+type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
+type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
 
 interface MandatoryObject {
     key: string;
@@ -76,4 +86,4 @@ interface EmailSettings {
 declare enum SomeEnum {
 }
 
-export { type AddAuditRecord, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, SomeEnum, type WhereCondition };
+export { type AddAuditRecord, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type OnSnapshotParsers, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, type SnapshotBulkByNames, type SnapshotBulkByNamesParam, type SnapshotBulkByNamesParamObject, SomeEnum, type WhereCondition };
