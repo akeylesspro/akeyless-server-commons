@@ -38,9 +38,8 @@ interface OnSnapshotConfig extends OnSnapshotParsers {
 }
 type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
-type CollectionName = "units" | "usersUnits" | "mobile_users_app_pro" | "app_pro_extra_pushes";
 type SnapshotBulkByNamesParamObject = {
-    collection_name: CollectionName;
+    collection_name: string;
     extra_parsers: OnSnapshotParsers[];
 };
 type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
@@ -87,4 +86,4 @@ interface EmailSettings {
 declare enum SomeEnum {
 }
 
-export { type AddAuditRecord, type CollectionName, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type OnSnapshotParsers, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, type SnapshotBulkByNames, type SnapshotBulkByNamesParam, type SnapshotBulkByNamesParamObject, SomeEnum, type WhereCondition };
+export { type AddAuditRecord, type EmailData, type EmailSettings, type EntityOptions, type JsonFailed, type JsonOK, type LangOptions, type MW, type MainRouter, type MandatoryObject, type MandatoryParams, type OnSnapshotCallback, type OnSnapshotConfig, type OnSnapshotParsers, type QueryDocument, type QueryDocumentByConditions, type QueryDocumentOptional, type QueryDocuments, type QueryDocumentsByConditions, type Route, type Service, type Snapshot, type SnapshotBulk, type SnapshotBulkByNames, type SnapshotBulkByNamesParam, type SnapshotBulkByNamesParamObject, SomeEnum, type WhereCondition };
