@@ -34,9 +34,4 @@ export class CacheManager {
     }
 }
 
-export const cache_manager: CacheManager = global.cache_manager || CacheManager.getInstance();
-global.cache_manager = cache_manager;
-
-export function get_cache_manager(): CacheManager {
-    return global.cache_manager;
-}
+export const cache_manager: CacheManager = CacheManager.getInstance();
