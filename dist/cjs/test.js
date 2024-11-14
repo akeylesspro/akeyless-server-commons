@@ -10,7 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const helpers_1 = require("./helpers");
+const managers_1 = require("./managers");
 (() => __awaiter(void 0, void 0, void 0, function* () {
+    const test = managers_1.cache_manager.getArrayData("test");
     const env_vars = (0, helpers_1.init_env_variables)();
     yield (0, helpers_1.init_snapshots)();
     // await snapshot_bulk_by_names([

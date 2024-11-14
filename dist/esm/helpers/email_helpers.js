@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,18 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_email = void 0;
-const mail_1 = __importDefault(require("@sendgrid/mail"));
-const _1 = require(".");
-const managers_1 = require("../managers");
-const send_email = (email_data) => __awaiter(void 0, void 0, void 0, function* () {
+import sendgrid from "@sendgrid/mail";
+import { add_audit_record, get_document_by_id } from ".";
+import { logger } from "../managers";
+export const send_email = (email_data) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const emails_settings = (yield (0, _1.get_document_by_id)("nx-settings", "emails"));
+        const emails_settings = (yield get_document_by_id("nx-settings", "emails"));
         const { sendgrid_api_key, groups, default_from } = emails_settings;
         let { from, to, cc, group_name, body_html, body_plain_text, subject, entity_for_audit } = email_data;
         /// validate data
@@ -50,7 +44,7 @@ const send_email = (email_data) => __awaiter(void 0, void 0, void 0, function* (
             }
         }
         /// set sendgrid account
-        mail_1.default.setApiKey(sendgrid_api_key);
+        sendgrid.setApiKey(sendgrid_api_key);
         /// prepare message
         const msg = body_html
             ? {
@@ -71,17 +65,16 @@ const send_email = (email_data) => __awaiter(void 0, void 0, void 0, function* (
             delete msg.cc;
         }
         /// send email
-        const email_result = yield mail_1.default.send(msg);
+        const email_result = yield sendgrid.send(msg);
         if (email_result[0].statusCode !== 202) {
             throw email_result[0].body;
         }
         /// add audit
-        managers_1.logger.log("email send successfully", Object.assign(Object.assign({}, email_data), msg));
-        yield (0, _1.add_audit_record)("send_email", entity_for_audit, Object.assign(Object.assign({}, email_data), msg));
+        logger.log("email send successfully", Object.assign(Object.assign({}, email_data), msg));
+        yield add_audit_record("send_email", entity_for_audit, Object.assign(Object.assign({}, email_data), msg));
     }
     catch (error) {
-        managers_1.logger.error("error sending email", { error, email_data });
+        logger.error("error sending email", { error, email_data });
     }
 });
-exports.send_email = send_email;
 //# sourceMappingURL=email_helpers.js.map

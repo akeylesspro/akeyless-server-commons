@@ -1,13 +1,18 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { init_env_variables, init_snapshots, push_event_to_mobile_users, snapshot_bulk_by_names } from "./helpers";
-import { EventFromDevice } from "akeyless-types-commons";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { init_env_variables, init_snapshots } from "./helpers";
 import { cache_manager } from "./managers";
-
-(async () => {
+(() => __awaiter(void 0, void 0, void 0, function* () {
     const test = cache_manager.getArrayData("test");
     const env_vars = init_env_variables();
-
-    await init_snapshots();
+    yield init_snapshots();
     // await snapshot_bulk_by_names([
     //     {
     //         collection_name: "units",
@@ -51,7 +56,6 @@ import { cache_manager } from "./managers";
     //         ],
     //     },
     // ]);
-
     // const event: EventFromDevice = {
     //     car_number: "8313952",
     //     event_id: 3,
@@ -64,4 +68,5 @@ import { cache_manager } from "./managers";
     //     event_name: "Vibration",
     // };
     // await push_event_to_mobile_users(event);
-})();
+}))();
+//# sourceMappingURL=test.js.map
