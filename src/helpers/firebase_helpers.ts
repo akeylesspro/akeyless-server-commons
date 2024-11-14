@@ -352,7 +352,7 @@ export const init_snapshots = async (): Promise<void> => {
                 on_remove: (docs) => parse__delete__settings(docs, "settings"),
             }),
         ],
-        "Snapshots for [nx-translations, nx-settings, settings]"
+        "Common snapshots"
     );
 };
 

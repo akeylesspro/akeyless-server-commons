@@ -17,7 +17,7 @@ export interface OnSnapshotParsers {
     on_remove?: OnSnapshotCallback;
 }
 export interface OnSnapshotConfig extends OnSnapshotParsers {
-    collection_name?: string;
+    collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
 }
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
