@@ -328,7 +328,7 @@ export const init_snapshots = () => __awaiter(void 0, void 0, void 0, function* 
             on_modify: (docs) => parse__add_update__settings(docs, "settings"),
             on_remove: (docs) => parse__delete__settings(docs, "settings"),
         }),
-    ], "Snapshots for [nx-translations, nx-settings, settings]");
+    ], "Common snapshots");
 });
 export const snapshot_bulk = (snapshots, label) => __awaiter(void 0, void 0, void 0, function* () {
     const start = performance.now();

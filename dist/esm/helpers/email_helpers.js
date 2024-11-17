@@ -61,6 +61,9 @@ export const send_email = (email_data) => __awaiter(void 0, void 0, void 0, func
                 cc,
                 text: body_plain_text,
             };
+        if (!msg.cc) {
+            delete msg.cc;
+        }
         /// send email
         const email_result = yield sendgrid.send(msg);
         if (email_result[0].statusCode !== 202) {

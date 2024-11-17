@@ -8,7 +8,7 @@
         "update_type": "npm i git+https://github.com/akeylesspro/akeyless-types-commons.git",
         "deploy": "npm run build && git add . && git commit -am '.' && git push",
         "start": "npm run build && node ./dist/cjs/",
-        "test": "npm run build && node ./dist/test.js"
+        "test": "npm run build && node --input-type=commonjs ./dist/cjs/test.js"
     },
     "exports": {
         "./managers": {

@@ -1,8 +1,9 @@
-import sendgrid, { ClientResponse } from "@sendgrid/mail";
+import sendgrid, { ClientResponse, MailDataRequired } from "@sendgrid/mail";
 import { add_audit_record, get_document_by_id } from ".";
 import { forEach, isEmpty, isObject } from "lodash";
 import { EmailSettings, EmailData } from "../types";
 import { logger } from "../managers";
+import { TObject } from "akeyless-types-commons";
 
 export const send_email = async (email_data: EmailData) => {
     try {
@@ -37,7 +38,7 @@ export const send_email = async (email_data: EmailData) => {
         /// set sendgrid account
         sendgrid.setApiKey(sendgrid_api_key);
         /// prepare message
-        const msg = body_html
+        const msg: MailDataRequired = body_html
             ? {
                   subject,
                   from: from || default_from,
@@ -52,6 +53,9 @@ export const send_email = async (email_data: EmailData) => {
                   cc,
                   text: body_plain_text!,
               };
+        if (!msg.cc) {
+            delete msg.cc;
+        }
         /// send email
         const email_result = await sendgrid.send(msg);
         if (email_result[0].statusCode !== 202) {

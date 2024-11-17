@@ -76,7 +76,8 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
             );
             continue;
         }
-        const language = { heb: "he", en: "en", ru: "ru" }[mobile_user.language];
+        const mobile_user_language: "heb" | "en" | "ru" = mobile_user.language;
+        const language: string = { heb: "he", en: "en", ru: "ru" }[mobile_user_language];
         const message_title = translation_manager.get_translation("push_notifications", language, "title", "event_from_device");
         const message_body = translation_manager.get_translation("events_from_device", language, "", event.event_name);
         await send_fcm_message(message_title, message_body, [mobile_user.fcm_token], "");
@@ -155,7 +156,7 @@ export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_toke
             success: success_count > 0 && failure_count == 0,
             response: JSON.stringify(response.responses),
         };
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Exception", error.message);
         return {
             success: false,

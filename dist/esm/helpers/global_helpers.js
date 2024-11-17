@@ -11,17 +11,20 @@ import { readFileSync } from "fs";
 import { logger } from "../managers";
 import { db } from "./";
 import { Timestamp } from "firebase-admin/firestore";
-export const init_env_variables = (required_vars) => {
-    const data = {};
+export const init_env_variables = (required_vars = []) => {
     required_vars.forEach((varName) => {
         const env_val = process.env[varName];
         if (!env_val) {
-            logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
+            logger.error(`--- Error: Missing mandatory environment variable: ${varName}. ---`);
             process.exit(1);
         }
-        data[varName] = env_val;
     });
-    return data;
+    const env_vars = {};
+    Object.keys(process.env).forEach((var_name) => {
+        const env_val = process.env[var_name];
+        env_vars[var_name] = env_val;
+    });
+    return env_vars;
 };
 export const json_ok = (data) => {
     return {

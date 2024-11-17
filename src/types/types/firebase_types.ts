@@ -41,7 +41,7 @@ export interface OnSnapshotParsers {
 }
 
 export interface OnSnapshotConfig extends OnSnapshotParsers {
-    collection_name?: string;
+    collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
 }
 

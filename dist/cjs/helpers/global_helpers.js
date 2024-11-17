@@ -14,17 +14,20 @@ const fs_1 = require("fs");
 const managers_1 = require("../managers");
 const _1 = require("./");
 const firestore_1 = require("firebase-admin/firestore");
-const init_env_variables = (required_vars) => {
-    const data = {};
+const init_env_variables = (required_vars = []) => {
     required_vars.forEach((varName) => {
         const env_val = process.env[varName];
         if (!env_val) {
-            managers_1.logger.error(`--- Error: Missing environment, variable: ${varName}. ---`);
+            managers_1.logger.error(`--- Error: Missing mandatory environment variable: ${varName}. ---`);
             process.exit(1);
         }
-        data[varName] = env_val;
     });
-    return data;
+    const env_vars = {};
+    Object.keys(process.env).forEach((var_name) => {
+        const env_val = process.env[var_name];
+        env_vars[var_name] = env_val;
+    });
+    return env_vars;
 };
 exports.init_env_variables = init_env_variables;
 const json_ok = (data) => {

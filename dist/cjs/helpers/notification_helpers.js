@@ -80,7 +80,8 @@ const push_event_to_mobile_users = (event) => __awaiter(void 0, void 0, void 0, 
             managers_1.logger.log(`push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`);
             continue;
         }
-        const language = { heb: "he", en: "en", ru: "ru" }[mobile_user.language];
+        const mobile_user_language = mobile_user.language;
+        const language = { heb: "he", en: "en", ru: "ru" }[mobile_user_language];
         const message_title = managers_1.translation_manager.get_translation("push_notifications", language, "title", "event_from_device");
         const message_body = managers_1.translation_manager.get_translation("events_from_device", language, "", event.event_name);
         yield (0, exports.send_fcm_message)(message_title, message_body, [mobile_user.fcm_token], "");
