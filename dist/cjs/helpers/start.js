@@ -17,12 +17,14 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const managers_1 = require("../managers");
 const _1 = require("./");
+const error_handling_1 = require("../middlewares/error_handling");
 const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const env_data = (0, _1.init_env_variables)(["port", "mode"]);
     app.use((0, cors_1.default)());
     app.use(express_1.default.json());
     main_router(app);
+    app.use(error_handling_1.error_handler);
     return new Promise((resolve, reject) => {
         app.listen(Number(env_data.port), () => {
             managers_1.logger.log(`Server is running at http://localhost:${env_data.port}`);
