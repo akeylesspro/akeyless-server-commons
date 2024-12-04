@@ -1,7 +1,5 @@
-import { Request, Response, NextFunction, Router } from "express";
+import { Request, Response, NextFunction } from "express";
 import { Service } from "../types";
-
-const router = Router();
 
 /**
  * Utility to handle async errors
@@ -24,4 +22,4 @@ const error_handler = (err: Error, req: Request, res: Response, next: NextFuncti
     });
 };
 
-export { router, error_handler, async_error_handler };
+export { error_handler, async_error_handler };
