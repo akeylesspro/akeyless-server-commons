@@ -1,5 +1,3 @@
-import { Router } from "express";
-const router = Router();
 /**
  * Utility to handle async errors
  */
@@ -18,5 +16,5 @@ const error_handler = (err, req, res, next) => {
         message: err.message || "Internal Server Error",
     });
 };
-export { router, error_handler, async_error_handler };
+export { error_handler, async_error_handler };
 //# sourceMappingURL=error_handling.js.map

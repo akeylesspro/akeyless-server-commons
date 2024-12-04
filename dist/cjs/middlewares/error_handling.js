@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.async_error_handler = exports.error_handler = exports.router = void 0;
-const express_1 = require("express");
-const router = (0, express_1.Router)();
-exports.router = router;
+exports.async_error_handler = exports.error_handler = void 0;
 /**
  * Utility to handle async errors
  */
