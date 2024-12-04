@@ -3,6 +3,7 @@ import cors from "cors";
 import { logger } from "../managers";
 import { init_env_variables, init_snapshots } from "./";
 import { MainRouter } from "../types";
+import { error_handler } from "../middlewares/error_handling";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string) => {
     const app: Express = express();
@@ -10,6 +11,8 @@ export const start_server = async (main_router: MainRouter, project_name: string
     app.use(cors());
     app.use(express.json());
     main_router(app);
+    app.use(error_handler);
+
     return new Promise<void>((resolve, reject) => {
         app.listen(Number(env_data.port), () => {
             logger.log(`Server is running at http://localhost:${env_data.port}`);

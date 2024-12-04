@@ -11,12 +11,14 @@ import express from "express";
 import cors from "cors";
 import { logger } from "../managers";
 import { init_env_variables, init_snapshots } from "./";
+import { error_handler } from "../middlewares/error_handling";
 export const start_server = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     const app = express();
     const env_data = init_env_variables(["port", "mode"]);
     app.use(cors());
     app.use(express.json());
     main_router(app);
+    app.use(error_handler);
     return new Promise((resolve, reject) => {
         app.listen(Number(env_data.port), () => {
             logger.log(`Server is running at http://localhost:${env_data.port}`);
