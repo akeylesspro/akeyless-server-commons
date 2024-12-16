@@ -5,7 +5,7 @@ import { NxUser, Installer, TObject } from "akeyless-types-commons";
 
 export const verify_user_auth: MW = async (req, res, next) => {
     try {
-        const authorization = <string>req.headers.authorization;
+        const authorization = req.headers.authorization;
         await verify_token(authorization);
         next();
     } catch (error: any) {
@@ -16,7 +16,7 @@ export const verify_user_auth: MW = async (req, res, next) => {
 
 export const get_users_login: MW = async (req, res, next) => {
     try {
-        const authorization = <string>req.headers.authorization;
+        const authorization = req.headers.authorization;
         const user_data = await verify_token(authorization);
         const { phone_number } = user_data;
         if (!phone_number) {
@@ -36,7 +36,7 @@ export const get_users_login: MW = async (req, res, next) => {
 
 export const installer_login: MW = async (req, res, next) => {
     try {
-        const authorization = <string>req.headers.authorization;
+        const authorization = req.headers.authorization;
         const user_data = await verify_token(authorization);
         const { phone_number } = user_data;
         if (!phone_number) {
@@ -56,7 +56,7 @@ export const installer_login: MW = async (req, res, next) => {
 
 export const nx_user_login: MW = async (req, res, next) => {
     try {
-        const authorization = <string>req.headers.authorization;
+        const authorization = req.headers.authorization;
         const user_data = await verify_token(authorization);
         const { phone_number } = user_data;
         if (!phone_number) {

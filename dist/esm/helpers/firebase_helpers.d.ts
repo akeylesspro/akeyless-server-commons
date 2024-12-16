@@ -15,7 +15,7 @@ export declare const get_document_by_id: (collection_path: string, doc_id: strin
 export declare const set_document: (collection_path: string, doc_id: string, data: {}) => Promise<void>;
 export declare const add_document: (collection_path: string, data: {}, include_id?: boolean) => Promise<void>;
 export declare const delete_document: (collection_path: string, doc_id: string) => Promise<void>;
-export declare const verify_token: (bearer_token: string) => Promise<DecodedIdToken>;
+export declare const verify_token: (authorization: string | undefined) => Promise<DecodedIdToken>;
 export declare const snapshot: Snapshot;
 export declare const init_snapshots: () => Promise<void>;
 export declare const snapshot_bulk: SnapshotBulk;

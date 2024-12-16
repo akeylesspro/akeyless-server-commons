@@ -200,9 +200,13 @@ export const delete_document = async (collection_path: string, doc_id: string): 
 };
 
 /// token
-export const verify_token = async (bearer_token: string): Promise<DecodedIdToken> => {
+export const verify_token = async (authorization: string | undefined): Promise<DecodedIdToken> => {
     try {
-        const token: string | undefined = bearer_token.split(/bearer\s+(.+)/i)[1];
+        if (!authorization || !authorization.toLocaleLowerCase().startsWith("bearer")) {
+            throw "Invalid authorization token";
+        }
+        const token = authorization.split(/bearer\s+(.+)/i)[1];
+
         if (!token) {
             throw "validation error: Token not found";
         }

@@ -207,9 +207,12 @@ const delete_document = (collection_path, doc_id) => __awaiter(void 0, void 0, v
 });
 exports.delete_document = delete_document;
 /// token
-const verify_token = (bearer_token) => __awaiter(void 0, void 0, void 0, function* () {
+const verify_token = (authorization) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const token = bearer_token.split(/bearer\s+(.+)/i)[1];
+        if (!authorization || !authorization.toLocaleLowerCase().startsWith("bearer")) {
+            throw "Invalid authorization token";
+        }
+        const token = authorization.split(/bearer\s+(.+)/i)[1];
         if (!token) {
             throw "validation error: Token not found";
         }
