@@ -29,7 +29,7 @@ const start_server = (main_router, project_name, version) => __awaiter(void 0, v
         app.listen(Number(env_data.port), () => {
             managers_1.logger.log(`Server is running at http://localhost:${env_data.port}`);
             managers_1.logger.log("project status", { project_name, version, environment: env_data.mode });
-            resolve();
+            resolve(app);
         });
     });
 });
@@ -37,7 +37,8 @@ exports.start_server = start_server;
 const basic_init = (main_router, project_name, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, _1.init_snapshots)();
-        yield (0, exports.start_server)(main_router, project_name, version);
+        const app = yield (0, exports.start_server)(main_router, project_name, version);
+        return app;
     }
     catch (error) {
         managers_1.logger.error("Error from init function: ", error);
