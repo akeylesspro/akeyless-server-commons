@@ -12,21 +12,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = void 0;
+exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = exports.send_local_sms = void 0;
 const axios_1 = __importDefault(require("axios"));
 const managers_1 = require("../managers");
 const global_helpers_1 = require("./global_helpers");
 const firebase_helpers_1 = require("./firebase_helpers");
+const send_local_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () { });
+exports.send_local_sms = send_local_sms;
 const send_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { sms_provider } = managers_1.cache_manager.getObjectData("nx-settings");
+        const { sms_provider: { multisend }, } = managers_1.cache_manager.getObjectData("nx-settings");
+        console.log("multisend", multisend);
         let data = new FormData();
-        data.append("user", sms_provider.user);
-        data.append("password", sms_provider.password);
-        data.append("from", sms_provider.from);
+        data.append("user", multisend.user);
+        data.append("password", multisend.password);
+        data.append("from", multisend.from);
         data.append("recipient", phone_number);
         data.append("message", text);
-        let config = {
+        const config = {
             method: "post",
             maxBodyLength: Infinity,
             url: "https://api.multisend.co.il/v2/sendsms",

@@ -7,6 +7,7 @@
         "build": "npm run build:cjs && npm run build:esm",
         "update_type": "npm i git+https://github.com/akeylesspro/akeyless-types-commons.git",
         "deploy": "npm run build && git add . && git commit -am '.' && git push",
+        "dt": "npm run build && git add . && git commit -am 'build' && git push origin test",
         "start": "npm run build && node ./dist/cjs/",
         "test": "npm run build && node --input-type=commonjs ./dist/cjs/test.js"
     },
