@@ -12,22 +12,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = exports.send_local_sms = void 0;
+exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = exports.send_iccid_sms = exports.send_international_sms = exports.send_local_sms = void 0;
 const axios_1 = __importDefault(require("axios"));
 const managers_1 = require("../managers");
 const global_helpers_1 = require("./global_helpers");
 const firebase_helpers_1 = require("./firebase_helpers");
-const send_local_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () { });
-exports.send_local_sms = send_local_sms;
-const send_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+const phone_number_helepers_1 = require("./phone_number_helepers");
+const send_local_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { sms_provider: { multisend }, } = managers_1.cache_manager.getObjectData("nx-settings");
-        console.log("multisend", multisend);
         let data = new FormData();
         data.append("user", multisend.user);
         data.append("password", multisend.password);
         data.append("from", multisend.from);
-        data.append("recipient", phone_number);
+        data.append("recipient", number);
         data.append("message", text);
         const config = {
             method: "post",
@@ -45,15 +43,82 @@ const send_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, voi
         if (!response.data.success) {
             throw response.data.error;
         }
-        yield (0, global_helpers_1.add_audit_record)("send_sms", entity_for_audit, {
-            destination: phone_number,
+        yield (0, global_helpers_1.add_audit_record)("send_sms_local", entity_for_audit, {
+            destination: number,
             message: text,
         });
     }
     catch (error) {
-        managers_1.logger.error(`${entity_for_audit}, send_sms failed:`, error);
-        throw `${entity_for_audit}, send_sms failed: ` + error;
+        managers_1.logger.error(`${entity_for_audit}, send_local_sms failed:`, error);
+        throw `${entity_for_audit}, send_local_sms failed: ` + error;
     }
+});
+exports.send_local_sms = send_local_sms;
+const send_international_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield (0, global_helpers_1.add_audit_record)("send_sms_international", entity_for_audit, {
+            destination: number,
+            message: text,
+        });
+    }
+    catch (error) {
+        managers_1.logger.error(`${entity_for_audit}, send_international_sms failed:`, error);
+        throw `${entity_for_audit}, send_international_sms failed: ` + error;
+    }
+});
+exports.send_international_sms = send_international_sms;
+const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings");
+        const data = { UserName: monogoto.UserName, Password: monogoto.Password };
+        const response = yield (0, axios_1.default)({
+            method: "post",
+            url: `https://console.monogoto.io/Auth`,
+            data: data,
+        });
+        return response.data;
+    }
+    catch (error) {
+        throw `login_to_monogoto failed: ` + error;
+    }
+});
+const send_iccid_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings");
+        const monogoto_auth = yield login_to_monogoto();
+        const data = { Message: text, From: monogoto.from };
+        const response = yield (0, axios_1.default)({
+            method: "post",
+            url: `https://console.monogoto.io/thing/ThingId_ICCID_${number}/sms`,
+            data: data,
+            headers: {
+                Authorization: `Bearer ${monogoto_auth.token}`,
+                apikey: monogoto_auth.CustomerId,
+            },
+        });
+        console.log("response.data", response.data);
+        // await add_audit_record("send_sms_iccid", entity_for_audit, {
+        //     destination: number,
+        //     message: text,
+        // });
+    }
+    catch (error) {
+        managers_1.logger.error(`${entity_for_audit}, send_iccid_sms failed:`, error);
+        throw `${entity_for_audit}, send_iccid_sms failed: ` + error;
+    }
+});
+exports.send_iccid_sms = send_iccid_sms;
+const send_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+    if ((0, phone_number_helepers_1.isIccid)(number)) {
+        return yield (0, exports.send_iccid_sms)(number, text, entity_for_audit);
+    }
+    if ((0, phone_number_helepers_1.isInternational)(number)) {
+        if ((0, phone_number_helepers_1.isInternationalIsraelPhone)(number)) {
+            return yield (0, exports.send_local_sms)((0, phone_number_helepers_1.local_israel_phone_format)(number), text, entity_for_audit);
+        }
+        return (0, exports.send_international_sms)(number, text, entity_for_audit);
+    }
+    return yield (0, exports.send_local_sms)(number, text, entity_for_audit);
 });
 exports.send_sms = send_sms;
 const push_event_to_mobile_users = (event) => __awaiter(void 0, void 0, void 0, function* () {
