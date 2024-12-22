@@ -5,57 +5,57 @@ import { messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice } from "akeyless-types-commons";
 import { isIccid, isInternational, isInternationalIsraelPhone, local_israel_phone_format } from "./phone_number_helepers";
+import { Twilio } from "twilio";
 
-type SmsFunction = (number: string, text: string, entity_for_audit: string) => Promise<void>;
+type SmsFunction = (number: string, text: string, entity_for_audit?: string) => Promise<void>;
 
-export const send_local_sms: SmsFunction = async (number, text, entity_for_audit) => {
-    try {
-        const {
-            sms_provider: { multisend },
-        } = cache_manager.getObjectData("nx-settings");
-        let data = new FormData();
-        data.append("user", multisend.user);
-        data.append("password", multisend.password);
-        data.append("from", multisend.from);
-        data.append("recipient", number);
-        data.append("message", text);
-        const config = {
-            method: "post",
-            maxBodyLength: Infinity,
-            url: "https://api.multisend.co.il/v2/sendsms",
-            data: data,
-        };
-        const response = await axios(config);
-        if (response.status !== 200) {
-            throw `http request to multisend status ${response.status}`;
-        }
-        if (!response.data.success) {
-            throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
-        }
-        if (!response.data.success) {
-            throw response.data.error;
-        }
-        await add_audit_record("send_sms_local", entity_for_audit, {
-            destination: number,
-            message: text,
-        });
-    } catch (error) {
-        logger.error(`${entity_for_audit}, send_local_sms failed:`, error);
-        throw `${entity_for_audit}, send_local_sms failed: ` + error;
+export const send_local_sms: SmsFunction = async (number, text) => {
+    const {
+        sms_provider: { multisend },
+    } = cache_manager.getObjectData("nx-settings");
+    let data = new FormData();
+    data.append("user", multisend.user);
+    data.append("password", multisend.password);
+    data.append("from", multisend.from);
+    data.append("recipient", number);
+    data.append("message", text);
+    const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "https://api.multisend.co.il/v2/sendsms",
+        data: data,
+    };
+    const response = await axios(config);
+    if (response.status !== 200) {
+        throw `http request to multisend status ${response.status}`;
+    }
+    if (!response.data.success) {
+        throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
 };
 
-export const send_international_sms: SmsFunction = async (number, text, entity_for_audit) => {
-    try {
-        await add_audit_record("send_sms_international", entity_for_audit, {
-            destination: number,
-            message: text,
-        });
-    } catch (error) {
-        logger.error(`${entity_for_audit}, send_international_sms failed:`, error);
-        throw `${entity_for_audit}, send_international_sms failed: ` + error;
+export const send_international_sms: SmsFunction = async (number, text) => {
+    const defaultValues = {
+        sms_provider: {
+            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12183921304", token: "47fafa1a186e0352058195715d917a55" },
+        },
+    };
+    const {
+        sms_provider: { twilio },
+    } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const twilioClient = new Twilio(twilio.account_sid, twilio.token);
+    const message = await twilioClient.messages.create({
+        body: text,
+        to: number,
+        from: twilio.from,
+    });
+    console.log("message", message);
+
+    if (!message) {
+        throw "twilioClient.messages.create failed";
     }
 };
+
 const login_to_monogoto = async () => {
     try {
         const {
@@ -73,45 +73,50 @@ const login_to_monogoto = async () => {
         throw `login_to_monogoto failed: ` + error;
     }
 };
-export const send_iccid_sms: SmsFunction = async (number, text, entity_for_audit) => {
-    try {
-        const {
-            sms_provider: { monogoto },
-        } = cache_manager.getObjectData("nx-settings");
-        const monogoto_auth = await login_to_monogoto();
-        const data = { Message: text, From: monogoto.from };
-        const response = await axios({
-            method: "post",
-            url: `https://console.monogoto.io/thing/ThingId_ICCID_${number}/sms`,
-            data: data,
-            headers: {
-                Authorization: `Bearer ${monogoto_auth.token}`,
-                apikey: monogoto_auth.CustomerId,
-            },
-        });
-        console.log("response.data", response.data);
 
-        // await add_audit_record("send_sms_iccid", entity_for_audit, {
-        //     destination: number,
-        //     message: text,
-        // });
-    } catch (error) {
-        logger.error(`${entity_for_audit}, send_iccid_sms failed:`, error);
-        throw `${entity_for_audit}, send_iccid_sms failed: ` + error;
+export const send_iccid_sms: SmsFunction = async (number, text) => {
+    const {
+        sms_provider: { monogoto },
+    } = cache_manager.getObjectData("nx-settings");
+    const monogoto_auth = await login_to_monogoto();
+    const data = { Message: text, From: monogoto.from };
+    const response = await axios({
+        method: "post",
+        url: `https://console.monogoto.io/thing/ThingId_ICCID_${number}/sms`,
+        data: data,
+        headers: {
+            Authorization: `Bearer ${monogoto_auth.token}`,
+            apikey: monogoto_auth.CustomerId,
+        },
+    });
+    if (response.status !== 200) {
+        throw `request to monogoto status: ${response.status}`;
     }
 };
 
 export const send_sms: SmsFunction = async (number, text, entity_for_audit) => {
-    if (isIccid(number)) {
-        return await send_iccid_sms(number, text, entity_for_audit);
+    try {
+        const send = async () => {
+            if (isIccid(number)) {
+                return await send_iccid_sms(number, text);
+            }
+            if (isInternational(number)) {
+                if (isInternationalIsraelPhone(number)) {
+                    return await send_local_sms(local_israel_phone_format(number), text);
+                }
+                return send_international_sms(number, text);
+            }
+            return await send_local_sms(number, text);
+        };
+        await send();
+        await add_audit_record("send_sms", entity_for_audit || "global", {
+            destination: number,
+            message: text,
+        });
+    } catch (error) {
+        logger.error(`${entity_for_audit}, send_sms failed:`, error);
+        throw `${entity_for_audit}, send_sms failed: ` + error;
     }
-    if (isInternational(number)) {
-        if (isInternationalIsraelPhone(number)) {
-            return await send_local_sms(local_israel_phone_format(number), text, entity_for_audit);
-        }
-        return send_international_sms(number, text, entity_for_audit);
-    }
-    return await send_local_sms(number, text, entity_for_audit);
 };
 
 export const push_event_to_mobile_users = async (event: EventFromDevice) => {

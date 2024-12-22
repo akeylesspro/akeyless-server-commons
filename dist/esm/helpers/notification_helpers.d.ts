@@ -1,5 +1,5 @@
 import { EventFromDevice } from "akeyless-types-commons";
-type SmsFunction = (number: string, text: string, entity_for_audit: string) => Promise<void>;
+type SmsFunction = (number: string, text: string, entity_for_audit?: string) => Promise<void>;
 export declare const send_local_sms: SmsFunction;
 export declare const send_international_sms: SmsFunction;
 export declare const send_iccid_sms: SmsFunction;
