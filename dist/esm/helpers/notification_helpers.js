@@ -11,17 +11,12 @@ import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
 import { add_document, messaging } from "./firebase_helpers";
-import { isIccid, isLongPhoneNumber } from "./phone_number_helepers";
+import { isIccid, isInternationalPhoneNumber } from "./phone_number_helepers";
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
 const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const defaultValues = {
-        sms_provider: {
-            multisend: { from: "972549781180", password: "akeyless123", user: "akeyless" },
-        },
-    };
-    const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings");
     const msgId = uniqId();
     let data = new FormData();
     data.append("user", multisend.user);
@@ -47,18 +42,12 @@ const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, funct
     logger.log("send_local_sms. message sent successfully", { number, text, response: response.data });
 });
 const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const defaultValues = {
-        sms_provider: {
-            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12185857393", token: "47fafa1a186e0352058195715d917a55" },
-        },
-    };
-    const { sms_provider: { twilio }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const { sms_provider: { twilio }, } = cache_manager.getObjectData("nx-settings");
     const twilioClient = new Twilio(twilio.account_sid, twilio.token);
     const message = yield twilioClient.messages.create({
         messagingServiceSid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
         body: text,
         to: number,
-        // from: twilio.from,
     });
     if (message.errorMessage) {
         throw `twilioClient.messages.create failed: ${message.errorMessage} `;
@@ -68,17 +57,7 @@ const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 
 });
 const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const defaultValues = {
-            sms_provider: {
-                monogoto: {
-                    Password: "KOBI@2024",
-                    UserName: "kobi@akeyless-sys.com",
-                    desc: "need to put them in the body of login request",
-                    from: "Akeyless",
-                },
-            },
-        };
-        const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
+        const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
         const data = { UserName: monogoto.UserName, Password: monogoto.Password };
         const response = yield axios({
             method: "post",
@@ -92,17 +71,7 @@ const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const defaultValues = {
-        sms_provider: {
-            monogoto: {
-                Password: "KOBI@2024",
-                UserName: "kobi@akeyless-sys.com",
-                desc: "need to put them in the body of login request",
-                from: "Akeyless",
-            },
-        },
-    };
-    const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
     const monogoto_auth = yield login_to_monogoto();
     const data = { Message: text, From: monogoto.from };
     const response = yield axios({
@@ -128,7 +97,7 @@ export const send_sms = (number, text, entity_for_audit) => __awaiter(void 0, vo
                 service = "monogoto";
                 return yield send_iccid_sms(number, text);
             }
-            if (isLongPhoneNumber(number)) {
+            if (isInternationalPhoneNumber(number)) {
                 service = "twilio";
                 return send_international_sms(number, text);
             }
