@@ -1,8 +1,11 @@
-export const isInternational = (phone_number) => {
+export const isLongPhoneNumber = (phone_number) => {
     return phone_number.startsWith("+");
 };
-export const isInternationalIsraelPhone = (phone_number) => {
+export const isIsraelLongPhoneNumber = (phone_number) => {
     return phone_number.startsWith("+9725");
+};
+export const isInternationalPhoneNumber = (phone_number) => {
+    return isLongPhoneNumber(phone_number) && !isIsraelLongPhoneNumber(phone_number);
 };
 export const isIccid = (number) => {
     if (number.length < 19 || number.length > 22)

@@ -12,21 +12,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = exports.send_iccid_sms = exports.send_international_sms = exports.send_local_sms = void 0;
+exports.send_fcm_message = exports.push_event_to_mobile_users = exports.send_sms = void 0;
 const axios_1 = __importDefault(require("axios"));
 const managers_1 = require("../managers");
 const global_helpers_1 = require("./global_helpers");
 const firebase_helpers_1 = require("./firebase_helpers");
 const phone_number_helepers_1 = require("./phone_number_helepers");
 const twilio_1 = require("twilio");
+const firestore_1 = require("firebase-admin/firestore");
+const uuid_1 = require("uuid");
 const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const { sms_provider: { multisend }, } = managers_1.cache_manager.getObjectData("nx-settings");
+    const defaultValues = {
+        sms_provider: {
+            multisend: { from: "972549781180", password: "akeyless123", user: "akeyless" },
+        },
+    };
+    const { sms_provider: { multisend }, } = managers_1.cache_manager.getObjectData("nx-settings") || defaultValues;
+    const msgId = (0, uuid_1.v4)();
     let data = new FormData();
     data.append("user", multisend.user);
     data.append("password", multisend.password);
     data.append("from", multisend.from);
     data.append("recipient", number);
     data.append("message", text);
+    data.append("customermessageid", msgId);
     const config = {
         method: "post",
         maxBodyLength: Infinity,
@@ -40,35 +49,47 @@ const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, funct
     if (!response.data.success) {
         throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
+    yield add__new_sms_to_db(number, text, "multisend", msgId);
+    managers_1.logger.log("send_local_sms. message sent successfully", { number, text, response: response.data });
 });
-exports.send_local_sms = send_local_sms;
 const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
     const defaultValues = {
         sms_provider: {
-            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12183921304", token: "47fafa1a186e0352058195715d917a55" },
+            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12185857393", token: "47fafa1a186e0352058195715d917a55" },
         },
     };
     const { sms_provider: { twilio }, } = managers_1.cache_manager.getObjectData("nx-settings") || defaultValues;
     const twilioClient = new twilio_1.Twilio(twilio.account_sid, twilio.token);
     const message = yield twilioClient.messages.create({
+        messagingServiceSid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
         body: text,
         to: number,
-        from: twilio.from,
+        // from: twilio.from,
     });
-    console.log("message", message);
-    if (!message) {
-        throw "twilioClient.messages.create failed";
+    if (message.errorMessage) {
+        throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }
+    yield add__new_sms_to_db(number, text, "twilio", message.sid);
+    managers_1.logger.log("send_international_sms. message sent successfully", { number, text, response: message });
 });
-exports.send_international_sms = send_international_sms;
 const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings");
+        const defaultValues = {
+            sms_provider: {
+                monogoto: {
+                    Password: "KOBI@2024",
+                    UserName: "kobi@akeyless-sys.com",
+                    desc: "need to put them in the body of login request",
+                    from: "Akeyless",
+                },
+            },
+        };
+        const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings") || defaultValues;
         const data = { UserName: monogoto.UserName, Password: monogoto.Password };
         const response = yield (0, axios_1.default)({
             method: "post",
             url: `https://console.monogoto.io/Auth`,
-            data: data,
+            data,
         });
         return response.data;
     }
@@ -77,7 +98,17 @@ const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings");
+    const defaultValues = {
+        sms_provider: {
+            monogoto: {
+                Password: "KOBI@2024",
+                UserName: "kobi@akeyless-sys.com",
+                desc: "need to put them in the body of login request",
+                from: "Akeyless",
+            },
+        },
+    };
+    const { sms_provider: { monogoto }, } = managers_1.cache_manager.getObjectData("nx-settings") || defaultValues;
     const monogoto_auth = yield login_to_monogoto();
     const data = { Message: text, From: monogoto.from };
     const response = yield (0, axios_1.default)({
@@ -92,26 +123,28 @@ const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0, funct
     if (response.status !== 200) {
         throw `request to monogoto status: ${response.status}`;
     }
+    yield add__new_sms_to_db(number, text, "monogoto", response.data);
+    managers_1.logger.log("send_iccid_sms. message sent successfully", { number, text, response: response.data });
 });
-exports.send_iccid_sms = send_iccid_sms;
 const send_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        let service = "multisend";
         const send = () => __awaiter(void 0, void 0, void 0, function* () {
             if ((0, phone_number_helepers_1.isIccid)(number)) {
-                return yield (0, exports.send_iccid_sms)(number, text);
+                service = "monogoto";
+                return yield send_iccid_sms(number, text);
             }
-            if ((0, phone_number_helepers_1.isInternational)(number)) {
-                if ((0, phone_number_helepers_1.isInternationalIsraelPhone)(number)) {
-                    return yield (0, exports.send_local_sms)((0, phone_number_helepers_1.local_israel_phone_format)(number), text);
-                }
-                return (0, exports.send_international_sms)(number, text);
+            if ((0, phone_number_helepers_1.isLongPhoneNumber)(number)) {
+                service = "twilio";
+                return send_international_sms(number, text);
             }
-            return yield (0, exports.send_local_sms)(number, text);
+            return yield send_local_sms(number, text);
         });
         yield send();
-        yield (0, global_helpers_1.add_audit_record)("send_sms", entity_for_audit || "global", {
+        yield (0, global_helpers_1.add_audit_record)("send_sms", entity_for_audit || "general", {
             destination: number,
             message: text,
+            service,
         });
     }
     catch (error) {
@@ -120,6 +153,18 @@ const send_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, v
     }
 });
 exports.send_sms = send_sms;
+const add__new_sms_to_db = (recipient, content, service, external_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const timestamp = firestore_1.Timestamp.now();
+    const data = {
+        external_id,
+        content,
+        recipient,
+        service,
+        timestamp,
+        status: "new",
+    };
+    yield (0, firebase_helpers_1.add_document)("nx-sms-out", data);
+});
 const push_event_to_mobile_users = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const units = managers_1.cache_manager.getArrayData("units");

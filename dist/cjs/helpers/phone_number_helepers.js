@@ -1,14 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.local_israel_phone_format = exports.isIccid = exports.isInternationalIsraelPhone = exports.isInternational = void 0;
-const isInternational = (phone_number) => {
+exports.local_israel_phone_format = exports.isIccid = exports.isInternationalPhoneNumber = exports.isIsraelLongPhoneNumber = exports.isLongPhoneNumber = void 0;
+const isLongPhoneNumber = (phone_number) => {
     return phone_number.startsWith("+");
 };
-exports.isInternational = isInternational;
-const isInternationalIsraelPhone = (phone_number) => {
+exports.isLongPhoneNumber = isLongPhoneNumber;
+const isIsraelLongPhoneNumber = (phone_number) => {
     return phone_number.startsWith("+9725");
 };
-exports.isInternationalIsraelPhone = isInternationalIsraelPhone;
+exports.isIsraelLongPhoneNumber = isIsraelLongPhoneNumber;
+const isInternationalPhoneNumber = (phone_number) => {
+    return (0, exports.isLongPhoneNumber)(phone_number) && !(0, exports.isIsraelLongPhoneNumber)(phone_number);
+};
+exports.isInternationalPhoneNumber = isInternationalPhoneNumber;
 const isIccid = (number) => {
     if (number.length < 19 || number.length > 22)
         return false;

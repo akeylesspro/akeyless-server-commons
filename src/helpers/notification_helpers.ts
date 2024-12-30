@@ -1,24 +1,34 @@
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
-import { messaging } from "./firebase_helpers";
+import { add_document, messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice } from "akeyless-types-commons";
-import { isIccid, isInternational, isInternationalIsraelPhone, local_israel_phone_format } from "./phone_number_helepers";
+import { isIccid, isInternationalPhoneNumber, isLongPhoneNumber } from "./phone_number_helepers";
 import { Twilio } from "twilio";
+import { Timestamp } from "firebase-admin/firestore";
+import { v4 as uniqId } from "uuid";
 
 type SmsFunction = (number: string, text: string, entity_for_audit?: string) => Promise<void>;
 
-export const send_local_sms: SmsFunction = async (number, text) => {
+const send_local_sms: SmsFunction = async (number, text) => {
+    const defaultValues = {
+        sms_provider: {
+            multisend: { from: "972549781180", password: "akeyless123", user: "akeyless" },
+        },
+    };
     const {
         sms_provider: { multisend },
-    } = cache_manager.getObjectData("nx-settings");
+    } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const msgId = uniqId();
     let data = new FormData();
     data.append("user", multisend.user);
     data.append("password", multisend.password);
     data.append("from", multisend.from);
     data.append("recipient", number);
     data.append("message", text);
+    data.append("customermessageid", msgId);
+
     const config = {
         method: "post",
         maxBodyLength: Infinity,
@@ -32,12 +42,20 @@ export const send_local_sms: SmsFunction = async (number, text) => {
     if (!response.data.success) {
         throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
+
+    await add__new_sms_to_db(number, text, "multisend", msgId);
+    logger.log("send_local_sms. message sent successfully", { number, text, response: response.data });
 };
 
-export const send_international_sms: SmsFunction = async (number, text) => {
+const send_international_sms: SmsFunction = async (number, text) => {
     const defaultValues = {
         sms_provider: {
-            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12183921304", token: "47fafa1a186e0352058195715d917a55" },
+            twilio: {
+                account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8",
+                from: "+12185857393",
+                token: "47fafa1a186e0352058195715d917a55",
+                messaging_service_sid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
+            },
         },
     };
     const {
@@ -45,28 +63,38 @@ export const send_international_sms: SmsFunction = async (number, text) => {
     } = cache_manager.getObjectData("nx-settings") || defaultValues;
     const twilioClient = new Twilio(twilio.account_sid, twilio.token);
     const message = await twilioClient.messages.create({
+        messagingServiceSid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
         body: text,
         to: number,
-        from: twilio.from,
     });
-    console.log("message", message);
-
-    if (!message) {
-        throw "twilioClient.messages.create failed";
+    if (message.errorMessage) {
+        throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }
+    await add__new_sms_to_db(number, text, "twilio", message.sid);
+    logger.log("send_international_sms. message sent successfully", { number, text, response: message });
 };
 
 const login_to_monogoto = async () => {
     try {
+        const defaultValues = {
+            sms_provider: {
+                monogoto: {
+                    Password: "KOBI@2024",
+                    UserName: "kobi@akeyless-sys.com",
+                    desc: "need to put them in the body of login request",
+                    from: "Akeyless",
+                },
+            },
+        };
         const {
             sms_provider: { monogoto },
-        } = cache_manager.getObjectData("nx-settings");
+        } = cache_manager.getObjectData("nx-settings") || defaultValues;
         const data = { UserName: monogoto.UserName, Password: monogoto.Password };
 
         const response = await axios({
             method: "post",
             url: `https://console.monogoto.io/Auth`,
-            data: data,
+            data,
         });
         return response.data;
     } catch (error) {
@@ -74,10 +102,21 @@ const login_to_monogoto = async () => {
     }
 };
 
-export const send_iccid_sms: SmsFunction = async (number, text) => {
+const send_iccid_sms: SmsFunction = async (number, text) => {
+    const defaultValues = {
+        sms_provider: {
+            monogoto: {
+                Password: "KOBI@2024",
+                UserName: "kobi@akeyless-sys.com",
+                desc: "need to put them in the body of login request",
+                from: "Akeyless",
+            },
+        },
+    };
     const {
         sms_provider: { monogoto },
-    } = cache_manager.getObjectData("nx-settings");
+    } = cache_manager.getObjectData("nx-settings") || defaultValues;
+
     const monogoto_auth = await login_to_monogoto();
     const data = { Message: text, From: monogoto.from };
     const response = await axios({
@@ -92,31 +131,47 @@ export const send_iccid_sms: SmsFunction = async (number, text) => {
     if (response.status !== 200) {
         throw `request to monogoto status: ${response.status}`;
     }
+    await add__new_sms_to_db(number, text, "monogoto", response.data);
+    logger.log("send_iccid_sms. message sent successfully", { number, text, response: response.data });
 };
 
-export const send_sms: SmsFunction = async (number, text, entity_for_audit) => {
+export const send_sms = async (number: string, text: string, entity_for_audit: string) => {
     try {
+        let service = "multisend";
         const send = async () => {
             if (isIccid(number)) {
+                service = "monogoto";
                 return await send_iccid_sms(number, text);
             }
-            if (isInternational(number)) {
-                if (isInternationalIsraelPhone(number)) {
-                    return await send_local_sms(local_israel_phone_format(number), text);
-                }
+            if (isInternationalPhoneNumber(number)) {
+                service = "twilio";
                 return send_international_sms(number, text);
             }
             return await send_local_sms(number, text);
         };
         await send();
-        await add_audit_record("send_sms", entity_for_audit || "global", {
+        await add_audit_record("send_sms", entity_for_audit || "general", {
             destination: number,
             message: text,
+            service,
         });
     } catch (error) {
         logger.error(`${entity_for_audit}, send_sms failed:`, error);
         throw `${entity_for_audit}, send_sms failed: ` + error;
     }
+};
+
+const add__new_sms_to_db = async (recipient: string, content: string, service: string, external_id: string) => {
+    const timestamp = Timestamp.now();
+    const data = {
+        external_id,
+        content,
+        recipient,
+        service,
+        timestamp,
+        status: "new",
+    };
+    await add_document("nx-sms-out", data);
 };
 
 export const push_event_to_mobile_users = async (event: EventFromDevice) => {

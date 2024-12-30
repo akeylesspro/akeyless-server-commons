@@ -10,17 +10,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
-import { messaging } from "./firebase_helpers";
-import { isIccid, isInternational, isInternationalIsraelPhone, local_israel_phone_format } from "./phone_number_helepers";
+import { add_document, messaging } from "./firebase_helpers";
+import { isIccid, isLongPhoneNumber } from "./phone_number_helepers";
 import { Twilio } from "twilio";
-export const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings");
+import { Timestamp } from "firebase-admin/firestore";
+import { v4 as uniqId } from "uuid";
+const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
+    const defaultValues = {
+        sms_provider: {
+            multisend: { from: "972549781180", password: "akeyless123", user: "akeyless" },
+        },
+    };
+    const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
+    const msgId = uniqId();
     let data = new FormData();
     data.append("user", multisend.user);
     data.append("password", multisend.password);
     data.append("from", multisend.from);
     data.append("recipient", number);
     data.append("message", text);
+    data.append("customermessageid", msgId);
     const config = {
         method: "post",
         maxBodyLength: Infinity,
@@ -34,33 +43,47 @@ export const send_local_sms = (number, text) => __awaiter(void 0, void 0, void 0
     if (!response.data.success) {
         throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
+    yield add__new_sms_to_db(number, text, "multisend", msgId);
+    logger.log("send_local_sms. message sent successfully", { number, text, response: response.data });
 });
-export const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
+const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
     const defaultValues = {
         sms_provider: {
-            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12183921304", token: "47fafa1a186e0352058195715d917a55" },
+            twilio: { account_sid: "ACde071699dbbdeb99a93b9a55d049d2b8", from: "+12185857393", token: "47fafa1a186e0352058195715d917a55" },
         },
     };
     const { sms_provider: { twilio }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
     const twilioClient = new Twilio(twilio.account_sid, twilio.token);
     const message = yield twilioClient.messages.create({
+        messagingServiceSid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
         body: text,
         to: number,
-        from: twilio.from,
+        // from: twilio.from,
     });
-    console.log("message", message);
-    if (!message) {
-        throw "twilioClient.messages.create failed";
+    if (message.errorMessage) {
+        throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }
+    yield add__new_sms_to_db(number, text, "twilio", message.sid);
+    logger.log("send_international_sms. message sent successfully", { number, text, response: message });
 });
 const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
+        const defaultValues = {
+            sms_provider: {
+                monogoto: {
+                    Password: "KOBI@2024",
+                    UserName: "kobi@akeyless-sys.com",
+                    desc: "need to put them in the body of login request",
+                    from: "Akeyless",
+                },
+            },
+        };
+        const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
         const data = { UserName: monogoto.UserName, Password: monogoto.Password };
         const response = yield axios({
             method: "post",
             url: `https://console.monogoto.io/Auth`,
-            data: data,
+            data,
         });
         return response.data;
     }
@@ -68,8 +91,18 @@ const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
         throw `login_to_monogoto failed: ` + error;
     }
 });
-export const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
-    const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
+const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0, function* () {
+    const defaultValues = {
+        sms_provider: {
+            monogoto: {
+                Password: "KOBI@2024",
+                UserName: "kobi@akeyless-sys.com",
+                desc: "need to put them in the body of login request",
+                from: "Akeyless",
+            },
+        },
+    };
+    const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings") || defaultValues;
     const monogoto_auth = yield login_to_monogoto();
     const data = { Message: text, From: monogoto.from };
     const response = yield axios({
@@ -84,31 +117,46 @@ export const send_iccid_sms = (number, text) => __awaiter(void 0, void 0, void 0
     if (response.status !== 200) {
         throw `request to monogoto status: ${response.status}`;
     }
+    yield add__new_sms_to_db(number, text, "monogoto", response.data);
+    logger.log("send_iccid_sms. message sent successfully", { number, text, response: response.data });
 });
 export const send_sms = (number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        let service = "multisend";
         const send = () => __awaiter(void 0, void 0, void 0, function* () {
             if (isIccid(number)) {
+                service = "monogoto";
                 return yield send_iccid_sms(number, text);
             }
-            if (isInternational(number)) {
-                if (isInternationalIsraelPhone(number)) {
-                    return yield send_local_sms(local_israel_phone_format(number), text);
-                }
+            if (isLongPhoneNumber(number)) {
+                service = "twilio";
                 return send_international_sms(number, text);
             }
             return yield send_local_sms(number, text);
         });
         yield send();
-        yield add_audit_record("send_sms", entity_for_audit || "global", {
+        yield add_audit_record("send_sms", entity_for_audit || "general", {
             destination: number,
             message: text,
+            service,
         });
     }
     catch (error) {
         logger.error(`${entity_for_audit}, send_sms failed:`, error);
         throw `${entity_for_audit}, send_sms failed: ` + error;
     }
+});
+const add__new_sms_to_db = (recipient, content, service, external_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const timestamp = Timestamp.now();
+    const data = {
+        external_id,
+        content,
+        recipient,
+        service,
+        timestamp,
+        status: "new",
+    };
+    yield add_document("nx-sms-out", data);
 });
 export const push_event_to_mobile_users = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
