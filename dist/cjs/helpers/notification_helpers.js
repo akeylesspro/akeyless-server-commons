@@ -51,7 +51,7 @@ const send_international_sms = (number, text) => __awaiter(void 0, void 0, void 
     const { sms_provider: { twilio }, } = managers_1.cache_manager.getObjectData("nx-settings");
     const twilioClient = new twilio_1.Twilio(twilio.account_sid, twilio.token);
     const message = yield twilioClient.messages.create({
-        messagingServiceSid: "MG283f51b01563a07e9b18fc92e0f5b4ff",
+        messagingServiceSid: twilio.messaging_service_sid,
         body: text,
         to: number,
     });
