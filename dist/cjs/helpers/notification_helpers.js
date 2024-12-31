@@ -101,10 +101,10 @@ const send_iccid_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, fu
 const send_sms = (recepient, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const send = () => __awaiter(void 0, void 0, void 0, function* () {
-            if ((0, phone_number_helpers_1.isIccid)(recepient)) {
+            if ((0, phone_number_helpers_1.is_iccid)(recepient)) {
                 return yield send_iccid_sms(recepient, text);
             }
-            if ((0, phone_number_helpers_1.isInternationalPhoneNumber)(recepient)) {
+            if ((0, phone_number_helpers_1.is_international_phone_number)(recepient)) {
                 return send_international_sms(recepient, text);
             }
             return yield send_local_sms(recepient, text);

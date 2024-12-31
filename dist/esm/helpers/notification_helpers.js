@@ -11,7 +11,7 @@ import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
 import { add_document, messaging } from "./firebase_helpers";
-import { isIccid, isInternationalPhoneNumber } from "./phone_number_helpers";
+import { is_iccid, is_international_phone_number } from "./phone_number_helpers";
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
@@ -95,10 +95,10 @@ const send_iccid_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, fu
 export const send_sms = (recepient, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const send = () => __awaiter(void 0, void 0, void 0, function* () {
-            if (isIccid(recepient)) {
+            if (is_iccid(recepient)) {
                 return yield send_iccid_sms(recepient, text);
             }
-            if (isInternationalPhoneNumber(recepient)) {
+            if (is_international_phone_number(recepient)) {
                 return send_international_sms(recepient, text);
             }
             return yield send_local_sms(recepient, text);

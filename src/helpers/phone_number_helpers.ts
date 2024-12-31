@@ -1,13 +1,16 @@
-export const isLongPhoneNumber = (phone_number: string) => {
+export const is_long_phone_number = (phone_number: string) => {
     return phone_number.startsWith("+");
 };
-export const isIsraelLongPhoneNumber = (phone_number: string) => {
+
+export const is_israel_long_phone_number = (phone_number: string) => {
     return phone_number.startsWith("+9725");
 };
-export const isInternationalPhoneNumber = (phone_number: string) => {
-    return isLongPhoneNumber(phone_number) && !isIsraelLongPhoneNumber(phone_number);
+
+export const is_international_phone_number = (phone_number: string) => {
+    return is_long_phone_number(phone_number) && !is_israel_long_phone_number(phone_number);
 };
-export const isIccid = (number: string) => {
+
+export const is_iccid = (number: string) => {
     if (number.length < 19 || number.length > 22) return false;
     if (!/^\d+$/.test(number)) return false;
     if (!number.startsWith("89")) return false;

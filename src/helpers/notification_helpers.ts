@@ -4,7 +4,7 @@ import { add_audit_record } from "./global_helpers";
 import { add_document, messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice } from "akeyless-types-commons";
-import { isIccid, isInternationalPhoneNumber } from "./phone_number_helpers";
+import { is_iccid, is_international_phone_number } from "./phone_number_helpers";
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
@@ -105,10 +105,10 @@ const send_iccid_sms: SmsFunction = async (recepient, text) => {
 export const send_sms = async (recepient: string, text: string, entity_for_audit: string) => {
     try {
         const send = async () => {
-            if (isIccid(recepient)) {
+            if (is_iccid(recepient)) {
                 return await send_iccid_sms(recepient, text);
             }
-            if (isInternationalPhoneNumber(recepient)) {
+            if (is_international_phone_number(recepient)) {
                 return send_international_sms(recepient, text);
             }
             return await send_local_sms(recepient, text);
