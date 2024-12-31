@@ -14,6 +14,6 @@ export const isIccid = (number: string) => {
     return true;
 };
 
-export const local_israel_phone_format = (international_number: string) => {
+export const convert_to_short_israel_phone = (international_number: string) => {
     return international_number.replace("+972", "0");
 };
