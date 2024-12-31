@@ -66,7 +66,7 @@ const login_to_monogoto = async () => {
         const {
             sms_provider: { monogoto },
         } = cache_manager.getObjectData("nx-settings");
-        const data = { UserName: monogoto.user_name, Password: monogoto.password };
+        const data = { UserName: monogoto.user, Password: monogoto.password };
 
         const response = await axios({
             method: "post",

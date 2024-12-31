@@ -21,5 +21,5 @@ __exportStar(require("./time_helpers"), exports);
 __exportStar(require("./login_helpers"), exports);
 __exportStar(require("./notification_helpers"), exports);
 __exportStar(require("./email_helpers"), exports);
-__exportStar(require("./phone_number_helepers"), exports);
+__exportStar(require("./phone_number_helpers"), exports);
 //# sourceMappingURL=index.js.map
