@@ -1,67 +1,13 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { init_env_variables, init_snapshots, push_event_to_mobile_users, snapshot_bulk_by_names } from "./helpers";
-import { EventFromDevice } from "akeyless-types-commons";
-import { cache_manager } from "./managers";
-
-(async () => {
-    const test = cache_manager.getArrayData("test");
-    const env_vars = init_env_variables();
-
-    await init_snapshots();
-    // await snapshot_bulk_by_names([
-    //     {
-    //         collection_name: "units",
-    //         extra_parsers: [
-    //             {
-    //                 on_first_time: (docs, config) => {
-    //                     console.log(`on_first_time: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_add: (docs, config) => {
-    //                     console.log(`on_add: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_modify: (docs, config) => {
-    //                     console.log(`on_modify: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_remove: (docs, config) => {
-    //                     console.log(`on_remove: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //             },
-    //         ],
-    //     },
-    //     "usersUnits",
-    //     "mobile_users_app_pro",
-    //     "cars and mobile users",
-    //     {
-    //         collection_name: "app_pro_extra_pushes",
-    //         extra_parsers: [
-    //             {
-    //                 on_first_time: (docs, config) => {
-    //                     console.log(`on_first_time: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_add: (docs, config) => {
-    //                     console.log(`on_add: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_modify: (docs, config) => {
-    //                     console.log(`on_modify: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //                 on_remove: (docs, config) => {
-    //                     console.log(`on_remove: ${config.collection_name} / ${docs.length}`);
-    //                 },
-    //             },
-    //         ],
-    //     },
-    // ]);
-
-    // const event: EventFromDevice = {
-    //     car_number: "8313952",
-    //     event_id: 3,
-    //     source: "jimi",
-    //     timestamp: Timestamp.now(),
-    //     spd: 10,
-    //     vin: 12.4,
-    //     latitude: 32.29867,
-    //     longitude: 34.87002,
-    //     event_name: "Vibration",
-    // };
-    // await push_event_to_mobile_users(event);
-})();
+import { send_sms } from "./helpers";
+const paul = "+972546361975";
+const paulTestPhone = "0547380791";
+const avraham = "+972546559314";
+const avrahamLocal = "0546559314";
+const from2 = "+12185857393";
+const ami_friend = "+18182775344";
+const iccid = "8999925200420110809";
+const iccid2 = "8999925200420110808";
+const ruptelaMsg = "imei";
+// send_sms(avrahamLocal, "test 7", "testing");
+// send_sms(avraham, "test 8", "testing");
+send_sms(iccid2, ruptelaMsg, "testing") ;

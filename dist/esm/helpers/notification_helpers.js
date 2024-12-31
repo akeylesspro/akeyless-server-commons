@@ -10,41 +10,122 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
-import { messaging } from "./firebase_helpers";
-export const send_sms = (phone_number, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+import { add_document, messaging } from "./firebase_helpers";
+import { isIccid, isInternationalPhoneNumber } from "./phone_number_helpers";
+import { Twilio } from "twilio";
+import { Timestamp } from "firebase-admin/firestore";
+import { v4 as uniqId } from "uuid";
+const send_local_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, function* () {
+    const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings");
+    const msgId = uniqId();
+    let data = new FormData();
+    data.append("user", multisend.user);
+    data.append("password", multisend.password);
+    data.append("from", multisend.from);
+    data.append("recipient", recepient);
+    data.append("message", text);
+    data.append("customermessageid", msgId);
+    const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "https://api.multisend.co.il/v2/sendsms",
+        data: data,
+    };
+    const response = yield axios(config);
+    if (response.status !== 200) {
+        throw `multisend request failed , status: ${response.status} , data: ${JSON.stringify(response.data)}`;
+    }
+    if (!response.data.success) {
+        throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
+    }
+    yield keep_outgoing_sms(recepient, text, "multisend", msgId);
+    logger.log("send_local_sms. message sent successfully", { number: recepient, text, response: response.data });
+    return "multisend";
+});
+const send_international_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, function* () {
+    const { sms_provider: { twilio }, } = cache_manager.getObjectData("nx-settings");
+    const twilioClient = new Twilio(twilio.account_sid, twilio.token);
+    const message = yield twilioClient.messages.create({
+        messagingServiceSid: twilio.messaging_service_sid,
+        body: text,
+        to: recepient,
+    });
+    if (message.errorMessage) {
+        throw `twilioClient.messages.create failed: ${message.errorMessage} `;
+    }
+    yield keep_outgoing_sms(recepient, text, "twilio", message.sid);
+    logger.log("send_international_sms. message sent successfully", { number: recepient, text, response: message });
+    return "twilio";
+});
+const login_to_monogoto = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { sms_provider } = cache_manager.getObjectData("nx-settings");
-        let data = new FormData();
-        data.append("user", sms_provider.user);
-        data.append("password", sms_provider.password);
-        data.append("from", sms_provider.from);
-        data.append("recipient", phone_number);
-        data.append("message", text);
-        let config = {
+        const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
+        const data = { UserName: monogoto.user, Password: monogoto.password };
+        const response = yield axios({
             method: "post",
-            maxBodyLength: Infinity,
-            url: "https://api.multisend.co.il/v2/sendsms",
-            data: data,
-        };
-        const response = yield axios(config);
-        if (response.status !== 200) {
-            throw `http request to multisend status ${response.status}`;
-        }
-        if (!response.data.success) {
-            throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
-        }
-        if (!response.data.success) {
-            throw response.data.error;
-        }
-        yield add_audit_record("send_sms", entity_for_audit, {
-            destination: phone_number,
+            url: `https://console.monogoto.io/Auth`,
+            data,
+        });
+        return response.data;
+    }
+    catch (error) {
+        throw `login_to_monogoto failed: ` + error;
+    }
+});
+const send_iccid_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, function* () {
+    const { sms_provider: { monogoto }, } = cache_manager.getObjectData("nx-settings");
+    const monogoto_auth = yield login_to_monogoto();
+    const data = { Message: text, From: monogoto.from };
+    const response = yield axios({
+        method: "post",
+        url: `https://console.monogoto.io/thing/ThingId_ICCID_${recepient}/sms`,
+        data: data,
+        headers: {
+            Authorization: `Bearer ${monogoto_auth.token}`,
+            apikey: monogoto_auth.CustomerId,
+        },
+    });
+    if (response.status !== 200) {
+        throw `monogoto request failed , status: ${response.status} , data: ${JSON.stringify(response.data)}`;
+    }
+    yield keep_outgoing_sms(recepient, text, "monogoto", response.data);
+    logger.log("send_iccid_sms. message sent successfully", { number: recepient, text, response: response.data });
+    return "monogoto";
+});
+export const send_sms = (recepient, text, entity_for_audit) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const send = () => __awaiter(void 0, void 0, void 0, function* () {
+            if (isIccid(recepient)) {
+                return yield send_iccid_sms(recepient, text);
+            }
+            if (isInternationalPhoneNumber(recepient)) {
+                return send_international_sms(recepient, text);
+            }
+            return yield send_local_sms(recepient, text);
+        });
+        const service = yield send();
+        yield add_audit_record("send_sms", entity_for_audit || "general", {
+            recepient,
             message: text,
+            service,
         });
     }
     catch (error) {
         logger.error(`${entity_for_audit}, send_sms failed:`, error);
         throw `${entity_for_audit}, send_sms failed: ` + error;
     }
+});
+const keep_outgoing_sms = (recepient, content, service, external_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const timestamp = Timestamp.now();
+    const data = {
+        external_id,
+        content,
+        recipient: recepient,
+        service,
+        timestamp,
+        status: "new",
+    };
+    yield add_document("nx-sms-out", data);
 });
 export const push_event_to_mobile_users = (event) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;

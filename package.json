@@ -7,6 +7,7 @@
         "build": "npm run build:cjs && npm run build:esm",
         "update_type": "npm i git+https://github.com/akeylesspro/akeyless-types-commons.git",
         "deploy": "npm run build && git add . && git commit -am '.' && git push",
+        "dt": "npm run build && git add . && git commit -am 'build' && git push origin test",
         "start": "npm run build && node ./dist/cjs/",
         "test": "npm run build && node --input-type=commonjs ./dist/cjs/test.js"
     },
@@ -63,11 +64,15 @@
         "@types/lodash": "^4.17.7",
         "@types/moment": "^2.11.29",
         "@types/node": "^22.5.2",
+        "@types/twilio": "^3.19.2",
+        "@types/uuid": "^10.0.0",
         "typescript": "^5.5.4"
     },
     "dependencies": {
         "@sendgrid/mail": "^8.1.3",
         "akeyless-types-commons": "github:akeylesspro/akeyless-types-commons",
-        "tsup": "^8.3.5"
+        "tsup": "^8.3.5",
+        "twilio": "^5.4.0",
+        "uuid": "^11.0.3"
     }
 }
