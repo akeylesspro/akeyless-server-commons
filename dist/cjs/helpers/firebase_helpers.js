@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snapshot_bulk_by_names = exports.snapshot_bulk = exports.init_snapshots = exports.snapshot = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.messaging = exports.db = void 0;
+exports.snapshot_bulk_by_names = exports.snapshot_bulk = exports.init_snapshots = exports.snapshot = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id_optional = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.messaging = exports.db = void 0;
 const perf_hooks_1 = require("perf_hooks");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const managers_1 = require("../managers");
@@ -172,6 +172,21 @@ const get_document_by_id = (collection_path, doc_id) => __awaiter(void 0, void 0
     }
 });
 exports.get_document_by_id = get_document_by_id;
+const get_document_by_id_optional = (collection_path, doc_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const docRef = exports.db.collection(collection_path).doc(doc_id);
+        const doc = yield docRef.get();
+        if (!doc.exists) {
+            throw "Document not found, document id: " + doc_id;
+        }
+        return (0, exports.simple_extract_data)(doc);
+    }
+    catch (error) {
+        managers_1.logger.error("error from get_document_by_id_optional", error);
+        return null;
+    }
+});
+exports.get_document_by_id_optional = get_document_by_id_optional;
 const set_document = (collection_path, doc_id, data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield exports.db

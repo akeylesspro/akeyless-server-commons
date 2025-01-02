@@ -167,6 +167,19 @@ export const get_document_by_id = async (collection_path: string, doc_id: string
         throw error;
     }
 };
+export const get_document_by_id_optional = async (collection_path: string, doc_id: string): Promise<TObject<any> | null> => {
+    try {
+        const docRef = db.collection(collection_path).doc(doc_id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            throw "Document not found, document id: " + doc_id;
+        }
+        return simple_extract_data(doc);
+    } catch (error) {
+        logger.error("error from get_document_by_id_optional", error);
+        return null;
+    }
+};
 
 export const set_document = async (collection_path: string, doc_id: string, data: {}): Promise<void> => {
     try {

@@ -158,6 +158,20 @@ export const get_document_by_id = (collection_path, doc_id) => __awaiter(void 0,
         throw error;
     }
 });
+export const get_document_by_id_optional = (collection_path, doc_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const docRef = db.collection(collection_path).doc(doc_id);
+        const doc = yield docRef.get();
+        if (!doc.exists) {
+            throw "Document not found, document id: " + doc_id;
+        }
+        return simple_extract_data(doc);
+    }
+    catch (error) {
+        logger.error("error from get_document_by_id_optional", error);
+        return null;
+    }
+});
 export const set_document = (collection_path, doc_id, data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield db

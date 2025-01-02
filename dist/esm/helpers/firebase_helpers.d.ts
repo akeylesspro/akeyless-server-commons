@@ -12,6 +12,7 @@ export declare const query_document_by_conditions: QueryDocumentByConditions;
 export declare const query_document: QueryDocument;
 export declare const query_document_optional: QueryDocumentOptional;
 export declare const get_document_by_id: (collection_path: string, doc_id: string) => Promise<TObject<any>>;
+export declare const get_document_by_id_optional: (collection_path: string, doc_id: string) => Promise<TObject<any> | null>;
 export declare const set_document: (collection_path: string, doc_id: string, data: {}) => Promise<void>;
 export declare const add_document: (collection_path: string, data: {}, include_id?: boolean) => Promise<void>;
 export declare const delete_document: (collection_path: string, doc_id: string) => Promise<void>;
