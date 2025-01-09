@@ -20,8 +20,14 @@ const get_users_by_phone = (phone_number_1, ...args_1) => __awaiter(void 0, [pho
     var _a;
     let installer;
     let nx_user;
-    const installer_q = yield (0, firebase_helpers_1.query_document_optional)("technicians", "phone", "==", (0, exports.convert_to_short_phone_number)(phone_number));
-    const nx_user_q = yield (0, firebase_helpers_1.query_document_optional)("nx-users", "phone_number", "==", (0, exports.convert_to_short_phone_number)(phone_number));
+    const installer_q = yield (0, firebase_helpers_1.query_document_optional)("technicians", "phone", "in", [
+        (0, exports.convert_to_short_phone_number)(phone_number),
+        phone_number,
+    ]);
+    const nx_user_q = yield (0, firebase_helpers_1.query_document_optional)("nx-users", "phone_number", "in", [
+        (0, exports.convert_to_short_phone_number)(phone_number),
+        phone_number,
+    ]);
     if (!installer_q && !nx_user_q) {
         throw "User not found";
     }

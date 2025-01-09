@@ -16,8 +16,14 @@ export const get_users_by_phone = (phone_number_1, ...args_1) => __awaiter(void 
     var _a;
     let installer;
     let nx_user;
-    const installer_q = yield query_document_optional("technicians", "phone", "==", convert_to_short_phone_number(phone_number));
-    const nx_user_q = yield query_document_optional("nx-users", "phone_number", "==", convert_to_short_phone_number(phone_number));
+    const installer_q = yield query_document_optional("technicians", "phone", "in", [
+        convert_to_short_phone_number(phone_number),
+        phone_number,
+    ]);
+    const nx_user_q = yield query_document_optional("nx-users", "phone_number", "in", [
+        convert_to_short_phone_number(phone_number),
+        phone_number,
+    ]);
     if (!installer_q && !nx_user_q) {
         throw "User not found";
     }
