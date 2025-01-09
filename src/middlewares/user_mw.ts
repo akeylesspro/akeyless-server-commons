@@ -62,7 +62,7 @@ export const nx_user_login: MW = async (req, res, next) => {
         if (!phone_number) {
             throw "Invalid authorization token";
         }
-        const nx_user: NxUser = await query_document("nx-users", "phone_number", "==", convert_to_short_phone_number(phone_number));
+        const nx_user: NxUser = await query_document("nx-users", "phone_number", "in", [convert_to_short_phone_number(phone_number), phone_number]);
         req.body.nx_user = nx_user;
         next();
     } catch (error: any) {
