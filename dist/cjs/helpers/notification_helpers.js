@@ -21,10 +21,11 @@ const phone_number_helpers_1 = require("./phone_number_helpers");
 const twilio_1 = require("twilio");
 const firestore_1 = require("firebase-admin/firestore");
 const uuid_1 = require("uuid");
+const form_data_1 = __importDefault(require("form-data"));
 const send_local_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, function* () {
     const { sms_provider: { multisend }, } = managers_1.cache_manager.getObjectData("nx-settings");
     const msgId = (0, uuid_1.v4)();
-    let data = new FormData();
+    let data = new form_data_1.default();
     data.append("user", multisend.user);
     data.append("password", multisend.password);
     data.append("from", multisend.from);
