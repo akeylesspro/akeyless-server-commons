@@ -51,6 +51,7 @@ firebase_admin.initializeApp({
 });
 export const db = firebase_admin.firestore();
 export const messaging = firebase_admin.messaging();
+export const auth = firebase_admin.auth();
 
 /// extract
 export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
