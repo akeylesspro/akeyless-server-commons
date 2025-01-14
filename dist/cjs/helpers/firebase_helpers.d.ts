@@ -4,6 +4,7 @@ import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
 export declare const db: firebase_admin.firestore.Firestore;
 export declare const messaging: import("firebase-admin/messaging").Messaging;
+export declare const auth: import("firebase-admin/auth").Auth;
 export declare const simple_extract_data: (doc: FirebaseFirestore.DocumentSnapshot) => TObject<any>;
 export declare const get_all_documents: (collection_path: string) => Promise<any[]>;
 export declare const query_documents: QueryDocuments;

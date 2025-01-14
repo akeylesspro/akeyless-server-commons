@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snapshot_bulk_by_names = exports.snapshot_bulk = exports.init_snapshots = exports.snapshot = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id_optional = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.messaging = exports.db = void 0;
+exports.snapshot_bulk_by_names = exports.snapshot_bulk = exports.init_snapshots = exports.snapshot = exports.verify_token = exports.delete_document = exports.add_document = exports.set_document = exports.get_document_by_id_optional = exports.get_document_by_id = exports.query_document_optional = exports.query_document = exports.query_document_by_conditions = exports.query_documents_by_conditions = exports.query_documents = exports.get_all_documents = exports.simple_extract_data = exports.auth = exports.messaging = exports.db = void 0;
 const perf_hooks_1 = require("perf_hooks");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const managers_1 = require("../managers");
@@ -52,6 +52,7 @@ firebase_admin_1.default.initializeApp({
 });
 exports.db = firebase_admin_1.default.firestore();
 exports.messaging = firebase_admin_1.default.messaging();
+exports.auth = firebase_admin_1.default.auth();
 /// extract
 const simple_extract_data = (doc) => {
     const doc_data = doc.data();

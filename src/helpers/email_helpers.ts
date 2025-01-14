@@ -1,9 +1,7 @@
-import sendgrid, { ClientResponse, MailDataRequired } from "@sendgrid/mail";
+import sendgrid, { MailDataRequired } from "@sendgrid/mail";
 import { add_audit_record, get_document_by_id } from ".";
-import { forEach, isEmpty, isObject } from "lodash";
 import { EmailSettings, EmailData } from "../types";
 import { logger } from "../managers";
-import { TObject } from "akeyless-types-commons";
 
 export const send_email = async (email_data: EmailData) => {
     try {

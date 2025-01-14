@@ -15,6 +15,7 @@ import { is_iccid, is_international_phone_number } from "./phone_number_helpers"
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
+import FormData from "form-data";
 const send_local_sms = (recepient, text) => __awaiter(void 0, void 0, void 0, function* () {
     const { sms_provider: { multisend }, } = cache_manager.getObjectData("nx-settings");
     const msgId = uniqId();
