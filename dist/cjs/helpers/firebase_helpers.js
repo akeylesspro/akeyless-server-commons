@@ -187,12 +187,12 @@ const get_document_by_id_optional = (collection_path, doc_id) => __awaiter(void 
     }
 });
 exports.get_document_by_id_optional = get_document_by_id_optional;
-const set_document = (collection_path, doc_id, data) => __awaiter(void 0, void 0, void 0, function* () {
+const set_document = (collection_path_1, doc_id_1, data_1, ...args_1) => __awaiter(void 0, [collection_path_1, doc_id_1, data_1, ...args_1], void 0, function* (collection_path, doc_id, data, merge = true) {
     try {
         yield exports.db
             .collection(collection_path)
             .doc(doc_id)
-            .set(Object.assign({}, data), { merge: true });
+            .set(Object.assign({}, data), { merge });
     }
     catch (error) {
         managers_1.logger.error(`failed to create document by id: ${doc_id} in collection: ${collection_path}`, error);

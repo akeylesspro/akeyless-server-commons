@@ -181,12 +181,12 @@ export const get_document_by_id_optional = async (collection_path: string, doc_i
     }
 };
 
-export const set_document = async (collection_path: string, doc_id: string, data: {}): Promise<void> => {
+export const set_document = async (collection_path: string, doc_id: string, data: {}, merge: boolean = true): Promise<void> => {
     try {
         await db
             .collection(collection_path)
             .doc(doc_id)
-            .set({ ...data }, { merge: true });
+            .set({ ...data }, { merge });
     } catch (error) {
         logger.error(`failed to create document by id: ${doc_id} in collection: ${collection_path}`, error);
         throw `failed to create document by id ${doc_id} in collection ${collection_path}`;
