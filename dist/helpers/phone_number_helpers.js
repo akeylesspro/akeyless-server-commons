@@ -1,49 +1,41 @@
-import { TObject } from "akeyless-types-commons";
 import { SimProvider } from "../types/enums";
-
-export const is_long_phone_number = (phone_number: string) => {
+export const is_long_phone_number = (phone_number) => {
     return phone_number.startsWith("+");
 };
-
-export const is_israel_long_phone_number = (phone_number: string) => {
+export const is_israel_long_phone_number = (phone_number) => {
     return phone_number.startsWith("+9725");
 };
-
-export const is_international_phone_number = (phone_number: string) => {
+export const is_international_phone_number = (phone_number) => {
     return is_long_phone_number(phone_number) && !is_israel_long_phone_number(phone_number);
 };
-
-export const is_iccid = (number: string) => {
-    if (number.length < 19 || number.length > 22) return false;
-    if (!/^\d+$/.test(number)) return false;
-    if (!number.startsWith("89")) return false;
+export const is_iccid = (number) => {
+    if (number.length < 19 || number.length > 22)
+        return false;
+    if (!/^\d+$/.test(number))
+        return false;
+    if (!number.startsWith("89"))
+        return false;
     return true;
 };
-
-export const convert_to_short_israel_phone = (international_number: string) => {
+export const convert_to_short_israel_phone = (international_number) => {
     return international_number.replace("+972", "0");
 };
-
-export const is_sim_provider_partner = (phone_number: string) => {
+export const is_sim_provider_partner = (phone_number) => {
     var { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("054");
 };
-
-export const is_sim_provider_pelephone = (phone_number: string) => {
+export const is_sim_provider_pelephone = (phone_number) => {
     var { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("050");
 };
-
-export const is_sim_provider_celcom = (phone_number: string) => {
+export const is_sim_provider_celcom = (phone_number) => {
     var { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("052");
 };
-
-export const is_sim_provider_monogoto = (phone_number: string) => {
+export const is_sim_provider_monogoto = (phone_number) => {
     return is_iccid(phone_number);
 };
-
-export const get_sim_provider = (phone_number: string): SimProvider => {
+export const get_sim_provider = (phone_number) => {
     if (is_sim_provider_partner(phone_number)) {
         return SimProvider.partner;
     }
@@ -58,8 +50,7 @@ export const get_sim_provider = (phone_number: string): SimProvider => {
     }
     return SimProvider.unknown;
 };
-
-export const long_short_phone_numbers = (phone_number: string): TObject<any> => {
+export const long_short_phone_numbers = (phone_number) => {
     phone_number = phone_number.trim();
     if (!phone_number.length) {
         return {
@@ -78,13 +69,16 @@ export const long_short_phone_numbers = (phone_number: string): TObject<any> => 
     if (phone_number.startsWith("05")) {
         var short_phone_number = phone_number;
         var long_phone_number = `+9725${short_phone_number.slice(2)}`;
-    } else if (phone_number.startsWith("+972")) {
+    }
+    else if (phone_number.startsWith("+972")) {
         var long_phone_number = phone_number;
         var short_phone_number = long_phone_number.replace("+9725", "05");
-    } else if (phone_number.startsWith("+1")) {
+    }
+    else if (phone_number.startsWith("+1")) {
         var long_phone_number = phone_number;
         var short_phone_number = long_phone_number.replace("+1", "");
-    } else {
+    }
+    else {
         var short_phone_number = phone_number;
         var long_phone_number = phone_number;
     }
