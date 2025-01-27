@@ -25,17 +25,17 @@ export const convert_to_short_israel_phone = (international_number: string) => {
 };
 
 export const is_sim_provider_partner = (phone_number: string) => {
-    var { short_phone_number } = long_short_phone_numbers(phone_number);
+    const { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("054");
 };
 
 export const is_sim_provider_pelephone = (phone_number: string) => {
-    var { short_phone_number } = long_short_phone_numbers(phone_number);
+    const { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("050");
 };
 
 export const is_sim_provider_celcom = (phone_number: string) => {
-    var { short_phone_number } = long_short_phone_numbers(phone_number);
+    const { short_phone_number } = long_short_phone_numbers(phone_number);
     return short_phone_number.startsWith("052");
 };
 
@@ -75,18 +75,18 @@ export const long_short_phone_numbers = (phone_number: string): TObject<any> => 
             is_israeli: false,
         };
     }
+
+    let short_phone_number = phone_number;
+    let long_phone_number = phone_number;
     if (phone_number.startsWith("05")) {
-        var short_phone_number = phone_number;
-        var long_phone_number = `+9725${short_phone_number.slice(2)}`;
+        short_phone_number = phone_number;
+        long_phone_number = `+9725${short_phone_number.slice(2)}`;
     } else if (phone_number.startsWith("+972")) {
-        var long_phone_number = phone_number;
-        var short_phone_number = long_phone_number.replace("+9725", "05");
+        long_phone_number = phone_number;
+        short_phone_number = long_phone_number.replace("+9725", "05");
     } else if (phone_number.startsWith("+1")) {
-        var long_phone_number = phone_number;
-        var short_phone_number = long_phone_number.replace("+1", "");
-    } else {
-        var short_phone_number = phone_number;
-        var long_phone_number = phone_number;
+        long_phone_number = phone_number;
+        short_phone_number = long_phone_number.replace("+1", "");
     }
     return {
         short_phone_number,
