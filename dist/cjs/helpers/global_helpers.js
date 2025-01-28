@@ -73,19 +73,34 @@ const add_audit_record = (action, entity, details, user) => __awaiter(void 0, vo
     }
 });
 exports.add_audit_record = add_audit_record;
-const get_nx_service_urls = () => {
-    if (!process.env.mode) {
+const get_nx_service_urls = (env_name = "mode") => {
+    if (!process.env[env_name]) {
         throw new Error("missing [mode] environment variable");
     }
-    const is_prod = ["production", "prod"].includes(process.env.mode.toLowerCase());
+    const env_value = process.env[env_name].toLowerCase();
+    const is_local = ["local"].includes(env_value);
+    const is_prod = ["production", "prod"].includes(env_value);
+    const is_qa = ["qa"].includes(env_value);
     const result = {};
-    result[types_1.NxServiceName.bi] = is_prod ? "https://nx-api.info/api/bi" : "https://nx-api.xyz/api/bi";
-    result[types_1.NxServiceName.call_center] = is_prod ? "https://nx-api.info/api/call-center" : "https://nx-api.xyz/api/call-center";
-    result[types_1.NxServiceName.dashboard] = is_prod ? "https://akeyless-dashboard.online" : "https://akeyless-dashboard.xyz";
-    result[types_1.NxServiceName.devices] = is_prod ? "https://nx-api.info/api/devices" : "https://nx-api.xyz/api/devices";
-    result[types_1.NxServiceName.installer] = is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
-    result[types_1.NxServiceName.ox_server] = is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
-    result[types_1.NxServiceName.toolbox] = is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
+    result[types_1.NxServiceName.bi] = is_local ? "http://localhost:9002/api/bi" : is_prod ? "https://nx-api.info/api/bi" : "https://nx-api.xyz/api/bi";
+    result[types_1.NxServiceName.call_center] = is_local
+        ? "http://localhost:9003/api/call-center"
+        : is_prod
+            ? "https://nx-api.info/api/call-center"
+            : "https://nx-api.xyz/api/call-center";
+    result[types_1.NxServiceName.dashboard] = is_local
+        ? "http://localhost"
+        : is_prod
+            ? "https://akeyless-dashboard.online"
+            : "https://akeyless-dashboard.xyz";
+    result[types_1.NxServiceName.devices] = is_local
+        ? "http://localhost:9001/api/devices"
+        : is_prod
+            ? "https://nx-api.info/api/devices"
+            : "https://nx-api.xyz/api/devices";
+    result[types_1.NxServiceName.installer] = is_local ? "http://localhost" : is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
+    result[types_1.NxServiceName.ox_server] = is_local ? "http://localhost" : is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
+    result[types_1.NxServiceName.toolbox] = is_local ? "http://localhost" : is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
     return result;
 };
 exports.get_nx_service_urls = get_nx_service_urls;
