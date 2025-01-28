@@ -12,5 +12,7 @@ const iccid2 = "8999925200420110808";
 const ruptelaMsg = "imei";
 // send_sms(avrahamLocal, "test 7", "testing");
 // send_sms(avraham, "test 8", "testing");
-(0, helpers_1.send_sms)(iccid2, ruptelaMsg, "testing");
+// send_sms(iccid2, ruptelaMsg, "testing") ;
+const nx_service_urls = (0, helpers_1.get_nx_service_urls)();
+console.log(nx_service_urls);
 //# sourceMappingURL=test.js.map

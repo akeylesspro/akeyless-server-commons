@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.add_audit_record = exports.sleep = exports.get_version = exports.parse_error = exports.json_failed = exports.json_ok = exports.init_env_variables = void 0;
+exports.get_nx_service_urls = exports.add_audit_record = exports.sleep = exports.get_version = exports.parse_error = exports.json_failed = exports.json_ok = exports.init_env_variables = void 0;
+const types_1 = require("../types");
 const fs_1 = require("fs");
 const managers_1 = require("../managers");
 const _1 = require("./");
@@ -72,4 +73,20 @@ const add_audit_record = (action, entity, details, user) => __awaiter(void 0, vo
     }
 });
 exports.add_audit_record = add_audit_record;
+const get_nx_service_urls = () => {
+    if (!process.env.mode) {
+        throw new Error("missing [mode] environment variable");
+    }
+    const is_prod = ["production", "prod"].includes(process.env.mode.toLowerCase());
+    const result = {};
+    result[types_1.NxServiceName.bi] = is_prod ? "https://nx-api.info/api/bi" : "https://nx-api.xyz/api/bi";
+    result[types_1.NxServiceName.call_center] = is_prod ? "https://nx-api.info/api/call-center" : "https://nx-api.xyz/api/call-center";
+    result[types_1.NxServiceName.dashboard] = is_prod ? "https://akeyless-dashboard.online" : "https://akeyless-dashboard.xyz";
+    result[types_1.NxServiceName.devices] = is_prod ? "https://nx-api.info/api/devices" : "https://nx-api.xyz/api/devices";
+    result[types_1.NxServiceName.installer] = is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
+    result[types_1.NxServiceName.ox_server] = is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
+    result[types_1.NxServiceName.toolbox] = is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
+    return result;
+};
+exports.get_nx_service_urls = get_nx_service_urls;
 //# sourceMappingURL=global_helpers.js.map

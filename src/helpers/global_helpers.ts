@@ -1,4 +1,4 @@
-import { AddAuditRecord, JsonFailed, JsonOK } from "../types";
+import { AddAuditRecord, JsonFailed, JsonOK, NxServiceName } from "../types";
 import { readFileSync } from "fs";
 import { logger } from "../managers";
 import { db } from "./";
@@ -60,4 +60,20 @@ export const add_audit_record: AddAuditRecord = async (action, entity, details, 
     } catch (error: any) {
         throw { msg: "unable to add audit record", data };
     }
+};
+
+export const get_nx_service_urls = (): TObject<string> => {
+    if (!process.env.mode) {
+        throw new Error("missing [mode] environment variable");
+    }
+    const is_prod = ["production", "prod"].includes(process.env.mode.toLowerCase());
+    const result: TObject<string> = {};
+    result[NxServiceName.bi] = is_prod ? "https://nx-api.info/api/bi" : "https://nx-api.xyz/api/bi";
+    result[NxServiceName.call_center] = is_prod ? "https://nx-api.info/api/call-center" : "https://nx-api.xyz/api/call-center";
+    result[NxServiceName.dashboard] = is_prod ? "https://akeyless-dashboard.online" : "https://akeyless-dashboard.xyz";
+    result[NxServiceName.devices] = is_prod ? "https://nx-api.info/api/devices" : "https://nx-api.xyz/api/devices";
+    result[NxServiceName.installer] = is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
+    result[NxServiceName.ox_server] = is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
+    result[NxServiceName.toolbox] = is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
+    return result;
 };
