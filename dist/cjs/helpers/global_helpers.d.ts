@@ -7,3 +7,4 @@ export declare const parse_error: (error: any) => any;
 export declare const get_version: (packageJsonPath: string) => string;
 export declare const sleep: (ms?: number) => Promise<unknown>;
 export declare const add_audit_record: AddAuditRecord;
+export declare const get_nx_service_urls: (env_name?: string) => TObject<string>;

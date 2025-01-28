@@ -1,4 +1,4 @@
-import { send_sms } from "./helpers";
+import { get_nx_service_urls, send_sms } from "./helpers";
 const paul = "+972546361975";
 const paulTestPhone = "0547380791";
 const avraham = "+972546559314";
@@ -10,4 +10,7 @@ const iccid2 = "8999925200420110808";
 const ruptelaMsg = "imei";
 // send_sms(avrahamLocal, "test 7", "testing");
 // send_sms(avraham, "test 8", "testing");
-send_sms(iccid2, ruptelaMsg, "testing") ;
+// send_sms(iccid2, ruptelaMsg, "testing") ;
+
+const nx_service_urls = get_nx_service_urls();
+console.log(nx_service_urls);
