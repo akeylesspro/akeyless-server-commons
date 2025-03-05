@@ -57,17 +57,17 @@ export const client_login = (req, res, next) => __awaiter(void 0, void 0, void 0
     try {
         const token = req.headers.authorization;
         if (!token) {
-            throw "Invalid authorization token";
+            throw new Error("Authorization token not found.");
         }
         const client_data = (yield query_document_optional("nx-clients", "api_token", "==", token));
         if (!client_data) {
-            throw "Client not found " + token;
+            throw new Error(`No client found with token: "${token}" .`);
         }
         req.body.client = client_data;
         next();
     }
     catch (error) {
-        res.status(403).send(json_failed(error));
+        res.status(403).send(json_failed(error.message || error));
     }
 });
 //# sourceMappingURL=auth_mw.js.map

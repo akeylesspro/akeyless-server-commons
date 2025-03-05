@@ -54,15 +54,15 @@ export const client_login: MW = async (req, res, next) => {
     try {
         const token = req.headers.authorization;
         if (!token) {
-            throw "Invalid authorization token";
+            throw new Error("Authorization token not found.");
         }
         const client_data = (await query_document_optional("nx-clients", "api_token", "==", token)) as Client | undefined;
         if (!client_data) {
-            throw "Client not found " + token;
+            throw new Error(`No client found with token: "${token}" .`);
         }
         req.body.client = client_data;
         next();
     } catch (error: any) {
-        res.status(403).send(json_failed(error));
+        res.status(403).send(json_failed(error.message || error));
     }
 };
