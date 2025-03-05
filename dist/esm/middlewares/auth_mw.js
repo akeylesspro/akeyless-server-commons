@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { verify_token, json_failed, get_users_by_phone, query_document, convert_to_short_phone_number } from "../helpers";
+import { verify_token, json_failed, get_users_by_phone, query_document, convert_to_short_phone_number, query_document_optional } from "../helpers";
 import { logger } from "../managers";
 export const verify_user_auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -59,7 +59,7 @@ export const client_login = (req, res, next) => __awaiter(void 0, void 0, void 0
         if (!token) {
             throw "Invalid authorization token";
         }
-        const client_data = (yield query_document("nx-clients", "api_token", "==", token));
+        const client_data = (yield query_document_optional("nx-clients", "api_token", "==", token));
         if (!client_data) {
             throw "Client not found " + token;
         }

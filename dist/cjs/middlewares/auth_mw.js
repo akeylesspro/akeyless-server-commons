@@ -65,7 +65,7 @@ const client_login = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!token) {
             throw "Invalid authorization token";
         }
-        const client_data = (yield (0, helpers_1.query_document)("nx-clients", "api_token", "==", token));
+        const client_data = (yield (0, helpers_1.query_document_optional)("nx-clients", "api_token", "==", token));
         if (!client_data) {
             throw "Client not found " + token;
         }

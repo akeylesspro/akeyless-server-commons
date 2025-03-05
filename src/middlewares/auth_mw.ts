@@ -1,4 +1,4 @@
-import { verify_token, json_failed, get_users_by_phone, query_document, convert_to_short_phone_number } from "../helpers";
+import { verify_token, json_failed, get_users_by_phone, query_document, convert_to_short_phone_number, query_document_optional } from "../helpers";
 import { logger } from "../managers";
 import { MW } from "../types";
 import { NxUser, Client } from "akeyless-types-commons";
@@ -56,7 +56,7 @@ export const client_login: MW = async (req, res, next) => {
         if (!token) {
             throw "Invalid authorization token";
         }
-        const client_data = (await query_document("nx-clients", "api_token", "==", token)) as Client | undefined;
+        const client_data = (await query_document_optional("nx-clients", "api_token", "==", token)) as Client | undefined;
         if (!client_data) {
             throw "Client not found " + token;
         }
