@@ -67,7 +67,7 @@ const client_login = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         const client_data = (yield (0, helpers_1.query_document_optional)("nx-clients", "api_token", "==", token));
         if (!client_data) {
-            throw new Error(`No client found with token: "${token}" .`);
+            throw new Error(`No client found with token: ${token} .`);
         }
         req.body.client = client_data;
         next();

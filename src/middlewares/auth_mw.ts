@@ -58,7 +58,7 @@ export const client_login: MW = async (req, res, next) => {
         }
         const client_data = (await query_document_optional("nx-clients", "api_token", "==", token)) as Client | undefined;
         if (!client_data) {
-            throw new Error(`No client found with token: "${token}" .`);
+            throw new Error(`No client found with token: ${token} .`);
         }
         req.body.client = client_data;
         next();
