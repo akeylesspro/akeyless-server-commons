@@ -17,29 +17,18 @@ const convert_to_short_phone_number = (phone_number) => {
 };
 exports.convert_to_short_phone_number = convert_to_short_phone_number;
 const get_users_by_phone = (phone_number_1, ...args_1) => __awaiter(void 0, [phone_number_1, ...args_1], void 0, function* (phone_number, default_client_key = akeyless_types_commons_1.DefaultClient.default) {
-    var _a;
-    let installer;
     let nx_user;
-    const installer_q = yield (0, firebase_helpers_1.query_document_optional)("technicians", "phone", "in", [
-        (0, exports.convert_to_short_phone_number)(phone_number),
-        phone_number,
-    ]);
     const nx_user_q = yield (0, firebase_helpers_1.query_document_optional)("nx-users", "phone_number", "in", [
         (0, exports.convert_to_short_phone_number)(phone_number),
         phone_number,
     ]);
-    if (!installer_q && !nx_user_q) {
+    if (!nx_user_q) {
         throw "User not found";
-    }
-    if (installer_q) {
-        const default_client = yield (0, firebase_helpers_1.query_document)("nx-clients", "key", "==", default_client_key);
-        installer = Boolean((_a = installer_q.clients) === null || _a === void 0 ? void 0 : _a.length) ? installer_q : Object.assign(Object.assign({}, installer_q), { clients: [default_client.id] });
     }
     if (nx_user_q) {
         nx_user = nx_user_q;
     }
     return {
-        installer,
         nx_user,
     };
 });
