@@ -1,7 +1,7 @@
-import { verify_token, json_failed, get_users_by_phone, query_document, get_document_by_id, convert_to_short_phone_number } from "../helpers";
+import { verify_token, json_failed, get_users_by_phone, query_document, convert_to_short_phone_number } from "../helpers";
 import { logger } from "../managers";
 import { MW } from "../types";
-import { NxUser, Installer, TObject } from "akeyless-types-commons";
+import { NxUser, Client } from "akeyless-types-commons";
 
 export const verify_user_auth: MW = async (req, res, next) => {
     try {
@@ -34,26 +34,6 @@ export const get_users_login: MW = async (req, res, next) => {
     }
 };
 
-export const installer_login: MW = async (req, res, next) => {
-    try {
-        const authorization = req.headers.authorization;
-        const user_data = await verify_token(authorization);
-        const { phone_number } = user_data;
-        if (!phone_number) {
-            throw "Invalid authorization token";
-        }
-        const users = await get_users_by_phone(phone_number);
-        const installer = users.installer;
-        if (!installer) {
-            throw "Installer not fund";
-        }
-        req.body.user = installer;
-        next();
-    } catch (error: any) {
-        res.status(403).send(json_failed(error));
-    }
-};
-
 export const nx_user_login: MW = async (req, res, next) => {
     try {
         const authorization = req.headers.authorization;
@@ -64,6 +44,23 @@ export const nx_user_login: MW = async (req, res, next) => {
         }
         const nx_user: NxUser = await query_document("nx-users", "phone_number", "in", [convert_to_short_phone_number(phone_number), phone_number]);
         req.body.nx_user = nx_user;
+        next();
+    } catch (error: any) {
+        res.status(403).send(json_failed(error));
+    }
+};
+
+export const client_login: MW = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            throw "Invalid authorization token";
+        }
+        const client_data = (await query_document("nx-clients", "api_token", "==", token)) as Client | undefined;
+        if (!client_data) {
+            throw "Client not found " + token;
+        }
+        req.body.client = client_data;
         next();
     } catch (error: any) {
         res.status(403).send(json_failed(error));
