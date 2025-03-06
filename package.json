@@ -9,7 +9,9 @@
         "deploy": "npm run build && git add . && git commit -am '.' && git push",
         "dt": "npm run build && git add . && git commit -am 'build' && git push origin test",
         "start": "npm run build && node ./dist/cjs/",
-        "test": "npm run build && node --input-type=commonjs ./dist/cjs/test.js"
+        "test": "npm run build && node --input-type=commonjs ./dist/cjs/test.js",
+        "git": "powershell -ExecutionPolicy Bypass -File ./ps/create_branch.ps1",
+        "git2": "powershell -ExecutionPolicy Bypass -File ./ps/move_to_main.ps1"
     },
     "exports": {
         "./managers": {
