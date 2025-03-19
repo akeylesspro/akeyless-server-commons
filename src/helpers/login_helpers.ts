@@ -1,11 +1,10 @@
-import { NxUser, Installer, DefaultClient } from "akeyless-types-commons";
+import { NxUser, DefaultClient } from "akeyless-types-commons";
 import { query_document, query_document_optional } from "./firebase_helpers";
 
 export const convert_to_short_phone_number = (phone_number: string): string => {
     return `0${phone_number.split("+972")[1]}`;
 };
 interface Users {
-    installer?: Installer;
     nx_user?: NxUser;
 }
 export const get_users_by_phone = async (phone_number: string, default_client_key: DefaultClient = DefaultClient.default): Promise<Users> => {

@@ -1,5 +1,5 @@
 import { Request, Response, Express, NextFunction } from "express";
-import { Installer, TObject } from "akeyless-types-commons";
+import { NxUser, TObject } from "akeyless-types-commons";
 
 export type JsonOK<T> = (data?: T) => { success: true; data: T | undefined };
 
@@ -13,4 +13,4 @@ export type Service = (req: Request, res: Response) => void;
 
 export type Route = (req: Request, res: Response, next?: NextFunction) => Response;
 
-export type AddAuditRecord = (action: string, entity: string, details: TObject<any>, user?: Installer) => Promise<void>;
+export type AddAuditRecord = (action: string, entity: string, details: TObject<any>, user?: NxUser) => Promise<void>;
