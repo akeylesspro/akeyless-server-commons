@@ -14,7 +14,7 @@ export const get_user_by_identifier = async (identifier: string): Promise<NxUser
     if (!phone_query) {
         const email_query: NxUser | null = await query_document_optional("nx-users", "email", "==", identifier);
         if (!email_query) {
-            throw "User not found";
+            throw "User not found " + identifier;
         }
         return email_query;
     }
