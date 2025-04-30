@@ -95,6 +95,12 @@ export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> 
 };
 
 export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions) => {
+    const address_not_found = "";
+
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return address_not_found;
+    }
+
     const language = currentLanguage === LanguageOptions.He ? "iw" : "en";
     const apiKey = process.env.google_api_key;
     if (!apiKey) {
@@ -107,10 +113,10 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
         if (response?.data?.results[0]) {
             return response.data.results[0].formatted_address.slice(0, 35) as string;
         } else {
-            return new Error("address not found");
+            return address_not_found;
         }
     } catch (error: any) {
         console.error("getAddressByGeo error:", error.message || error);
-        return "address not found";
+        return address_not_found;
     }
 };
