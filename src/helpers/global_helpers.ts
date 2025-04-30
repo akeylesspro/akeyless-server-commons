@@ -94,23 +94,26 @@ export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> 
     return result;
 };
 
-export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions) => {
+export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions): Promise<string> => {
+    const address_not_found = "";
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return address_not_found;
+    }
     const language = currentLanguage === LanguageOptions.He ? "iw" : "en";
     const apiKey = process.env.google_api_key;
     if (!apiKey) {
         throw new Error("missing env google api key");
     }
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=${language}`;
-
     try {
         const response = await axios.get(url);
         if (response?.data?.results[0]) {
             return response.data.results[0].formatted_address.slice(0, 35) as string;
         } else {
-            return new Error("address not found");
+            return address_not_found;
         }
     } catch (error: any) {
-        console.error("getAddressByGeo error:", error.message || error);
-        return "address not found";
+        logger.error("getAddressByGeo error:", error);
+        return address_not_found;
     }
 };
