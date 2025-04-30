@@ -3,16 +3,16 @@ import { cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
 import { add_document, messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
-import { EventFromDevice } from "akeyless-types-commons";
+import { EventFromDevice, TObject } from "akeyless-types-commons";
 import { is_iccid, is_international_phone_number } from "./phone_number_helpers";
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
 import FormData from "form-data";
 type SmsService = "multisend" | "twilio" | "monogoto";
-type SmsFunction = (recepient: string, text: string) => Promise<SmsService>;
+type SmsFunction = (recepient: string, text: string, details?: TObject<any>) => Promise<SmsService>;
 
-const send_local_sms: SmsFunction = async (recepient, text) => {
+const send_local_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { multisend },
     } = cache_manager.getObjectData("nx-settings");
@@ -39,12 +39,12 @@ const send_local_sms: SmsFunction = async (recepient, text) => {
         throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
 
-    await keep_outgoing_sms(recepient, text, "multisend", msgId);
+    await keep_outgoing_sms(recepient, text, "multisend", msgId, details);
     logger.log("send_local_sms. message sent successfully", { number: recepient, text, response: response.data });
     return "multisend";
 };
 
-const send_international_sms: SmsFunction = async (recepient, text) => {
+const send_international_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { twilio },
     } = cache_manager.getObjectData("nx-settings");
@@ -57,7 +57,7 @@ const send_international_sms: SmsFunction = async (recepient, text) => {
     if (message.errorMessage) {
         throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }
-    await keep_outgoing_sms(recepient, text, "twilio", message.sid);
+    await keep_outgoing_sms(recepient, text, "twilio", message.sid, details);
     logger.log("send_international_sms. message sent successfully", { number: recepient, text, response: message });
     return "twilio";
 };
@@ -80,7 +80,7 @@ const login_to_monogoto = async () => {
     }
 };
 
-const send_iccid_sms: SmsFunction = async (recepient, text) => {
+const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { monogoto },
     } = cache_manager.getObjectData("nx-settings");
@@ -98,21 +98,21 @@ const send_iccid_sms: SmsFunction = async (recepient, text) => {
     if (response.status !== 200) {
         throw `monogoto request failed , status: ${response.status} , data: ${JSON.stringify(response.data)}`;
     }
-    await keep_outgoing_sms(recepient, text, "monogoto", response.data);
+    await keep_outgoing_sms(recepient, text, "monogoto", response.data, details);
     logger.log("send_iccid_sms. message sent successfully", { number: recepient, text, response: response.data });
     return "monogoto";
 };
 
-export const send_sms = async (recepient: string, text: string, entity_for_audit: string) => {
+export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: TObject<any>) => {
     try {
         const send = async () => {
             if (is_iccid(recepient)) {
-                return await send_iccid_sms(recepient, text);
+                return await send_iccid_sms(recepient, text, details);
             }
             if (is_international_phone_number(recepient)) {
-                return send_international_sms(recepient, text);
+                return send_international_sms(recepient, text, details);
             }
-            return await send_local_sms(recepient, text);
+            return await send_local_sms(recepient, text, details);
         };
         const service = await send();
         await add_audit_record("send_sms", entity_for_audit || "general", {
@@ -126,9 +126,9 @@ export const send_sms = async (recepient: string, text: string, entity_for_audit
     }
 };
 
-const keep_outgoing_sms = async (recepient: string, content: string, service: string, external_id: string) => {
+const keep_outgoing_sms = async (recepient: string, content: string, service: string, external_id: string, details?: TObject<any>) => {
     const timestamp = Timestamp.now();
-    const data = {
+    const data: TObject<any> = {
         external_id,
         content,
         recipient: recepient,
@@ -136,6 +136,9 @@ const keep_outgoing_sms = async (recepient: string, content: string, service: st
         timestamp,
         status: "new",
     };
+    if (details) {
+        data.details = details;
+    }
     await add_document("nx-sms-out", data);
 };
 
@@ -198,7 +201,7 @@ export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_toke
             response: "No recipients",
         };
     }
-    fcm_tokens = [...new Set(fcm_tokens)];
+
     if (fcm_tokens.length == 0) {
         return {
             success: false,
