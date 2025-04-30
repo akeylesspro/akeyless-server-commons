@@ -94,7 +94,7 @@ export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> 
     return result;
 };
 
-export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions) => {
+export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions): Promise<string> => {
     const address_not_found = "";
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         return address_not_found;
@@ -113,7 +113,7 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
             return address_not_found;
         }
     } catch (error: any) {
-        console.error("getAddressByGeo error:", error.message || error);
+        logger.error("getAddressByGeo error:", error);
         return address_not_found;
     }
 };
