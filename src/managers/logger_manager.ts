@@ -40,15 +40,14 @@ class LoggerManager {
     }
     public error(msg: string, data?: any) {
         if (axios.isAxiosError(data)) {
-            console.error(`${this.get_date()} - ${msg}, axios error message: ${data.message}`);
-            if (data.response?.data) {
-                this.error("axios error data", data.response.data);
-                console.error(`axios error data`, data === undefined ? "" : `: ${JSON.stringify(data)}`);
+            if (!!data.response?.data) {
+                console.error(`${this.get_date()} - ${msg}, axios error: ${data.message}, data: ${JSON.stringify(data)}`);
+            } else {
+                console.error(`${this.get_date()} - ${msg}, axios error: ${data.message}`);
             }
-            return;
+        } else {
+            console.error(`${this.get_date()} - ${msg}`, data === undefined ? "" : `: ${JSON.stringify(parse_error(data))}`);
         }
-
-        console.error(`${this.get_date()} - ${msg}`, data === undefined ? "" : `: ${JSON.stringify(parse_error(data))}`);
     }
     public warn(msg: string, data?: any) {
         console.warn(`${this.get_date()} - ${msg}`, data === undefined ? "" : `: ${JSON.stringify(data)}`);
