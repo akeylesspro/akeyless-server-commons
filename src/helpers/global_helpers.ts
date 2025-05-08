@@ -117,3 +117,5 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
         return address_not_found;
     }
 };
+
+export const is_valid_type = <T extends any>(variable: any, condition: Boolean): variable is T => !!condition;
