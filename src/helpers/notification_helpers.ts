@@ -1,5 +1,5 @@
 import axios from "axios";
-import { cache_manager, logger, translation_manager } from "../managers";
+import { default_cache_manager, logger, translation_manager } from "../managers";
 import { add_audit_record } from "./global_helpers";
 import { add_document, messaging } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
@@ -15,7 +15,7 @@ type SmsFunction = (recepient: string, text: string, details?: TObject<any>) => 
 const send_local_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { multisend },
-    } = cache_manager.getObjectData("nx-settings");
+    } = default_cache_manager.getObjectData("nx-settings");
     const msgId = uniqId();
     let data = new FormData();
     data.append("user", multisend.user);
@@ -47,7 +47,7 @@ const send_local_sms: SmsFunction = async (recepient, text, details) => {
 const send_international_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { twilio },
-    } = cache_manager.getObjectData("nx-settings");
+    } = default_cache_manager.getObjectData("nx-settings");
     const twilioClient = new Twilio(twilio.account_sid, twilio.token);
     const message = await twilioClient.messages.create({
         messagingServiceSid: twilio.messaging_service_sid,
@@ -66,7 +66,7 @@ const login_to_monogoto = async () => {
     try {
         const {
             sms_provider: { monogoto },
-        } = cache_manager.getObjectData("nx-settings");
+        } = default_cache_manager.getObjectData("nx-settings");
         const data = { UserName: monogoto.user, Password: monogoto.password };
 
         const response = await axios({
@@ -83,7 +83,7 @@ const login_to_monogoto = async () => {
 const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
     const {
         sms_provider: { monogoto },
-    } = cache_manager.getObjectData("nx-settings");
+    } = default_cache_manager.getObjectData("nx-settings");
     const monogoto_auth = await login_to_monogoto();
     const data = { Message: text, From: monogoto.from };
     const response = await axios({
@@ -143,10 +143,10 @@ const keep_outgoing_sms = async (recepient: string, content: string, service: st
 };
 
 export const push_event_to_mobile_users = async (event: EventFromDevice) => {
-    const units = cache_manager.getArrayData("units");
-    const users_units = cache_manager.getArrayData("usersUnits");
-    const mobile_users_app_pro = cache_manager.getArrayData("mobile_users_app_pro");
-    const app_pro_extra_pushes = cache_manager.getArrayData("app_pro_extra_pushes");
+    const units = default_cache_manager.getArrayData("units");
+    const users_units = default_cache_manager.getArrayData("usersUnits");
+    const mobile_users_app_pro = default_cache_manager.getArrayData("mobile_users_app_pro");
+    const app_pro_extra_pushes = default_cache_manager.getArrayData("app_pro_extra_pushes");
 
     console.log(
         `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`
