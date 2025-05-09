@@ -1,16 +1,28 @@
-import { get_nx_service_urls, send_sms } from "./helpers";
-const paul = "+972546361975";
-const paulTestPhone = "0547380791";
-const avraham = "+972546559314";
-const avrahamLocal = "0546559314";
-const from2 = "+12185857393";
-const ami_friend = "+18182775344";
-const iccid = "8999925200420110809";
-const iccid2 = "8999925200420110808";
-const ruptelaMsg = "imei";
-// send_sms(avrahamLocal, "test 7", "testing");
-// send_sms(avraham, "test 8", "testing");
-// send_sms(iccid2, ruptelaMsg, "testing") ;
+import { CacheManager, default_cache_manager } from "./managers";
 
-const nx_service_urls = get_nx_service_urls();
-console.log(nx_service_urls);
+interface TestObject {
+    test: boolean;
+    test1: null;
+}
+const cache_manager = CacheManager.get_instance<TestObject>();
+
+default_cache_manager.set("testss", "true ddd");
+const test = cache_manager.get("testss");
+console.log("test", test);
+console.log("test2", cache_manager.get("test"));
+
+/// set
+cache_manager.set("test", true);
+// cache_manager.set("test", "true");
+
+cache_manager.set("test2", null);
+cache_manager.set("test2", "null");
+cache_manager.set("test2", [null]);
+
+/// get
+const test1 = cache_manager.get("test", true);
+const test2 = cache_manager.get("tests", [true]);
+
+// const test2 = cache_manager.get("testss", true as boolean);
+
+const test3 = cache_manager.get("test2");
