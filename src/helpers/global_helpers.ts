@@ -118,7 +118,7 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
     }
 };
 
-export const is_valid = <T extends any>(variable: any, condition: Boolean): variable is T => !!condition;
+export const validate_and_cast = <T extends any>(variable: any, condition: Boolean): variable is T => !!condition;
 
 export const get_or_default = <T>(value: T | undefined, default_value: T | (() => T)): T => {
     if (value !== undefined) {
