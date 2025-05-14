@@ -11,7 +11,7 @@ import {
     SnapshotBulk,
     SnapshotBulkByNames,
 } from "../types";
-import { default_cache_manager, logger, translation_manager } from "../managers";
+import { cache_manager, logger, translation_manager } from "../managers";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
@@ -253,53 +253,53 @@ const parse__delete__translations = (documents: any[]): void => {
 };
 
 const parse__add_update__settings = (documents: any[], name_for_cache: string): void => {
-    const data: TObject<any> = default_cache_manager.getObjectData(name_for_cache, {});
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
     });
-    default_cache_manager.setObjectData(name_for_cache, data);
+    cache_manager.setObjectData(name_for_cache, data);
 };
 
 const parse__delete__settings = (documents: any[], name_for_cache: string): void => {
-    const data: TObject<any> = default_cache_manager.getObjectData(name_for_cache, {});
+    const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
             delete data[doc.id];
         }
     });
-    default_cache_manager.setObjectData(name_for_cache, data);
+    cache_manager.setObjectData(name_for_cache, data);
 };
 
 const parse_add_update__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
-    const data: TObject<any> = default_cache_manager.getObjectData(config.collection_name, {});
+    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc[doc_key_property]] = doc;
     });
-    default_cache_manager.setObjectData(doc_key_property, data);
+    cache_manager.setObjectData(doc_key_property, data);
 };
 
 const parse__delete__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
-    const data: TObject<any> = default_cache_manager.getObjectData(config.collection_name, {});
+    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc[doc_key_property]]) {
             delete data[doc[doc_key_property]];
         }
     });
-    default_cache_manager.setObjectData(doc_key_property, data);
+    cache_manager.setObjectData(doc_key_property, data);
 };
 
 const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
     config.on_remove?.(documents, config);
-    const existing_array: any[] = default_cache_manager.getArrayData(config.collection_name);
+    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
     const updated_array = [...existing_array, ...documents];
-    default_cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(config.collection_name, updated_array);
 };
 
 const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
-    const existing_array: any[] = default_cache_manager.getArrayData(config.collection_name);
+    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
     const keys_to_delete = documents.map((doc) => doc.id);
     const updated_array = existing_array.filter((doc) => !keys_to_delete.includes(doc.id));
-    default_cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(config.collection_name, updated_array);
 };
 
 /// snapshots
