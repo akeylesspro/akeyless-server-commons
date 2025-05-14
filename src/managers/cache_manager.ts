@@ -62,7 +62,7 @@ export class CacheManager<T extends TObject<any> = TObject<any>> {
 
     /// get
     public get<K extends keyof T>(key: K): T[K];
-    public get<K extends string = string, V = any>(key: K extends keyof T ? never : K, default_value?: V): V;
+    public get<K extends string = string, V = any>(key: K extends keyof T ? never : K, default_value?: V): typeof default_value;
     public get<K extends keyof T>(key: K, default_value: T[K]): T[K];
     public get(key: string, default_value?: any): any {
         const val = (this.data as any)[key];
@@ -70,21 +70,21 @@ export class CacheManager<T extends TObject<any> = TObject<any>> {
     }
 
     /// old methods
-    public setArrayData(key: string, data: any[]): void {
-        this.set(key, data as any);
-    }
+    // public setArrayData(key: string, data: any[]): void {
+    //     this.set(key, data as any);
+    // }
 
-    public getArrayData(key: string): any[] {
-        return this.get(key) ?? [];
-    }
+    // public getArrayData(key: string): any[] {
+    //     return this.get(key) ?? [];
+    // }
 
-    public setObjectData(key: string, data: any): void {
-        this.set(key, data);
-    }
+    // public setObjectData(key: string, data: any): void {
+    //     this.set(key, data);
+    // }
 
-    public getObjectData(key: string, default_value: any = null): any {
-        return this.get(key) ?? default_value;
-    }
+    // public getObjectData(key: string, default_value: any = null): any {
+    //     return this.get(key) ?? default_value;
+    // }
 }
 
 export const default_cache_manager = CacheManager.get_instance();
