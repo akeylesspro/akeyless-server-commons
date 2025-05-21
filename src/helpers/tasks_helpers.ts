@@ -1,9 +1,11 @@
 import { TObject } from "akeyless-types-commons";
-import { logger } from "../managers";
-import { set_document } from "./firebase_helpers";
+import { cache_manager, logger } from "../managers";
+import { get_document_by_id, get_document_by_id_optional, set_document } from "./firebase_helpers";
 
 export enum TaskName {
     collect_gprs_balances = "collect_gprs_balances",
+    send_reset_sms = "send_reset_sms",
+    collect_devices_health = "collect_devices_health",
 }
 
 export enum TaskStatus {
@@ -51,4 +53,13 @@ export const execute_task = async (source: string, task_name: TaskName, task: ()
             data: error_for_db,
         });
     }
+};
+
+export const get_task_data = async <T = any>(task_name: TaskName): Promise<T[]> => {
+    const cached_data = cache_manager.getArrayData(task_name);
+    if (cached_data.length > 0) {
+        return cached_data;
+    }
+    const task_data = await get_document_by_id_optional("nx-tasks", task_name);
+    return Array.isArray(task_data?.data) ? task_data.data : [];
 };
