@@ -1,6 +1,7 @@
 import { TObject } from "akeyless-types-commons";
 import { cache_manager, logger } from "../managers";
-import { get_document_by_id, get_document_by_id_optional, set_document } from "./firebase_helpers";
+import { get_document_by_id_optional, set_document } from "./firebase_helpers";
+import admin from "firebase-admin";
 
 export enum TaskName {
     collect_gprs_balances = "collect_gprs_balances",
@@ -15,7 +16,14 @@ export enum TaskStatus {
     suspeneded = "suspeneded",
 }
 
-export const execute_task = async (source: string, task_name: TaskName, task: () => Promise<any[] | null | TObject<any>>) => {
+export type TaskCrudOptions = "storage" | "db";
+
+export const execute_task = async (
+    source: string,
+    task_name: TaskName,
+    task: () => Promise<any[] | null>,
+    options?: { save_in?: TaskCrudOptions }
+) => {
     try {
         await set_document(
             "nx-tasks",
@@ -38,8 +46,14 @@ export const execute_task = async (source: string, task_name: TaskName, task: ()
             completed: new Date(),
             timestamp: new Date(),
         };
+
         if (data) {
-            update.data = data;
+            if (options?.save_in === "storage") {
+                const url = await write_task_to_storage(task_name, data);
+                update.data = url;
+            } else {
+                update.data = data;
+            }
         }
         await set_document("nx-tasks", task_name, update);
         logger.log(`Task [${task_name}] ended. It took ${Math.round(performance.now() - start)} ms`);
@@ -55,11 +69,54 @@ export const execute_task = async (source: string, task_name: TaskName, task: ()
     }
 };
 
-export const get_task_data = async <T = any>(task_name: TaskName): Promise<T[]> => {
+export const get_task_data = async <T = any>(task_name: TaskName, options?: { read_from?: TaskCrudOptions }): Promise<T[]> => {
     const cached_data = cache_manager.getArrayData(task_name);
     if (cached_data.length > 0) {
         return cached_data;
     }
+    if (options?.read_from === "storage") {
+        const storage_data = await read_task_from_storage(task_name);
+        if (storage_data) {
+            cache_manager.setArrayData(task_name, storage_data);
+            return Array.isArray(storage_data) ? storage_data : [];
+        }
+    }
     const task_data = await get_document_by_id_optional("nx-tasks", task_name);
     return Array.isArray(task_data?.data) ? task_data.data : [];
+};
+
+export const read_task_from_storage = async (task_name: TaskName): Promise<any[] | null> => {
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(`tasks_results/${task_name}.json`);
+    try {
+        const [contents] = await file.download();
+        return JSON.parse(contents.toString("utf-8"));
+    } catch (error) {
+        logger.error("Error reading file from Firebase Storage:", error);
+        return null;
+    }
+};
+
+export const write_task_to_storage = async (task_name: TaskName, data: any[]): Promise<string> => {
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(`tasks_results/${task_name}.json`);
+
+    try {
+        if (!Array.isArray(data)) {
+            throw new Error("Only arrays can be written");
+        }
+        const json_string = JSON.stringify(data, null, 2);
+        await file.save(json_string, {
+            contentType: "application/json",
+        });
+        const [signed_url] = await file.getSignedUrl({
+            action: "read",
+            expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        });
+
+        return signed_url;
+    } catch (error) {
+        logger.error("Error writing file to Firebase Storage:", error);
+        return "";
+    }
 };
