@@ -21,7 +21,7 @@ export type TaskCrudOptions = "storage" | "db";
 export const execute_task = async (
     source: string,
     task_name: TaskName,
-    task: () => Promise<any[] | null>,
+    task: () => Promise<any[] | null | undefined>,
     options?: { save_in?: TaskCrudOptions }
 ) => {
     try {
