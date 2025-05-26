@@ -1,6 +1,6 @@
 {
     "name": "akeyless-server-commons",
-    "version": "1.0.39",
+    "version": "1.0.41",
     "scripts": {
         "build:cjs": "tsc --project tsconfig.cjs.json",
         "build:esm": "tsc --project tsconfig.esm.json",

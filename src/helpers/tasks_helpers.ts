@@ -18,12 +18,7 @@ export enum TaskStatus {
 
 export type TaskCrudOptions = "storage" | "db";
 
-export const execute_task = async (
-    source: string,
-    task_name: TaskName,
-    task: () => Promise<any[] | null | undefined | void>,
-    options?: { save_in?: TaskCrudOptions }
-) => {
+export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: { save_in?: TaskCrudOptions }) => {
     try {
         await set_document(
             "nx-tasks",
@@ -48,7 +43,7 @@ export const execute_task = async (
         };
 
         if (data) {
-            if (options?.save_in === "storage") {
+            if (options?.save_in === "storage" && typeof data === "object") {
                 const url = await write_task_to_storage(task_name, data);
                 update.data = url;
             } else {
@@ -64,12 +59,12 @@ export const execute_task = async (
             status: TaskStatus.failed,
             completed: new Date(),
             timestamp: new Date(),
-            data: error_for_db,
+            data: `Error: ${error_for_db}`,
         });
     }
 };
 
-export const get_task_data = async <T = any>(task_name: TaskName): Promise<T[]> => {
+export const get_task_data = async <T = any>(task_name: TaskName): Promise<T | T[]> => {
     const cached_data = cache_manager.getArrayData(task_name);
     if (cached_data.length > 0) {
         return cached_data;
@@ -78,14 +73,17 @@ export const get_task_data = async <T = any>(task_name: TaskName): Promise<T[]> 
     if (typeof task_data?.data === "string" && task_data.data.startsWith("http")) {
         const storage_data = await read_task_from_storage(task_name);
         if (storage_data) {
-            cache_manager.setArrayData(task_name, storage_data);
-            return Array.isArray(storage_data) ? storage_data : [];
+            const value = task_data?.data === "object" ? storage_data : [];
+            cache_manager.setArrayData(task_name, value);
+            return value;
         }
     }
-    return Array.isArray(task_data?.data) ? task_data.data : [];
+    const value = typeof task_data?.data === "object" ? task_data.data : [];
+    cache_manager.setArrayData(task_name, value);
+    return value;
 };
 
-export const read_task_from_storage = async (task_name: TaskName): Promise<any[] | null> => {
+export const read_task_from_storage = async <T = any>(task_name: TaskName): Promise<T | T[] | null> => {
     const bucket = admin.storage().bucket();
     const file = bucket.file(`tasks_results/${task_name}.json`);
     try {
@@ -97,12 +95,12 @@ export const read_task_from_storage = async (task_name: TaskName): Promise<any[]
     }
 };
 
-export const write_task_to_storage = async (task_name: TaskName, data: any[]): Promise<string> => {
+export const write_task_to_storage = async (task_name: TaskName, data: any[] | TObject<any>): Promise<string> => {
     const bucket = admin.storage().bucket();
     const file = bucket.file(`tasks_results/${task_name}.json`);
 
     try {
-        if (!Array.isArray(data)) {
+        if (typeof data !== "object") {
             throw new Error("Only arrays can be written");
         }
         const json_string = JSON.stringify(data, null, 2);
