@@ -69,19 +69,19 @@ export const execute_task = async (
     }
 };
 
-export const get_task_data = async <T = any>(task_name: TaskName, options?: { read_from?: TaskCrudOptions }): Promise<T[]> => {
+export const get_task_data = async <T = any>(task_name: TaskName): Promise<T[]> => {
     const cached_data = cache_manager.getArrayData(task_name);
     if (cached_data.length > 0) {
         return cached_data;
     }
-    if (options?.read_from === "storage") {
+    const task_data = await get_document_by_id_optional("nx-tasks", task_name);
+    if (typeof task_data?.data === "string" && task_data.data.startsWith("http")) {
         const storage_data = await read_task_from_storage(task_name);
         if (storage_data) {
             cache_manager.setArrayData(task_name, storage_data);
             return Array.isArray(storage_data) ? storage_data : [];
         }
     }
-    const task_data = await get_document_by_id_optional("nx-tasks", task_name);
     return Array.isArray(task_data?.data) ? task_data.data : [];
 };
 
