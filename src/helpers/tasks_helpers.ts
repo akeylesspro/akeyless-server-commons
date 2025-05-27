@@ -16,9 +16,17 @@ export enum TaskStatus {
     suspeneded = "suspeneded",
 }
 
-export type TaskCrudOptions = "storage" | "db";
+export type TaskSaveOptions = "storage" | "db";
 
-export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: { save_in?: TaskCrudOptions }) => {
+const save_task_data_in_cache = (task_name: TaskName, data: any[] | TObject<any>) => {
+    if (Array.isArray(data)) {
+        cache_manager.setArrayData(task_name, data);
+    } else {
+        cache_manager.setObjectData(task_name, data);
+    }
+};
+
+export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: { save_in?: TaskSaveOptions }) => {
     try {
         await set_document(
             "nx-tasks",
@@ -44,9 +52,11 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
 
         if (data) {
             if (options?.save_in === "storage" && typeof data === "object") {
-                const url = await write_task_to_storage(task_name, data);
+                save_task_data_in_cache(task_name, data);
+                const url = await keep_task_data_in_storage(task_name, data);
                 update.data = url;
             } else {
+                save_task_data_in_cache(task_name, data);
                 update.data = data;
             }
         }
@@ -64,46 +74,52 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
     }
 };
 
-export const get_task_data = async <T = any>(task_name: TaskName): Promise<T | T[]> => {
+export const get_task_data = async <T = any>(task_name: TaskName): Promise<T> => {
     const cached_data = cache_manager.getArrayData(task_name);
+    const cached_data_object = cache_manager.getObjectData(task_name, null);
     if (cached_data.length > 0) {
-        return cached_data;
+        return cached_data as T;
+    }
+    if (cached_data_object) {
+        return cached_data as T;
     }
     const task_data = await get_document_by_id_optional("nx-tasks", task_name);
     if (typeof task_data?.data === "string" && task_data.data.startsWith("http")) {
-        const storage_data = await read_task_from_storage(task_name);
+        const storage_data = await get_task_data_from_storage(task_name);
         if (storage_data) {
-            const value = task_data?.data === "object" ? storage_data : [];
-            cache_manager.setArrayData(task_name, value);
+            const value = task_data?.data === "object" && task_data.data ? storage_data : [];
+            save_task_data_in_cache(task_name, value);
             return value;
         }
     }
-    const value = typeof task_data?.data === "object" ? task_data.data : [];
-    cache_manager.setArrayData(task_name, value);
-    return value;
+    const value = typeof task_data?.data === "object" ? task_data.data : null;
+    if (value) {
+        save_task_data_in_cache(task_name, value);
+    }
+    return value || [];
 };
 
-export const read_task_from_storage = async <T = any>(task_name: TaskName): Promise<T | T[] | null> => {
+export const get_task_data_from_storage = async <T = any>(task_name: TaskName): Promise<T | null> => {
     const bucket = admin.storage().bucket();
-    const file = bucket.file(`tasks_results/${task_name}.json`);
+    const file = bucket.file(`tasks_data/${task_name}.json`);
     try {
         const [contents] = await file.download();
         return JSON.parse(contents.toString("utf-8"));
     } catch (error) {
-        logger.error("Error reading file from Firebase Storage:", error);
+        logger.error("Task error reading file from Firebase Storage:", error);
         return null;
     }
 };
 
-export const write_task_to_storage = async (task_name: TaskName, data: any[] | TObject<any>): Promise<string> => {
+export const keep_task_data_in_storage = async (task_name: TaskName, data: any[] | TObject<any>): Promise<string> => {
     const bucket = admin.storage().bucket();
-    const file = bucket.file(`tasks_results/${task_name}.json`);
+    const file = bucket.file(`tasks_data/${task_name}.json`);
 
     try {
         if (typeof data !== "object") {
-            throw new Error("Only arrays can be written");
+            throw new Error("Only arrays or objects can be written");
         }
-        const json_string = JSON.stringify(data, null, 2);
+        const json_string = JSON.stringify(data, null);
         await file.save(json_string, {
             contentType: "application/json",
         });
