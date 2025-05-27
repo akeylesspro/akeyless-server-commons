@@ -48,6 +48,7 @@ const service_account_firebase = {
 };
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(service_account_firebase as firebase_admin.ServiceAccount),
+    storageBucket: `${service_account_firebase.project_id}.appspot.com`,
 });
 export const db = firebase_admin.firestore();
 export const messaging = firebase_admin.messaging();
