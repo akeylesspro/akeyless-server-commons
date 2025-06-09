@@ -219,7 +219,7 @@ export const verify_token = async (authorization: string | undefined): Promise<D
     try {
         if (!authorization) {
             throw "Authorization token is required";
-        }        
+        }
         if (!authorization.toLowerCase().startsWith("bearer")) {
             throw "Invalid authorization token";
         }
@@ -229,6 +229,9 @@ export const verify_token = async (authorization: string | undefined): Promise<D
             throw "validation error: Token not found";
         }
         const res = await firebase_admin.auth().verifyIdToken(token);
+        if (!res) {
+            throw "User not found";
+        }
         return res;
     } catch (error) {
         logger.error("error from verify_token", error);
