@@ -5,8 +5,7 @@ import { NxUser, Client } from "akeyless-types-commons";
 
 export const verify_user_auth: MW = async (req, res, next) => {
     try {
-        const authorization = req.headers.authorization;
-        const user = await verify_token(authorization);
+        const user = await verify_token(req.headers.authorization);
         req.body.firebase_user = user;
         next();
     } catch (error: any) {

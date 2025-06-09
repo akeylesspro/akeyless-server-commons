@@ -217,7 +217,10 @@ export const delete_document = async (collection_path: string, doc_id: string): 
 /// token
 export const verify_token = async (authorization: string | undefined): Promise<DecodedIdToken> => {
     try {
-        if (!authorization || !authorization.toLocaleLowerCase().startsWith("bearer")) {
+        if (!authorization) {
+            throw "Authorization token is required";
+        }        
+        if (!authorization.toLowerCase().startsWith("bearer")) {
             throw "Invalid authorization token";
         }
         const token = authorization.split(/bearer\s+(.+)/i)[1];
