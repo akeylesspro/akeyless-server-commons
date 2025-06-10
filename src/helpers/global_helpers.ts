@@ -32,7 +32,7 @@ export const json_ok: JsonOK<TObject<any> | TObject<any>[]> = (data) => {
 export const json_failed: JsonFailed = (error, msg) => {
     return {
         success: false,
-        error: error || "general error: something happened ",
+        error: error.message || error || "general error: something happened ",
         msg: msg || "",
     };
 };
