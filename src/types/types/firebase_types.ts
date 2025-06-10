@@ -28,7 +28,8 @@ export type QueryDocumentOptional = (
     collection_path: string,
     field_name: string,
     operator: FirebaseFirestore.WhereFilterOp,
-    value: any
+    value: any,
+    ignore_log?: boolean
 ) => Promise<TObject<any> | null>;
 
 export type OnSnapshotCallback = (documents: any[], config: OnSnapshotConfig) => void;

@@ -144,14 +144,16 @@ export const query_document: QueryDocument = async (collection_path, field_name,
     }
 };
 
-export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value) => {
+export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value, ignore_log = false) => {
     try {
         const querySnapshot = await db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
         const documents = documentsData.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
         return documents[0] || null;
     } catch (error) {
-        logger.error("Error querying document:", error);
+        if (!ignore_log) {
+            logger.error("Error querying document:", error);
+        }
         return null;
     }
 };
