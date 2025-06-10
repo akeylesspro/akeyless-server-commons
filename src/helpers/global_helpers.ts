@@ -33,7 +33,7 @@ export const json_failed: JsonFailed = (error, msg) => {
     return {
         success: false,
         error: error.message || error || "general error: something happened ",
-        msg: msg || "",
+        msg: msg,
     };
 };
 
