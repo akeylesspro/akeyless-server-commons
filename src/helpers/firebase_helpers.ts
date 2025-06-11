@@ -197,9 +197,9 @@ export const set_document = async (collection_path: string, doc_id: string, data
     }
 };
 
-export const add_document = async (collection_path: string, data: {}, include_id = false): Promise<void> => {
+export const add_document = async (collection_path: string, data: {}, include_id = false, custom_id?: string): Promise<void> => {
     try {
-        const new_document = db.collection(collection_path).doc();
+        const new_document = custom_id ? db.collection(collection_path).doc(custom_id) : db.collection(collection_path).doc();
         const update = include_id ? { ...data, id: new_document.id } : data;
         await new_document.set(update);
     } catch (error) {
