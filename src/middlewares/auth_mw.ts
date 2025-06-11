@@ -22,7 +22,10 @@ export const nx_user_login: MW = async (req, res, next) => {
         if (!phone_number && !email) {
             throw "Invalid authorization token";
         }
-        const nx_user: NxUser = await get_user_by_identifier(phone_number || email!);
+        const nx_user = await get_user_by_identifier(phone_number || email!);
+        if (!nx_user) {
+            throw `No user found with phone number: ${phone_number} or email: ${email}.`;
+        }
         req.body.user = nx_user;
         next();
     } catch (error: any) {
