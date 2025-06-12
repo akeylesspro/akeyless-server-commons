@@ -33,7 +33,7 @@ const required_env_vars = [
     "universe_domain",
 ];
 const env_data = init_env_variables(required_env_vars);
-const service_account_firebase = {
+export const service_account_firebase = {
     type: env_data.type,
     project_id: env_data.project_id,
     private_key_id: env_data.private_key_id,
