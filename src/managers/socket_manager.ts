@@ -1,4 +1,4 @@
-import { RedisUpdatePayload, RedisUpdateType, SocketCallbackResponse } from "akeyless-types-commons";
+import { RedisUpdatePayload, RedisUpdateType, SocketCallbackResponse, SOCKET_EVENTS, SocketEventMap } from "akeyless-types-commons";
 import { io, Socket } from "socket.io-client";
 import { OnSnapshotCallback, OnSnapshotConfig } from "../types";
 import { init_env_variables } from "../helpers";
@@ -9,16 +9,17 @@ interface GetDataPayload<T = any> {
     callback: (value: T) => void;
     default_value: T;
 }
-const { SOCKET_SERVER_URL } = init_env_variables(["SOCKET_SERVER_URL"]);
+
+const { socket_server_url } = init_env_variables(["socket_server_url"]);
 class SocketService {
     private static instance: SocketService;
-    private socket: Socket | null = null;
+    private socket: Socket<SocketEventMap> | null = null;
     private connect_callbacks: Array<() => void> = [];
     private disconnect_callbacks: Array<() => void> = [];
 
     private init_socket(): void {
         if (!this.socket) {
-            this.socket = io(SOCKET_SERVER_URL, {
+            this.socket = io(socket_server_url, {
                 path: "/api/data-socket/connect",
                 transports: ["websocket"],
             });
@@ -36,6 +37,7 @@ class SocketService {
             this.socket.on("connect_error", (error: Error) => {
                 console.error("Socket connection error:", error);
             });
+            this.socket.on("unsubscribe_collections", () => {});
         }
     }
 
@@ -74,57 +76,65 @@ class SocketService {
 
         config.forEach((configuration) => {
             const { collection_name, on_add, on_first_time, on_modify, on_remove, extra_parsers } = configuration;
-
-            socket.on(`initial:${collection_name}`, on_first_time!);
-            event_handlers.push({
-                event_name: `initial:${collection_name}`,
-                handler: on_first_time!,
-            });
-
-            socket.on(`add:${collection_name}`, on_add!);
-            event_handlers.push({
-                event_name: `add:${collection_name}`,
-                handler: on_add!,
-            });
-
-            socket.on(`update:${collection_name}`, on_modify!);
-            event_handlers.push({
-                event_name: `update:${collection_name}`,
-                handler: on_modify!,
-            });
-
-            socket.on(`delete:${collection_name}`, on_remove!);
-            event_handlers.push({
-                event_name: `delete:${collection_name}`,
-                handler: on_remove!,
-            });
+            if (on_first_time) {
+                socket.on(`initial:${collection_name}`, on_first_time);
+                event_handlers.push({
+                    event_name: `initial:${collection_name}`,
+                    handler: on_first_time,
+                });
+            }
+            if (on_add) {
+                socket.on(`add:${collection_name}`, on_add);
+                event_handlers.push({
+                    event_name: `add:${collection_name}`,
+                    handler: on_add,
+                });
+            }
+            if (on_modify) {
+                socket.on(`update:${collection_name}`, on_modify);
+                event_handlers.push({
+                    event_name: `update:${collection_name}`,
+                    handler: on_modify,
+                });
+            }
+            if (on_remove) {
+                socket.on(`delete:${collection_name}`, on_remove);
+                event_handlers.push({
+                    event_name: `delete:${collection_name}`,
+                    handler: on_remove,
+                });
+            }
 
             extra_parsers?.forEach((parsers) => {
                 const { on_add: extra_on_add, on_first_time: extra_on_first_time, on_modify: extra_on_modify, on_remove: extra_on_remove } = parsers;
-
-                socket.on(`initial:${collection_name}`, extra_on_first_time!);
-                event_handlers.push({
-                    event_name: `initial:${collection_name}`,
-                    handler: extra_on_first_time!,
-                });
-
-                socket.on(`add:${collection_name}`, extra_on_add!);
-                event_handlers.push({
-                    event_name: `add:${collection_name}`,
-                    handler: extra_on_add!,
-                });
-
-                socket.on(`update:${collection_name}`, extra_on_modify!);
-                event_handlers.push({
-                    event_name: `update:${collection_name}`,
-                    handler: extra_on_modify!,
-                });
-
-                socket.on(`delete:${collection_name}`, extra_on_remove!);
-                event_handlers.push({
-                    event_name: `delete:${collection_name}`,
-                    handler: extra_on_remove!,
-                });
+                if (extra_on_first_time) {
+                    socket.on(`initial:${collection_name}`, extra_on_first_time);
+                    event_handlers.push({
+                        event_name: `initial:${collection_name}`,
+                        handler: extra_on_first_time,
+                    });
+                }
+                if (extra_on_add) {
+                    socket.on(`add:${collection_name}`, extra_on_add);
+                    event_handlers.push({
+                        event_name: `add:${collection_name}`,
+                        handler: extra_on_add,
+                    });
+                }
+                if (extra_on_modify) {
+                    socket.on(`update:${collection_name}`, extra_on_modify);
+                    event_handlers.push({
+                        event_name: `update:${collection_name}`,
+                        handler: extra_on_modify,
+                    });
+                }
+                if (extra_on_remove) {
+                    socket.on(`delete:${collection_name}`, extra_on_remove);
+                    event_handlers.push({
+                        event_name: `delete:${collection_name}`,
+                        handler: extra_on_remove,
+                    });
+                }
             });
         });
 

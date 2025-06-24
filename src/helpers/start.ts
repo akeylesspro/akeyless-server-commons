@@ -2,7 +2,7 @@ import express, { Express } from "express";
 import cors from "cors";
 import { logger } from "../managers";
 import { init_env_variables, init_snapshots } from "./";
-import { MainRouter } from "../types";
+import { MainRouter, OnSnapshotConfig } from "../types";
 import { error_handler } from "../middlewares/error_handling";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string, port?: number): Promise<Express> => {
@@ -23,10 +23,18 @@ export const start_server = async (main_router: MainRouter, project_name: string
     });
 };
 
-export const basic_init = async (main_router: MainRouter, project_name: string, version: string, port?: number): Promise<Express> => {
+export const basic_init = async (
+    main_router: MainRouter,
+    project_name: string,
+    version: string,
+    config?: {
+        port?: number;
+        subscribe_initial_snapshot_to?: OnSnapshotConfig["subscribe_to"];
+    }
+): Promise<Express> => {
     try {
-        await init_snapshots();
-        const app = await start_server(main_router, project_name, version, port);
+        await init_snapshots({ subscribe_to: config?.subscribe_initial_snapshot_to });
+        const app = await start_server(main_router, project_name, version, config?.port);
         return app;
     } catch (error) {
         logger.error("Error from init function: ", error);

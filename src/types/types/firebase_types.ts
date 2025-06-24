@@ -44,14 +44,18 @@ export interface OnSnapshotParsers {
 export interface OnSnapshotConfig extends OnSnapshotParsers {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
+    parse_as?: "object" | "array";
+    subscribe_to?: "cache" | "db";
 }
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
 
-export type SnapshotBulkByNamesParamObject = {
+export type SnapshotBulkByNamesParamObject  = {
     collection_name: string;
     extra_parsers: OnSnapshotParsers[];
+    parse_as?: "object" | "array";
+    subscribe_to?: "cache" | "db";
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
