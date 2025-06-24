@@ -55,20 +55,23 @@ export const messaging = firebase_admin.messaging();
 export const auth = firebase_admin.auth();
 
 /// extract
-export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
+export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot, include_id: boolean = true): TObject<any> => {
     const doc_data = doc.data();
-    return {
+    const date = {
         ...doc_data,
-        id: doc.id,
     };
+    if (include_id) {
+        date.id = doc.id;
+    }
+    return date;
 };
 
 /// documents
-export const get_all_documents = async (collection_path: string) => {
+export const get_all_documents = async (collection_path: string, include_id: boolean = true) => {
     try {
         const snapshot = await db.collection(collection_path).get();
         const documents = snapshot.docs.flatMap((doc) => {
-            return simple_extract_data(doc);
+            return simple_extract_data(doc, include_id);
         });
         return documents;
     } catch (error) {
@@ -158,27 +161,32 @@ export const query_document_optional: QueryDocumentOptional = async (collection_
     }
 };
 
-export const get_document_by_id = async (collection_path: string, doc_id: string): Promise<TObject<any>> => {
+export const get_document_by_id = async (collection_path: string, doc_id: string, include_id: boolean = true): Promise<TObject<any>> => {
     try {
         const docRef = db.collection(collection_path).doc(doc_id);
         const doc = await docRef.get();
         if (!doc.exists) {
             throw "Document not found, document id: " + doc_id;
         }
-        return simple_extract_data(doc);
+        return simple_extract_data(doc, include_id);
     } catch (error) {
         logger.error("error from get_document_by_id", error);
         throw error;
     }
 };
-export const get_document_by_id_optional = async (collection_path: string, doc_id: string): Promise<TObject<any> | null> => {
+
+export const get_document_by_id_optional = async (
+    collection_path: string,
+    doc_id: string,
+    include_id: boolean = true
+): Promise<TObject<any> | null> => {
     try {
         const docRef = db.collection(collection_path).doc(doc_id);
         const doc = await docRef.get();
         if (!doc.exists) {
             throw "Document not found, document id: " + doc_id;
         }
-        return simple_extract_data(doc);
+        return simple_extract_data(doc, include_id);
     } catch (error) {
         logger.error("error from get_document_by_id_optional", error);
         return null;
