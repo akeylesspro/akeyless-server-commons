@@ -126,3 +126,20 @@ export const get_or_default = <T>(value: T | undefined, default_value: T | (() =
     }
     return typeof default_value === "function" ? (default_value as () => T)() : default_value;
 };
+
+export const trim_strings = (input: any): any => {
+    if (typeof input === "string") {
+        return input.trim();
+    } else if (Array.isArray(input)) {
+        return input.map(trim_strings);
+    } else if (input !== null && typeof input === "object") {
+        const trimmed_object: Record<string, any> = {};
+        for (const key in input) {
+            if (Object.prototype.hasOwnProperty.call(input, key)) {
+                trimmed_object[key] = trim_strings(input[key]);
+            }
+        }
+        return trimmed_object;
+    }
+    return input;
+};
