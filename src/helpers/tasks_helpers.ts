@@ -37,7 +37,7 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
                 status: TaskStatus.running,
                 started: new Date(),
                 timestamp: new Date(),
-                results: "",
+                error: "",
             },
             false
         );
@@ -70,7 +70,7 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
             status: TaskStatus.failed,
             completed: new Date(),
             timestamp: new Date(),
-            data: `Error: ${error_for_db}`,
+            error: error_for_db,
         });
     }
 };
