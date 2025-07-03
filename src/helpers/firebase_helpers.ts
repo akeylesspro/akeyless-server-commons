@@ -138,7 +138,7 @@ export const query_document: QueryDocument = async (collection_path, field_name,
         return documents[0];
     } catch (error) {
         if (!ignore_log) {
-            logger.error("Error querying document:", error);
+            logger.error("Error querying document: " + JSON.stringify({ collection_path, field_name, operator, value }), error);
         }
         throw error;
     }
@@ -152,7 +152,7 @@ export const query_document_optional: QueryDocumentOptional = async (collection_
         return documents[0] || null;
     } catch (error) {
         if (!ignore_log) {
-            logger.error("Error querying optional document:", error);
+            logger.error("Error querying optional document: " + JSON.stringify({ collection_path, field_name, operator, value }), error);
         }
         return null;
     }
