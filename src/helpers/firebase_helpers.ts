@@ -152,7 +152,7 @@ export const query_document_optional: QueryDocumentOptional = async (collection_
         return documents[0] || null;
     } catch (error) {
         if (!ignore_log) {
-            logger.error("Error querying document:", error);
+            logger.error("Error querying optional document:", error);
         }
         return null;
     }
