@@ -144,7 +144,7 @@ export const query_document: QueryDocument = async (collection_path, field_name,
     }
 };
 
-export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value, ignore_log = false) => {
+export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value, ignore_log = true) => {
     try {
         const querySnapshot = await db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
