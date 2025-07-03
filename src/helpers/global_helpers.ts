@@ -140,8 +140,7 @@ export const trim_strings = <T>(input: any): any => {
     if (input instanceof Date || input instanceof RegExp || input instanceof Map || input instanceof Set) {
         return input;
     }
-    Reflect.ownKeys(input);
-
+    
     if (input !== null && typeof input === "object") {
         const trimmed_object: Record<string, any> = {};
         for (const key of Object.getOwnPropertyNames(input)) {
