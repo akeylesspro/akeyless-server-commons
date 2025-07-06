@@ -1,6 +1,6 @@
 import { AddAuditRecord, JsonFailed, JsonOK, NxServiceName } from "../types";
 import { readFileSync } from "fs";
-import { logger } from "../managers";
+import { cache_manager, logger } from "../managers";
 import { db } from "./";
 import { Geo, LanguageOptions, TObject } from "akeyless-types-commons";
 import { Timestamp } from "firebase-admin/firestore";
@@ -100,11 +100,12 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
         return address_not_found;
     }
     const language = currentLanguage === LanguageOptions.He ? "iw" : "en";
-    const apiKey = process.env.google_api_key;
-    if (!apiKey) {
+    const google_setting = cache_manager.getObjectData("nx-settings")["google"];
+    const geocode_api_key = google_setting["geocode_api_key"];
+    if (!geocode_api_key) {
         throw new Error("missing env google api key");
     }
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=${language}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${geocode_api_key}&language=${language}`;
     try {
         const response = await axios.get(url);
         if (response?.data?.results[0]) {
@@ -125,4 +126,34 @@ export const get_or_default = <T>(value: T | undefined, default_value: T | (() =
         return value;
     }
     return typeof default_value === "function" ? (default_value as () => T)() : default_value;
+};
+
+export const trim_strings = <T>(input: any): any => {
+    if (typeof input === "string") {
+        return input.trim();
+    }
+
+    if (Array.isArray(input)) {
+        return input.map(trim_strings);
+    }
+
+    if (input instanceof Date || input instanceof RegExp || input instanceof Map || input instanceof Set) {
+        return input;
+    }
+    
+    if (input !== null && typeof input === "object") {
+        const trimmed_object: Record<string, any> = {};
+        for (const key of Object.getOwnPropertyNames(input)) {
+            if (Object.prototype.hasOwnProperty.call(input, key)) {
+                trimmed_object[key] = trim_strings(input[key]);
+            }
+        }
+        return trimmed_object;
+    }
+
+    return input;
+};
+
+export const remove_nulls_and_undefined = (obj: Record<string, any>): Record<string, any> => {
+    return Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== undefined && value !== null));
 };

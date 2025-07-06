@@ -142,13 +142,13 @@ export const query_document: QueryDocument = async (collection_path, field_name,
         return documents[0];
     } catch (error) {
         if (!ignore_log) {
-            logger.error("Error querying document:", error);
+            logger.error("Error querying document: " + JSON.stringify({ collection_path, field_name, operator, value }), error);
         }
         throw error;
     }
 };
 
-export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value, ignore_log = false) => {
+export const query_document_optional: QueryDocumentOptional = async (collection_path, field_name, operator, value, ignore_log = true) => {
     try {
         const querySnapshot = await db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
@@ -156,7 +156,7 @@ export const query_document_optional: QueryDocumentOptional = async (collection_
         return documents[0] || null;
     } catch (error) {
         if (!ignore_log) {
-            logger.error("Error querying document:", error);
+            logger.error("Error querying optional document: " + JSON.stringify({ collection_path, field_name, operator, value }), error);
         }
         return null;
     }
