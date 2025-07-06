@@ -10,7 +10,6 @@ interface GetDataPayload<T = any> {
     default_value: T;
 }
 
-const { socket_server_url } = init_env_variables(["socket_server_url"]);
 class SocketService {
     private static instance: SocketService;
     private socket: Socket<SocketEventMap> | null = null;
@@ -19,6 +18,7 @@ class SocketService {
 
     private init_socket(): void {
         if (!this.socket) {
+            const { socket_server_url } = init_env_variables(["socket_server_url"]);
             this.socket = io(socket_server_url, {
                 path: "/api/data-socket/connect",
                 transports: ["websocket"],
@@ -37,13 +37,10 @@ class SocketService {
             this.socket.on("connect_error", (error: Error) => {
                 console.error("Socket connection error:", error);
             });
-            this.socket.on("unsubscribe_collections", () => {});
         }
     }
 
-    private constructor() {
-        this.init_socket();
-    }
+    private constructor() {}
 
     public static get_instance(): SocketService {
         if (!SocketService.instance) {
@@ -66,6 +63,7 @@ class SocketService {
     }
 
     public subscribe_to_collections(config: OnSnapshotConfig[]): () => void {
+        this.init_socket();
         const socket = this.get_socket_instance();
         const collection_names = config.map((c) => c.collection_name);
 
