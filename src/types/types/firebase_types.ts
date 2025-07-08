@@ -46,12 +46,13 @@ export interface OnSnapshotConfig extends OnSnapshotParsers {
     extra_parsers?: OnSnapshotParsers[];
     parse_as?: "object" | "array";
     subscribe_to?: "cache" | "db";
+    custom_name?: string;
 }
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
 
-export type SnapshotBulkByNamesParamObject  = {
+export type SnapshotBulkByNamesParamObject = {
     collection_name: string;
     extra_parsers: OnSnapshotParsers[];
     parse_as?: "object" | "array";

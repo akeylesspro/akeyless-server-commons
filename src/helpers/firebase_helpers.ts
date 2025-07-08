@@ -325,10 +325,11 @@ let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (config) => {
     return new Promise<void>(async (resolve) => {
+        // TODO: replace it to first time snapshot
         const nx_settings = await get_nx_settings();
         const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
 
-        const { collection_name, subscribe_to = "cache", parse_as } = config;
+        const { collection_name, subscribe_to = "cache", parse_as, custom_name = collection_name } = config;
 
         if (subscribe_to === "cache" && cache_collections_config[collection_name]) {
             socket_manager.subscribe_to_collections([config]);
@@ -336,8 +337,8 @@ export const snapshot: Snapshot = (config) => {
         } else {
             db.collection(config.collection_name).onSnapshot(
                 (snapshot) => {
-                    if (!snapshots_first_time.includes(config.collection_name)) {
-                        snapshots_first_time.push(config.collection_name);
+                    if (!snapshots_first_time.includes(custom_name)) {
+                        snapshots_first_time.push(custom_name);
                         const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
 
                         config.on_first_time?.(documents, config);
