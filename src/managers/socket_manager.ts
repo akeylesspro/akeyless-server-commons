@@ -1,4 +1,4 @@
-import { RedisUpdatePayload, RedisUpdateType, SocketCallbackResponse, SOCKET_EVENTS, SocketEventMap } from "akeyless-types-commons";
+import { RedisUpdatePayload, RedisUpdateType, SocketCallbackResponse, SocketEventMap } from "akeyless-types-commons";
 import { io, Socket } from "socket.io-client";
 import { OnSnapshotCallback, OnSnapshotConfig } from "../types";
 import { init_env_variables } from "../helpers";
