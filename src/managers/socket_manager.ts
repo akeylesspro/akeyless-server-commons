@@ -18,10 +18,10 @@ class SocketService {
 
     private init_socket(): void {
         if (!this.socket) {
-            const { socket_server_url } = init_env_variables(["socket_server_url"]);
+            const is_qa = init_env_variables(["mode"])?.mode === "qa";
+            const socket_server_url = is_qa ? "https://nx-api.xyz" : "https://nx-api.info";
             this.socket = io(socket_server_url, {
                 path: "/api/data-socket/connect",
-                transports: ["websocket"],
             });
 
             this.socket.on("connect", () => {
