@@ -16,7 +16,9 @@ import { DecodedIdToken } from "firebase-admin/auth";
 import { CollectionConfig, TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
 import { init_env_variables } from "./global_helpers";
-import e from "express";
+import { initializeApp, FirebaseOptions, FirebaseApp } from "firebase/app";
+import { getAuth, signInWithCustomToken, UserCredential } from "firebase/auth";
+
 dotenv.config();
 
 // initial firebase
@@ -54,6 +56,7 @@ firebase_admin.initializeApp({
 export const db = firebase_admin.firestore();
 export const messaging = firebase_admin.messaging();
 export const auth = firebase_admin.auth();
+import { v4 as uuid } from "uuid";
 
 /// extract
 export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot, include_id: boolean = true): TObject<any> => {
@@ -325,7 +328,6 @@ let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (config) => {
     return new Promise<void>(async (resolve) => {
-        // TODO: replace it to first time snapshot
         const nx_settings = await get_nx_settings();
         const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
 
@@ -447,5 +449,28 @@ export const get_nx_settings = async () => {
     docs.forEach((doc) => {
         nx_settings[doc.id] = doc;
     });
+    cache_manager.setObjectData("nx-settings", nx_settings);
     return nx_settings;
+};
+
+export const initialize_firebase_client_app = (): FirebaseApp => {
+    const required_env_vars = ["apiKey", "authDomain", "databaseURL", "projectId", "storageBucket", "messagingSenderId", "appId"];
+    const env_data = init_env_variables(required_env_vars);
+    const firebase_config: FirebaseOptions = {
+        apiKey: env_data.apiKey,
+        authDomain: env_data.authDomain,
+        databaseURL: env_data.databaseURL,
+        projectId: env_data.projectId,
+        storageBucket: env_data.storageBucket,
+        messagingSenderId: env_data.messagingSenderId,
+        appId: env_data.appId,
+    };
+    return initializeApp(firebase_config);
+};
+
+export const get_custom_fb_token = async (firebase_app: FirebaseApp): Promise<string> => {
+    const custom_token = await auth.createCustomToken("nx_bi", { role: "backend" });
+    const userCredential: UserCredential = await signInWithCustomToken(getAuth(firebase_app), custom_token);
+    const id_token = await userCredential.user.getIdToken();
+    return id_token;
 };
