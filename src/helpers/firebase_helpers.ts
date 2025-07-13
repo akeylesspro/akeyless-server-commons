@@ -467,9 +467,9 @@ export const initialize_firebase_client_app = (): FirebaseApp => {
     };
     return initializeApp(firebase_config);
 };
-
 export const get_custom_fb_token = async (firebase_app: FirebaseApp): Promise<string> => {
-    const custom_token = await auth.createCustomToken("nx_bi", { role: "backend" });
+    const expires_in = 14 * 24 * 60 * 60 * 1000;
+    const custom_token = await auth.createCustomToken("nx_bi", { role: "backend", expiresIn: expires_in });
     const userCredential: UserCredential = await signInWithCustomToken(getAuth(firebase_app), custom_token);
     const id_token = await userCredential.user.getIdToken();
     return id_token;
