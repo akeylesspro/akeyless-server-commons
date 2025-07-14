@@ -310,17 +310,19 @@ const parse__delete__as_object = (documents: any[], config: OnSnapshotConfig, do
 };
 
 const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
+    const { collection_name, custom_name = collection_name } = config;
     config.on_remove?.(documents, config);
-    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+    const existing_array: any[] = cache_manager.getArrayData(custom_name);
     const updated_array = [...existing_array, ...documents];
-    cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(custom_name, updated_array);
 };
 
 const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
-    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+    const { collection_name, custom_name = collection_name } = config;
+    const existing_array: any[] = cache_manager.getArrayData(custom_name);
     const keys_to_delete = documents.map((doc) => doc.id);
     const updated_array = existing_array.filter((doc) => !keys_to_delete.includes(doc.id));
-    cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(custom_name, updated_array);
 };
 
 /// snapshots
@@ -333,7 +335,7 @@ export const snapshot: Snapshot = (config) => {
 
         const { collection_name, subscribe_to = "cache", parse_as, custom_name = collection_name } = config;
 
-        if (subscribe_to === "cache" && cache_collections_config[collection_name]) {
+        if (subscribe_to === "cache" && cache_collections_config[collection_name]?.sync_direction !== "redis_to_firebase") {
             socket_manager.subscribe_to_collections([config]);
             resolve();
         } else {
@@ -426,14 +428,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
                   on_modify: (docs, config) => parse__add_update__as_array(docs, config),
                   on_remove: (docs, config) => parse__delete__as_array(docs, config),
               })
-            : snapshot({
-                  collection_name: param.collection_name,
-                  extra_parsers: param.extra_parsers,
-                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
-              });
+            : snapshot(param);
     });
     await Promise.all(snapshots);
     logger.log(`==> snapshot_bulk_by_names ended. It took ${(performance.now() - start).toFixed(2)} ms`);
