@@ -33,6 +33,7 @@ class SocketService {
                     if (this.session_id) auth_payload.sessionId = this.session_id;
                     cb(auth_payload);
                 },
+                transports: ["websocket"],
                 reconnection: true,
                 reconnectionAttempts: 30,
                 reconnectionDelay: 2 * 1000,

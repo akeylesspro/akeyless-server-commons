@@ -309,7 +309,7 @@ const parse__delete__as_object = (documents: any[], config: OnSnapshotConfig, do
     cache_manager.setObjectData(doc_key_property, data);
 };
 
-const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
     const { collection_name, custom_name = collection_name } = config;
     config.on_remove?.(documents, config);
     const existing_array: any[] = cache_manager.getArrayData(custom_name);
@@ -317,7 +317,7 @@ const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig)
     cache_manager.setArrayData(custom_name, updated_array);
 };
 
-const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
     const { collection_name, custom_name = collection_name } = config;
     const existing_array: any[] = cache_manager.getArrayData(custom_name);
     const keys_to_delete = documents.map((doc) => doc.id);
