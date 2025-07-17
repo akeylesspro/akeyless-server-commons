@@ -2,17 +2,24 @@ import express, { Express } from "express";
 import cors from "cors";
 import { logger } from "../managers";
 import { init_env_variables, init_snapshots } from "./";
-import { MainRouter } from "../types";
+import { LogRequests, MainRouter } from "../types";
 import { error_handler } from "../middlewares/error_handling";
-import { trim_body_middleware } from "../middlewares";
+import { request_logger, trim_body_middleware } from "../middlewares";
 
-export const start_server = async (main_router: MainRouter, project_name: string, version: string, port?: number): Promise<Express> => {
+export const start_server = async (
+    main_router: MainRouter,
+    project_name: string,
+    version: string,
+    port?: number,
+    log_requests: LogRequests = {}
+): Promise<Express> => {
     const app: Express = express();
     let env_data = init_env_variables(["mode"]);
     port = port || Number(env_data.port);
     app.use(cors());
     app.use(express.json());
     app.use(trim_body_middleware());
+    app.use(request_logger(log_requests));
     main_router(app);
     app.use(error_handler);
 
