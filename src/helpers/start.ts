@@ -10,12 +10,11 @@ export const start_server = async (
     main_router: MainRouter,
     project_name: string,
     version: string,
-    port?: number,
     log_requests: LogRequests = {}
 ): Promise<Express> => {
     const app: Express = express();
     let env_data = init_env_variables(["mode"]);
-    port = port || Number(env_data.port);
+    const port = Number(env_data.port);
     app.use(cors());
     app.use(express.json());
     app.use(trim_body_middleware());
