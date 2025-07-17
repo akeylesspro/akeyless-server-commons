@@ -10,7 +10,14 @@ export interface MandatoryParams {
     headers?: MandatoryObject[];
 }
 
-export type LangOptions =  "he" | "en" | "ru" | (string & {});
+export interface LogRequests {
+    url?: boolean;
+    headers?: boolean;
+    query?: boolean;
+    body?: boolean;
+}
 
-export type EntityOptions = "nx_devices" | (string & {});
-
+export interface AppOptions {
+    port?: number;
+    log_requests?: LogRequests;
+}

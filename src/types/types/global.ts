@@ -14,3 +14,7 @@ export type Service = (req: Request, res: Response) => void;
 export type Route = (req: Request, res: Response, next?: NextFunction) => Response;
 
 export type AddAuditRecord = (action: string, entity: string, details: TObject<any>, user?: NxUser) => Promise<void>;
+
+export type LangOptions = "he" | "en" | "ru" | (string & {});
+
+export type EntityOptions = "nx_devices" | (string & {});

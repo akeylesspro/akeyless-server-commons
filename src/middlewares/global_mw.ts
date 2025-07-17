@@ -1,5 +1,7 @@
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { json_failed } from "../helpers";
-import { MandatoryObject, MandatoryParams, MW } from "../types";
+import { LogRequests, MandatoryObject, MandatoryParams, MW, Route, Service } from "../types";
+import { logger } from "../managers";
 
 const validateParameter = (data: any, parameter: MandatoryObject) => {
     if (data[parameter.key] === undefined) {
@@ -57,5 +59,25 @@ export const mandatory = ({ body, headers }: MandatoryParams): MW => {
         } catch (error) {
             return res.status(500).send(json_failed(error));
         }
+    };
+};
+
+export const request_logger = (log_requests: LogRequests): RequestHandler => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (log_requests?.url) {
+            logger.log(`${req.method} ${req.originalUrl}`);
+        }
+        if (log_requests?.headers) {
+            logger.log("Headers:", req.headers);
+        }
+        if (log_requests?.query) {
+            logger.log("Query:", req.query);
+        }
+        if (log_requests?.body) {
+            if (["POST", "PUT", "PATCH"].includes(req.method)) {
+                logger.log("Body:", req.body);
+            }
+        }
+        next();
     };
 };
