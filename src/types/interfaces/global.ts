@@ -16,3 +16,8 @@ export interface LogRequests {
     query?: boolean;
     body?: boolean;
 }
+
+export interface AppOptions {
+    port?: number;
+    log_requests?: LogRequests;
+}
