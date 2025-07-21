@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Service } from "../types";
+import { logger } from "../managers";
 
 /**
  * Utility to handle async errors
@@ -14,7 +15,7 @@ const async_error_handler = (service: Service) => {
  * Global error-handling middleware.
  */
 const error_handler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error("Global Error Handler:", err.stack);
+    logger.error("Global Error Handler:", err.stack);
 
     res.status(500).json({
         status: "error",

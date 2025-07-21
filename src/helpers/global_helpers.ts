@@ -1,9 +1,7 @@
-import { AddAuditRecord, JsonFailed, JsonOK, NxServiceName } from "../types";
+import { JsonFailed, JsonOK, NxServiceName } from "../types";
 import { readFileSync } from "fs";
 import { cache_manager, logger } from "../managers";
-import { db } from "./";
 import { Geo, LanguageOptions, TObject } from "akeyless-types-commons";
-import { Timestamp } from "firebase-admin/firestore";
 import axios from "axios";
 
 export const init_env_variables = (required_vars: string[] = []) => {
@@ -47,21 +45,6 @@ export const get_version = (packageJsonPath: string): string => {
 };
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {
-    const data = {
-        action,
-        entity,
-        details,
-        datetime: Timestamp.now(),
-        user: user || null,
-    };
-    try {
-        await db.collection("nx-audit").add(data);
-    } catch (error: any) {
-        throw { msg: "unable to add audit record", data };
-    }
-};
 
 export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> => {
     if (!process.env[env_name]) {
@@ -140,7 +123,7 @@ export const trim_strings = <T>(input: any): any => {
     if (input instanceof Date || input instanceof RegExp || input instanceof Map || input instanceof Set) {
         return input;
     }
-    
+
     if (input !== null && typeof input === "object") {
         const trimmed_object: Record<string, any> = {};
         for (const key of Object.getOwnPropertyNames(input)) {
