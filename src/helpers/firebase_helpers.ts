@@ -1,6 +1,7 @@
 import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
+    AddAuditRecord,
     OnSnapshotConfig,
     QueryDocument,
     QueryDocumentByConditions,
@@ -16,6 +17,7 @@ import { DecodedIdToken } from "firebase-admin/auth";
 import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
 import { init_env_variables } from "./global_helpers";
+import { Timestamp } from "firebase-admin/firestore";
 dotenv.config();
 
 // initial firebase
@@ -171,6 +173,7 @@ export const get_document_by_id = async (collection_path: string, doc_id: string
         throw error;
     }
 };
+
 export const get_document_by_id_optional = async (collection_path: string, doc_id: string): Promise<TObject<any> | null> => {
     try {
         const docRef = db.collection(collection_path).doc(doc_id);
@@ -413,4 +416,19 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
     });
     await Promise.all(snapshots);
     logger.log(`==> snapshot_bulk_by_names ended. It took ${(performance.now() - start).toFixed(2)} ms`);
+};
+
+export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {
+    const data = {
+        action,
+        entity,
+        details,
+        datetime: Timestamp.now(),
+        user: user || null,
+    };
+    try {
+        await db.collection("nx-audit").add(data);
+    } catch (error: any) {
+        throw { msg: "unable to add audit record", data };
+    }
 };
