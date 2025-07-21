@@ -64,7 +64,7 @@ export const mandatory = ({ body, headers }: MandatoryParams): MW => {
 
 export const request_logger = (log_requests: LogRequests): RequestHandler => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (log_requests?.url) {
+        if (log_requests?.url || log_requests?.headers || log_requests?.query || log_requests?.body) {
             logger.log(`${req.method} ${req.originalUrl}`);
         }
         if (log_requests?.headers) {
