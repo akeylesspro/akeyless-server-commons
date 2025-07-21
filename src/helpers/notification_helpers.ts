@@ -1,7 +1,6 @@
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
-import { add_audit_record } from "./global_helpers";
-import { add_document, messaging } from "./firebase_helpers";
+import { add_document, messaging, add_audit_record } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice, TObject } from "akeyless-types-commons";
 import { is_iccid, is_international_phone_number } from "./phone_number_helpers";
