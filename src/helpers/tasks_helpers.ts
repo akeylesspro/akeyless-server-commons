@@ -8,6 +8,7 @@ export enum TaskName {
     send_reset_sms = "send_reset_sms",
     collect_devices_health = "collect_devices_health",
     collect_billing_balance = "collect_billing_balance",
+    collect_cloudwise_locations = "collect_cloudwise_locations",
 }
 
 export enum TaskStatus {
