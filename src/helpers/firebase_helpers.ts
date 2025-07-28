@@ -319,7 +319,14 @@ let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (config) => {
     return new Promise<void>((resolve) => {
-        db.collection(config.collection_name).onSnapshot(
+        let q: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(config.collection_name);
+        if (config.conditions) {
+            config.conditions.forEach((condition) => {
+                const { field_name, operator, value } = condition;
+                q = q.where(field_name, operator, value);
+            });
+        }
+        q.onSnapshot(
             (snapshot) => {
                 if (!snapshots_first_time.includes(config.collection_name)) {
                     snapshots_first_time.push(config.collection_name);

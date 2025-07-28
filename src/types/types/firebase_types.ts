@@ -44,6 +44,7 @@ export interface OnSnapshotParsers {
 export interface OnSnapshotConfig extends OnSnapshotParsers {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
+    conditions?: WhereCondition[];
 }
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
