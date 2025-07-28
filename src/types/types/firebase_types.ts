@@ -45,6 +45,7 @@ export interface OnSnapshotConfig extends OnSnapshotParsers {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
     conditions?: WhereCondition[];
+    cache_name?: string;
 }
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
@@ -54,6 +55,7 @@ export type SnapshotBulkByNamesParamObject = {
     collection_name: string;
     extra_parsers: OnSnapshotParsers[];
     conditions?: WhereCondition[];
+    cache_name?: string;
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;

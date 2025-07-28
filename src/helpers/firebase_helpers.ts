@@ -318,18 +318,19 @@ const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): vo
 let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (config) => {
+    const { collection_name, cache_name = collection_name, conditions, extra_parsers } = config;
     return new Promise<void>((resolve) => {
-        let q: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(config.collection_name);
-        if (config.conditions) {
-            config.conditions.forEach((condition) => {
+        let q: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(collection_name);
+        if (conditions) {
+            conditions.forEach((condition) => {
                 const { field_name, operator, value } = condition;
                 q = q.where(field_name, operator, value);
             });
         }
         q.onSnapshot(
             (snapshot) => {
-                if (!snapshots_first_time.includes(config.collection_name)) {
-                    snapshots_first_time.push(config.collection_name);
+                if (!snapshots_first_time.includes(cache_name)) {
+                    snapshots_first_time.push(cache_name);
                     const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
 
                     config.on_first_time?.(documents, config);
@@ -416,6 +417,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
                   collection_name: param.collection_name,
                   extra_parsers: param.extra_parsers,
                   conditions: param.conditions,
+                  cache_name: param.cache_name,
                   on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
                   on_add: (docs, config) => parse__add_update__as_array(docs, config),
                   on_modify: (docs, config) => parse__add_update__as_array(docs, config),
