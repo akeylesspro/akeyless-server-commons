@@ -53,6 +53,7 @@ export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) =
 export type SnapshotBulkByNamesParamObject = {
     collection_name: string;
     extra_parsers: OnSnapshotParsers[];
+    conditions?: WhereCondition[];
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
