@@ -86,11 +86,13 @@ export const get_task_data = async <T = any>(task_name: TaskName): Promise<T> =>
         return cached_data as T;
     }
     const task_data = await get_document_by_id_optional("nx-tasks", task_name);
+
     if (typeof task_data?.data === "string" && task_data.data.startsWith("http")) {
         const storage_data = await get_task_data_from_storage(task_name);
+
         if (storage_data) {
-            const value = task_data?.data === "object" && task_data.data ? storage_data : [];
-            save_task_data_in_cache(task_name, value);
+            const value = storage_data;
+            save_task_data_in_cache(task_name, storage_data);
             return value;
         }
     }
