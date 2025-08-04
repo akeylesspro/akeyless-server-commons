@@ -1,4 +1,3 @@
-
 export interface EmailData {
     subject: string;
     entity_for_audit: string;
@@ -8,6 +7,15 @@ export interface EmailData {
     cc?: string | string[];
     body_plain_text?: string;
     body_html?: string;
+    attachments?: EmailAttachment[];
+}
+
+export interface EmailAttachment {
+    content: string;
+    filename: string;
+    type?: string;
+    disposition?: "attachment" | "inline";
+    content_id?: string;
 }
 
 export interface EmailSettings {
