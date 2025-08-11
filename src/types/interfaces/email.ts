@@ -23,6 +23,7 @@ export interface EmailSettings {
         email: string;
         name?: string;
     };
+    default_cc: string[];
     groups: Record<string, { cc?: string[]; to: string[] }>;
     sendgrid_api_key: string;
 }

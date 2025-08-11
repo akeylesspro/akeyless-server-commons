@@ -76,7 +76,7 @@ const get_mime_type = (file_path: string): string => {
 export const send_email = async (email_data: EmailData) => {
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
-        const { sendgrid_api_key, groups, default_from } = emails_settings;
+        const { sendgrid_api_key, groups, default_from,default_cc } = emails_settings;
         let { from, to, cc, group_name, body_html, body_plain_text, subject, entity_for_audit, attachments } = email_data;
         /// validate data
         if (!to?.length && !group_name?.length) {
@@ -97,10 +97,15 @@ export const send_email = async (email_data: EmailData) => {
             }
             if (!cc) {
                 if (groups[group_name].cc?.length) {
-                    cc = groups[group_name].cc;
+                    cc = [...default_cc, ...groups[group_name].cc];
+                } else {
+                    cc = [...default_cc];
                 }
             } else {
-                cc = typeof cc === "string" ? [...(groups[group_name].cc || []), cc] : [...(groups[group_name].cc || []), ...cc];
+                cc =
+                    typeof cc === "string"
+                        ? [...default_cc, ...(groups[group_name].cc || []), cc]
+                        : [...default_cc, ...(groups[group_name].cc || []), ...cc];
             }
         }
         /// set sendgrid account
