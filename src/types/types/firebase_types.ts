@@ -41,21 +41,21 @@ export interface OnSnapshotParsers {
     on_remove?: OnSnapshotCallback;
 }
 
-export interface OnSnapshotConfig extends OnSnapshotParsers {
+interface ExtraSnapshotConfig {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
     conditions?: WhereCondition[];
     cache_name?: string;
+    subscribe_to?: "cache" | "db";
 }
+
+export type OnSnapshotConfig = OnSnapshotParsers & ExtraSnapshotConfig;
 
 export type Snapshot = (config: OnSnapshotConfig) => Promise<void>;
 export type SnapshotBulk = (snapshots: ReturnType<Snapshot>[], label?: string) => Promise<void>;
 
-export type SnapshotBulkByNamesParamObject = {
-    collection_name: string;
+export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_parsers"> & {
     extra_parsers: OnSnapshotParsers[];
-    conditions?: WhereCondition[];
-    cache_name?: string;
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
