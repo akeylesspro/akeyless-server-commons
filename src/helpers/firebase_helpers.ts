@@ -346,15 +346,31 @@ export const snapshot: Snapshot = (config) => {
                             .filter((change) => change.type === action)
                             .map((change) => simple_extract_data(change.doc));
                     };
-
-                    config.on_add?.(get_docs_from_snapshot("added"), config);
-                    config.on_modify?.(get_docs_from_snapshot("modified"), config);
-                    config.on_remove?.(get_docs_from_snapshot("removed"), config);
+                    const [added, modified, removed] = [
+                        get_docs_from_snapshot("added"),
+                        get_docs_from_snapshot("modified"),
+                        get_docs_from_snapshot("removed"),
+                    ];
+                    if (added.length) {
+                        config.on_add?.(added, config);
+                    }
+                    if (modified.length) {
+                        config.on_modify?.(modified, config);
+                    }
+                    if (removed.length) {
+                        config.on_remove?.(removed, config);
+                    }
 
                     config.extra_parsers?.forEach((extra_parser) => {
-                        extra_parser.on_add?.(get_docs_from_snapshot("added"), config);
-                        extra_parser.on_modify?.(get_docs_from_snapshot("modified"), config);
-                        extra_parser.on_remove?.(get_docs_from_snapshot("removed"), config);
+                        if (added.length) {
+                            extra_parser.on_add?.(added, config);
+                        }
+                        if (modified.length) {
+                            extra_parser.on_modify?.(modified, config);
+                        }
+                        if (removed.length) {
+                            extra_parser.on_remove?.(removed, config);
+                        }
                     });
                 }
             },
