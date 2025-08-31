@@ -2,7 +2,8 @@ import { JsonFailed, JsonOK, NxServiceName } from "../types";
 import { readFileSync } from "fs";
 import { cache_manager, logger } from "../managers";
 import { Geo, LanguageOptions, TObject } from "akeyless-types-commons";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
+import https from "https";
 
 export const init_env_variables = (required_vars: string[] = []) => {
     required_vars.forEach((varName) => {
@@ -139,4 +140,12 @@ export const trim_strings = <T>(input: any): any => {
 
 export const remove_nulls_and_undefined = (obj: Record<string, any>): Record<string, any> => {
     return Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== undefined && value !== null));
+};
+
+export const ignore_ssl_request = async (config: AxiosRequestConfig) => {
+    const { mode } = init_env_variables(["mode"]);
+    if (mode === "qa") {
+        config.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    }
+    return await axios(config);
 };

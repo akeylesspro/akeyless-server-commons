@@ -1,5 +1,5 @@
 import sendgrid, { MailDataRequired } from "@sendgrid/mail";
-import { add_audit_record, get_document_by_id } from ".";
+import { add_audit_record, get_document_by_id, ignore_ssl_request } from ".";
 import { EmailSettings, EmailData, EmailAttachment } from "../types";
 import { logger } from "../managers";
 import * as fs from "fs";
@@ -41,6 +41,30 @@ export const create_attachment_from_buffer = (
     };
 };
 
+export const create_attachment_from_url = async (url: string, filename: string, disposition: "attachment" | "inline" = "attachment") => {
+    try {
+        const response = await ignore_ssl_request({
+            method: "GET",
+            url,
+            responseType: "arraybuffer",
+            timeout: 20000,
+        });
+
+        const buffer = Buffer.from(response.data);
+        const content_type = (response.headers?.["content-type"] as string) || "application/pdf";
+
+        return {
+            content: buffer.toString("base64"),
+            filename: filename,
+            type: content_type,
+            disposition,
+        };
+    } catch (error) {
+        logger.error("error creating attachment from url", { error, url });
+        throw error;
+    }
+};
+
 const get_mime_type = (file_path: string): string => {
     const ext = path.extname(file_path).toLowerCase();
     const mime_types: Record<string, string> = {
@@ -76,7 +100,7 @@ const get_mime_type = (file_path: string): string => {
 export const send_email = async (email_data: EmailData) => {
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
-        const { sendgrid_api_key, groups, default_from,default_cc } = emails_settings;
+        const { sendgrid_api_key, groups, default_from, default_cc } = emails_settings;
         let { from, to, cc, group_name, body_html, body_plain_text, subject, entity_for_audit, attachments } = email_data;
         /// validate data
         if (!to?.length && !group_name?.length) {

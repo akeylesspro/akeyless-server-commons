@@ -55,6 +55,7 @@ firebase_admin.initializeApp({
 export const db = firebase_admin.firestore();
 export const messaging = firebase_admin.messaging();
 export const auth = firebase_admin.auth();
+export const storage = firebase_admin.storage();
 
 /// extract
 export const simple_extract_data = (doc: FirebaseFirestore.DocumentSnapshot): TObject<any> => {
@@ -456,5 +457,68 @@ export const add_audit_record: AddAuditRecord = async (action, entity, details, 
         await db.collection("nx-audit").add(data);
     } catch (error: any) {
         throw { msg: "unable to add audit record", data };
+    }
+};
+
+export interface SaveFileOptions {
+    content_type?: string;
+    content_disposition?: string;
+    cache_control?: string;
+    make_public?: boolean;
+    signed_url_ttl_ms?: number;
+    resumable?: boolean;
+}
+export const save_file_in_storage = async (file_path: string, buffer: Buffer | Uint8Array, options: SaveFileOptions = {}) => {
+    try {
+        const bucket = storage.bucket();
+        const normalized_path = file_path.replace(/^\/+/, "");
+        const file = bucket.file(normalized_path);
+
+        const metadata = {
+            contentType: options.content_type,
+            cacheControl: options.cache_control,
+            contentDisposition: options.content_disposition,
+        };
+
+        await file.save(buffer, {
+            metadata,
+            resumable: options.resumable ?? false,
+        });
+
+        if (options.make_public ?? true) {
+            await file.makePublic();
+            return file.publicUrl();
+        }
+
+        const [url] = await file.getSignedUrl({
+            action: "read",
+            expires: Date.now() + (options.signed_url_ttl_ms ?? 1000 * 60 * 60 * 24 * 7),
+        });
+        return url;
+    } catch (error: any) {
+        logger.error("error from save_file_in_storage", { error: error?.message || error });
+        return "";
+    }
+};
+
+export const get_file_url_from_storage = async (file_path: string) => {
+    try {
+        const bucket = storage.bucket();
+        const normalized_path = file_path.replace(/^\/+/, "");
+        const file = bucket.file(normalized_path);
+
+        const [exists] = await file.exists();
+        if (!exists) {
+            return "";
+        }
+
+        const [url] = await file.getSignedUrl({
+            action: "read",
+            expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        });
+        return url;
+    } catch (error: any) {
+        logger.error("error from get_file_url_from_storage", { error: error?.message || error });
+        return "";
     }
 };
