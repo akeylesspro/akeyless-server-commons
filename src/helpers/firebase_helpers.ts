@@ -520,6 +520,6 @@ export const get_file_url_from_storage = async (file_path: string): Promise<stri
         return url;
     } catch (error: any) {
         logger.error(`error from get_file_url_from_storage, file_path: ${file_path}`, error);
-        return "";
+        throw error;
     }
 };
