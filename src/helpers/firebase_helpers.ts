@@ -468,7 +468,8 @@ export interface SaveFileOptions {
     signed_url_ttl_ms?: number;
     resumable?: boolean;
 }
-export const save_file_in_storage = async (file_path: string, buffer: Buffer | Uint8Array, options: SaveFileOptions = {}) => {
+
+export const save_file_in_storage = async (file_path: string, buffer: Buffer | Uint8Array, options: SaveFileOptions = {}): Promise<string> => {
     try {
         const bucket = storage.bucket();
         const normalized_path = file_path.replace(/^\/+/, "");
@@ -497,11 +498,11 @@ export const save_file_in_storage = async (file_path: string, buffer: Buffer | U
         return url;
     } catch (error: any) {
         logger.error("error from save_file_in_storage", { error: error?.message || error });
-        return "";
+        throw error;
     }
 };
 
-export const get_file_url_from_storage = async (file_path: string) => {
+export const get_file_url_from_storage = async (file_path: string): Promise<string> => {
     try {
         const bucket = storage.bucket();
         const normalized_path = file_path.replace(/^\/+/, "");
@@ -509,7 +510,7 @@ export const get_file_url_from_storage = async (file_path: string) => {
 
         const [exists] = await file.exists();
         if (!exists) {
-            return "";
+            throw new Error("file not exist");
         }
 
         const [url] = await file.getSignedUrl({
@@ -518,7 +519,7 @@ export const get_file_url_from_storage = async (file_path: string) => {
         });
         return url;
     } catch (error: any) {
-        logger.error("error from get_file_url_from_storage", { error: error?.message || error });
+        logger.error(`error from get_file_url_from_storage, file_path: ${file_path}`, error);
         return "";
     }
 };

@@ -41,7 +41,7 @@ export const create_attachment_from_buffer = (
     };
 };
 
-export const create_attachment_from_url = async (url: string, filename: string, disposition: "attachment" | "inline" = "attachment") => {
+export const create_attachment_from_url = async (url: string, filename: string) => {
     try {
         const response = await ignore_ssl_request({
             method: "GET",
@@ -57,7 +57,7 @@ export const create_attachment_from_url = async (url: string, filename: string, 
             content: buffer.toString("base64"),
             filename: filename,
             type: content_type,
-            disposition,
+            disposition: "attachment",
         };
     } catch (error) {
         logger.error("error creating attachment from url", { error, url });
