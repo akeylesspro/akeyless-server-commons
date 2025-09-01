@@ -102,12 +102,16 @@ export const send_email = async (email_data: EmailData) => {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
         const { sendgrid_api_key, groups, default_from, default_cc } = emails_settings;
         let { from, to, cc, group_name, body_html, body_plain_text, subject, entity_for_audit, attachments } = email_data;
+        const cc_array: string[] = cc ? (Array.isArray(cc) ? cc : [cc as string]) : [];
+        cc = [...cc_array, ...default_cc];
         /// validate data
         if (!to?.length && !group_name?.length) {
             throw "must supply a 'group_name' or 'to' value ";
         }
         if (!body_html?.length && !body_plain_text?.length) {
             throw "must supply a 'body_plain_text' or 'html' value ";
+        }
+        if (to?.length && !group_name?.length) {
         }
         /// merge to and cc
         if (group_name) {
@@ -119,18 +123,7 @@ export const send_email = async (email_data: EmailData) => {
             } else {
                 to = typeof to === "string" ? [...groups[group_name].to, to] : [...groups[group_name].to, ...to];
             }
-            if (!cc) {
-                if (groups[group_name].cc?.length) {
-                    cc = [...default_cc, ...groups[group_name].cc];
-                } else {
-                    cc = [...default_cc];
-                }
-            } else {
-                cc =
-                    typeof cc === "string"
-                        ? [...default_cc, ...(groups[group_name].cc || []), cc]
-                        : [...default_cc, ...(groups[group_name].cc || []), ...cc];
-            }
+            cc.push(...(groups[group_name].cc || []));
         }
         /// set sendgrid account
         sendgrid.setApiKey(sendgrid_api_key);
@@ -152,9 +145,6 @@ export const send_email = async (email_data: EmailData) => {
                   text: body_plain_text!,
                   attachments: attachments,
               };
-        if (!msg.cc) {
-            delete msg.cc;
-        }
         if (!attachments?.length) {
             delete msg.attachments;
         }
