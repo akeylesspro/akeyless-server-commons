@@ -28,13 +28,14 @@ export const create_attachment_from_file = async (
 };
 
 export const create_attachment_from_buffer = (
-    buffer: Buffer,
+    buffer: Buffer | Uint8Array,
     filename: string,
     mime_type: string,
     disposition: "attachment" | "inline" = "attachment"
 ): EmailAttachment => {
+    const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
     return {
-        content: buffer.toString("base64"),
+        content: buf.toString("base64"),
         filename,
         type: mime_type,
         disposition,

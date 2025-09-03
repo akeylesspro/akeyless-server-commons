@@ -488,7 +488,6 @@ export const save_file_in_storage = async (file_path: string, buffer: Buffer | U
 
         if (options.make_public ?? true) {
             await file.makePublic();
-            return file.publicUrl();
         }
 
         const [url] = await file.getSignedUrl({
