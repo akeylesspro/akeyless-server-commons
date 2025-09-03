@@ -98,7 +98,7 @@ const get_mime_type = (file_path: string): string => {
     return mime_types[ext] || "application/octet-stream";
 };
 
-export const send_email = async (email_data: EmailData) => {
+export const send_email = async (email_data: EmailData, options?: { debug?: boolean }) => {
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
         const { sendgrid_api_key, groups, default_from, default_cc } = emails_settings;
@@ -155,9 +155,15 @@ export const send_email = async (email_data: EmailData) => {
             throw email_result[0].body;
         }
         /// add audit
-        logger.log("email send successfully", { ...email_data, ...msg });
         await add_audit_record("send_email", entity_for_audit, { ...email_data, ...msg });
+
+        if (options?.debug) {
+            logger.log("email send successfully", { ...email_data, ...msg });
+        }
     } catch (error) {
-        logger.error("error sending email", { error, email_data });
+        logger.error("error sending email", error);
+        if (options?.debug) {
+            logger.error("email payload", { message: JSON.stringify(email_data) });
+        }
     }
 };
