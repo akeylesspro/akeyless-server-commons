@@ -53,6 +53,7 @@ const send_international_sms: SmsFunction = async (recepient, text, details) => 
         body: text,
         to: recepient,
     });
+    logger.log("twilio response", message);
     if (message.errorMessage) {
         throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }

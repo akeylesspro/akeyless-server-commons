@@ -6,7 +6,7 @@ export const is_long_phone_number = (phone_number: string) => {
 };
 
 export const is_israel_long_phone_number = (phone_number: string) => {
-    return phone_number.startsWith("+9725");
+    return phone_number.startsWith("+9725") || phone_number.startsWith("+972 5");
 };
 
 export const is_international_phone_number = (phone_number: string) => {
