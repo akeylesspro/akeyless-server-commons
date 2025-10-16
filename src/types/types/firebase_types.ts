@@ -48,7 +48,19 @@ interface ExtraSnapshotConfig {
     cache_name?: string;
     parse_as?: "object" | "array";
     doc_key_property?: string;
-    subscription_type?: "redis" | "db";
+    subscription_type?: "redis" | "firebase";
+    debug?: {
+        on_first_time?: boolean;
+        on_add?: boolean;
+        on_modify?: boolean;
+        on_remove?: boolean;
+        extra_parsers?: {
+            on_first_time?: boolean;
+            on_add?: boolean;
+            on_modify?: boolean;
+            on_remove?: boolean;
+        }
+    };
 }
 
 export type OnSnapshotConfig = OnSnapshotParsers & ExtraSnapshotConfig;
@@ -62,5 +74,5 @@ export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_pa
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 export type SnapshotBulkByNames = (
     params: SnapshotBulkByNamesParam[],
-    options?: { label?: string; subscription_type?: "redis" | "db" }
+    options?: { label?: string; subscription_type?: "redis" | "firebase" }
 ) => Promise<void>;
