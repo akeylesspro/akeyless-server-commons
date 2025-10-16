@@ -469,6 +469,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, option
                       cache_name: param.cache_name,
                       subscription_type: param.subscription_type || subscription_type,
                       debug: param.debug || debug,
+                      parse_as: param.parse_as,
                       on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
                       on_add: (docs, config) => parse_add_update_as_array(docs, config),
                       on_modify: (docs, config) => parse_add_update_as_array(docs, config),
