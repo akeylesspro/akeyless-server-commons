@@ -3,7 +3,9 @@ import { REDIS_UPDATES_PREFIX } from "akeyless-types-commons";
 import { get_collection_keys } from "./keys";
 import { init_env_variables } from "../global_helpers";
 import { logger } from "../../managers";
+import dotenv from "dotenv";
 
+dotenv.config();
 const { redis_ip } = init_env_variables(["redis_ip"]);
 
 export const redis_commander = new Redis({ host: redis_ip });

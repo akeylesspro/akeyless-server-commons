@@ -447,7 +447,7 @@ export const snapshot_bulk: SnapshotBulk = async (snapshots, label?) => {
 };
 
 export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, options) => {
-    const { label = "snapshot_bulk_by_names", subscription_type = "firebase" } = options || {};
+    const { label = "snapshot_bulk_by_names", subscription_type = "firebase", debug } = options || {};
     const start = performance.now();
     logger.log(`==> Snapshots ${label} => [${subscription_type}] started... `);
     const configs: OnSnapshotConfig[] = params.map((param) => {
@@ -456,6 +456,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, option
                 ? {
                       collection_name: param,
                       subscription_type,
+                      debug,
                       on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
                       on_add: (docs, config) => parse_add_update_as_array(docs, config),
                       on_modify: (docs, config) => parse_add_update_as_array(docs, config),
@@ -467,6 +468,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, option
                       conditions: param.conditions,
                       cache_name: param.cache_name,
                       subscription_type: param.subscription_type || subscription_type,
+                      debug: param.debug || debug,
                       on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
                       on_add: (docs, config) => parse_add_update_as_array(docs, config),
                       on_modify: (docs, config) => parse_add_update_as_array(docs, config),
