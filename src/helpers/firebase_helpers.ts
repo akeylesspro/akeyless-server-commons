@@ -18,6 +18,7 @@ import { TObject } from "akeyless-types-commons";
 import dotenv from "dotenv";
 import { init_env_variables } from "./global_helpers";
 import { Timestamp } from "firebase-admin/firestore";
+import { cache_snapshots_bulk } from "./redis";
 dotenv.config();
 
 // initial firebase
@@ -246,7 +247,7 @@ export const verify_token = async (authorization: string | undefined): Promise<D
 };
 
 /// parsers
-const parse__add_update__translations = (documents: any[]): void => {
+const parse_add_update_translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
@@ -255,7 +256,7 @@ const parse__add_update__translations = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-const parse__delete__translations = (documents: any[]): void => {
+const parse_delete_translations = (documents: any[]): void => {
     const data: TObject<any> = translation_manager.getTranslationData();
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
@@ -265,7 +266,7 @@ const parse__delete__translations = (documents: any[]): void => {
     translation_manager.setTranslationData(data);
 };
 
-const parse__add_update__settings = (documents: any[], name_for_cache: string): void => {
+const parse_add_update_settings = (documents: any[], name_for_cache: string): void => {
     const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc.id] = doc;
@@ -273,7 +274,7 @@ const parse__add_update__settings = (documents: any[], name_for_cache: string): 
     cache_manager.setObjectData(name_for_cache, data);
 };
 
-const parse__delete__settings = (documents: any[], name_for_cache: string): void => {
+const parse_delete_settings = (documents: any[], name_for_cache: string): void => {
     const data: TObject<any> = cache_manager.getObjectData(name_for_cache, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc.id]) {
@@ -283,43 +284,47 @@ const parse__delete__settings = (documents: any[], name_for_cache: string): void
     cache_manager.setObjectData(name_for_cache, data);
 };
 
-const parse_add_update__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
+export const parse_add_update_as_object = (documents: any[], config: OnSnapshotConfig): void => {
+    const { collection_name, cache_name = collection_name, doc_key_property = "id" } = config;
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
         data[doc[doc_key_property]] = doc;
     });
-    cache_manager.setObjectData(doc_key_property, data);
+    cache_manager.setObjectData(cache_name, data);
 };
 
-const parse__delete__as_object = (documents: any[], config: OnSnapshotConfig, doc_key_property: string): void => {
-    const data: TObject<any> = cache_manager.getObjectData(config.collection_name, {});
+export const parse_delete_as_object = (documents: any[], config: OnSnapshotConfig): void => {
+    const { collection_name, cache_name = collection_name, doc_key_property = "id" } = config;
+    const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
         if (data[doc[doc_key_property]]) {
             delete data[doc[doc_key_property]];
         }
     });
-    cache_manager.setObjectData(doc_key_property, data);
+    cache_manager.setObjectData(cache_name, data);
 };
 
-const parse__add_update__as_array = (documents: any[], config: OnSnapshotConfig): void => {
-    config.on_remove?.(documents, config);
-    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+export const parse_add_update_as_array = (documents: any[], config: OnSnapshotConfig): void => {
+    const { on_remove, collection_name, cache_name = collection_name } = config;
+    on_remove?.(documents, config);
+    const existing_array: any[] = cache_manager.getArrayData(cache_name);
     const updated_array = [...existing_array, ...documents];
-    cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(cache_name, updated_array);
 };
 
-const parse__delete__as_array = (documents: any[], config: OnSnapshotConfig): void => {
-    const existing_array: any[] = cache_manager.getArrayData(config.collection_name);
+export const parse_delete_as_array = (documents: any[], config: OnSnapshotConfig): void => {
+    const { collection_name, cache_name = collection_name } = config;
+    const existing_array: any[] = cache_manager.getArrayData(cache_name);
     const keys_to_delete = documents.map((doc) => doc.id);
     const updated_array = existing_array.filter((doc) => !keys_to_delete.includes(doc.id));
-    cache_manager.setArrayData(config.collection_name, updated_array);
+    cache_manager.setArrayData(cache_name, updated_array);
 };
 
 /// snapshots
 let snapshots_first_time: string[] = [];
 
 export const snapshot: Snapshot = (config) => {
-    const { collection_name, cache_name = collection_name, conditions, extra_parsers } = config;
+    const { collection_name, cache_name = collection_name, conditions } = config;
     return new Promise<void>((resolve) => {
         let q: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(collection_name);
         if (conditions) {
@@ -387,24 +392,24 @@ export const init_snapshots = async (): Promise<void> => {
         [
             snapshot({
                 collection_name: "nx-translations",
-                on_first_time: parse__add_update__translations,
-                on_add: parse__add_update__translations,
-                on_modify: parse__add_update__translations,
-                on_remove: parse__delete__translations,
+                on_first_time: parse_add_update_translations,
+                on_add: parse_add_update_translations,
+                on_modify: parse_add_update_translations,
+                on_remove: parse_delete_translations,
             }),
             snapshot({
                 collection_name: "nx-settings",
-                on_first_time: (docs) => parse__add_update__settings(docs, "nx-settings"),
-                on_add: (docs) => parse__add_update__settings(docs, "nx-settings"),
-                on_modify: (docs) => parse__add_update__settings(docs, "nx-settings"),
-                on_remove: (docs) => parse__delete__settings(docs, "nx-settings"),
+                on_first_time: (docs) => parse_add_update_settings(docs, "nx-settings"),
+                on_add: (docs) => parse_add_update_settings(docs, "nx-settings"),
+                on_modify: (docs) => parse_add_update_settings(docs, "nx-settings"),
+                on_remove: (docs) => parse_delete_settings(docs, "nx-settings"),
             }),
             snapshot({
                 collection_name: "settings",
-                on_first_time: (docs) => parse__add_update__settings(docs, "settings"),
-                on_add: (docs) => parse__add_update__settings(docs, "settings"),
-                on_modify: (docs) => parse__add_update__settings(docs, "settings"),
-                on_remove: (docs) => parse__delete__settings(docs, "settings"),
+                on_first_time: (docs) => parse_add_update_settings(docs, "settings"),
+                on_add: (docs) => parse_add_update_settings(docs, "settings"),
+                on_modify: (docs) => parse_add_update_settings(docs, "settings"),
+                on_remove: (docs) => parse_delete_settings(docs, "settings"),
             }),
         ],
         "Common snapshots"
@@ -418,31 +423,43 @@ export const snapshot_bulk: SnapshotBulk = async (snapshots, label?) => {
     logger.log(`==> ${label || "custom snapshots"} ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };
 
-export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params) => {
+export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, options) => {
+    const { label = "snapshot_bulk_by_names", subscription_type = "redis" } = options || {};
     const start = performance.now();
-    logger.log(`==> snapshot_bulk_by_names started... `);
-    const snapshots = params.map((param) => {
-        return typeof param === "string"
-            ? snapshot({
-                  collection_name: param,
-                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
-              })
-            : snapshot({
-                  collection_name: param.collection_name,
-                  extra_parsers: param.extra_parsers,
-                  conditions: param.conditions,
-                  cache_name: param.cache_name,
-                  on_first_time: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_add: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_modify: (docs, config) => parse__add_update__as_array(docs, config),
-                  on_remove: (docs, config) => parse__delete__as_array(docs, config),
-              });
+    logger.log(`==> Snapshots ${label} => [${subscription_type}] started... `);
+    const configs: OnSnapshotConfig[] = params.map((param) => {
+        const result: OnSnapshotConfig =
+            typeof param === "string"
+                ? {
+                      collection_name: param,
+                      on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_add: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_modify: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_remove: (docs, config) => parse_delete_as_array(docs, config),
+                  }
+                : {
+                      collection_name: param.collection_name,
+                      extra_parsers: param.extra_parsers,
+                      conditions: param.conditions,
+                      cache_name: param.cache_name,
+                      on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_add: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_modify: (docs, config) => parse_add_update_as_array(docs, config),
+                      on_remove: (docs, config) => parse_delete_as_array(docs, config),
+                  };
+
+        return result;
     });
-    await Promise.all(snapshots);
-    logger.log(`==> snapshot_bulk_by_names ended. It took ${(performance.now() - start).toFixed(2)} ms`);
+    if (subscription_type === "redis") {
+        await cache_snapshots_bulk(configs);
+    } else {
+        await Promise.all(
+            configs.map((config) => {
+                return snapshot(config);
+            })
+        );
+    }
+    logger.log(`==> Snapshots ${label} => [${subscription_type}] ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };
 
 export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {

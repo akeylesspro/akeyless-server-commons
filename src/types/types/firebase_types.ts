@@ -46,7 +46,9 @@ interface ExtraSnapshotConfig {
     extra_parsers?: OnSnapshotParsers[];
     conditions?: WhereCondition[];
     cache_name?: string;
-    subscribe_to?: "cache" | "db";
+    parse_as?: "object" | "array";
+    doc_key_property?: string;
+    subscription_type?: "redis" | "db";
 }
 
 export type OnSnapshotConfig = OnSnapshotParsers & ExtraSnapshotConfig;
@@ -58,4 +60,7 @@ export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_pa
     extra_parsers: OnSnapshotParsers[];
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
-export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
+export type SnapshotBulkByNames = (
+    params: SnapshotBulkByNamesParam[],
+    options?: { label?: string; subscription_type?: "redis" | "db" }
+) => Promise<void>;
