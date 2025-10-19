@@ -33,12 +33,18 @@ export const redis_snapshots_bulk = async (configs: OnSnapshotConfig[]) => {
         const init_data = await get_collection_data(collection_name);
         default_parsers(parse_as, init_data, config);
         if (debug?.on_first_time) {
-            logger.log(`${cache_name} => Redis snapshot on first time: `, init_data);
+            logger.log(
+                `${cache_name} => Redis snapshot on first time: `,
+                debug.on_first_time === "documents" ? init_data : { length: init_data.length }
+            );
         }
         config.on_first_time?.(init_data, config);
         extra_parsers?.forEach((parser) => {
             if (debug?.extra_parsers?.on_first_time) {
-                logger.log(`${cache_name} => Redis snapshot extra parsers on first time: `, init_data);
+                logger.log(
+                    `${cache_name} => Redis snapshot extra parsers on first time: `,
+                    debug.extra_parsers.on_first_time === "documents" ? init_data : { length: init_data.length }
+                );
             }
             parser?.on_first_time?.(init_data, config);
         });

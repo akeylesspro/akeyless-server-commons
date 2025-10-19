@@ -339,12 +339,18 @@ export const snapshot: Snapshot = (config) => {
                     snapshots_first_time.push(cache_name);
                     const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
                     if (debug?.on_first_time) {
-                        logger.log(`${cache_name} => Firebase snapshot on first time: `, documents);
+                        logger.log(
+                            `${cache_name} => Firebase snapshot on first time: `,
+                            debug.on_first_time === "documents" ? documents : { length: documents.length }
+                        );
                     }
                     config.on_first_time?.(documents, config);
                     config.extra_parsers?.forEach((extra_parser) => {
                         if (debug?.extra_parsers?.on_first_time) {
-                            logger.log(`${cache_name} => Firebase snapshot extra parsers on first time: `, documents);
+                            logger.log(
+                                `${cache_name} => Firebase snapshot extra parsers on first time: `,
+                                debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
+                            );
                         }
                         extra_parser.on_first_time?.(documents, config);
                     });

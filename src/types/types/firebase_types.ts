@@ -49,18 +49,15 @@ interface ExtraSnapshotConfig {
     parse_as?: "object" | "array";
     doc_key_property?: string;
     subscription_type?: "redis" | "firebase";
-    debug?: {
-        on_first_time?: "documents" | "length";
-        on_add?: boolean;
-        on_modify?: boolean;
-        on_remove?: boolean;
-        extra_parsers?: {
-            on_first_time?: "documents" | "length";
-            on_add?: boolean;
-            on_modify?: boolean;
-            on_remove?: boolean;
-        };
+    debug?: Debug & {
+        extra_parsers?: Debug;
     };
+}
+interface Debug {
+    on_first_time?: "documents" | "length";
+    on_add?: boolean;
+    on_modify?: boolean;
+    on_remove?: boolean;
 }
 
 export type OnSnapshotConfig = OnSnapshotParsers & ExtraSnapshotConfig;
