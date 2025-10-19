@@ -69,7 +69,9 @@ export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_pa
     extra_parsers: OnSnapshotParsers[];
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
-export type SnapshotBulkByNames = (
-    params: SnapshotBulkByNamesParam[],
-    options?: { label?: string; subscription_type?: "redis" | "firebase"; debug?: ExtraSnapshotConfig["debug"] }
-) => Promise<void>;
+
+export type SnapshotBulkByNamesOptions = { label?: string; subscription_type?: "redis" | "firebase"; debug?: ExtraSnapshotConfig["debug"] };
+
+export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[], options?: SnapshotBulkByNamesOptions) => Promise<void>;
+
+export interface InitSnapshotsOptions extends Pick<ExtraSnapshotConfig, "subscription_type" | "debug"> {}

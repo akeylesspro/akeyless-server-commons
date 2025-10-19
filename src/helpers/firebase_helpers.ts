@@ -2,6 +2,7 @@ import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
     AddAuditRecord,
+    InitSnapshotsOptions,
     OnSnapshotConfig,
     QueryDocument,
     QueryDocumentByConditions,
@@ -416,11 +417,14 @@ export const snapshot: Snapshot = (config) => {
     });
 };
 
-export const init_snapshots = async (): Promise<void> => {
+export const init_snapshots = async (options?: InitSnapshotsOptions): Promise<void> => {
+    const { subscription_type = "firebase", debug } = options || {};
     await snapshot_bulk(
         [
             snapshot({
                 collection_name: "nx-translations",
+                subscription_type,
+                debug,
                 on_first_time: parse_add_update_translations,
                 on_add: parse_add_update_translations,
                 on_modify: parse_add_update_translations,
@@ -428,17 +432,21 @@ export const init_snapshots = async (): Promise<void> => {
             }),
             snapshot({
                 collection_name: "nx-settings",
-                on_first_time: (docs) => parse_add_update_settings(docs, "nx-settings"),
-                on_add: (docs) => parse_add_update_settings(docs, "nx-settings"),
-                on_modify: (docs) => parse_add_update_settings(docs, "nx-settings"),
-                on_remove: (docs) => parse_delete_settings(docs, "nx-settings"),
+                subscription_type,
+                debug,
+                on_first_time: parse_add_update_as_object,
+                on_add: parse_add_update_as_object,
+                on_modify: parse_add_update_as_object,
+                on_remove: parse_delete_as_object,
             }),
             snapshot({
                 collection_name: "settings",
-                on_first_time: (docs) => parse_add_update_settings(docs, "settings"),
-                on_add: (docs) => parse_add_update_settings(docs, "settings"),
-                on_modify: (docs) => parse_add_update_settings(docs, "settings"),
-                on_remove: (docs) => parse_delete_settings(docs, "settings"),
+                subscription_type,
+                debug,
+                on_first_time: parse_add_update_as_object,
+                on_add: parse_add_update_as_object,
+                on_modify: parse_add_update_as_object,
+                on_remove: parse_delete_as_object,
             }),
         ],
         "Common snapshots"

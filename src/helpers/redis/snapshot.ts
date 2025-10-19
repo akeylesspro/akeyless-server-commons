@@ -1,4 +1,4 @@
-import { redis_commander, redis_listener } from "./initialize";
+import { redis_commander, redis_commander_connected, redis_listener, redis_listener_connected } from "./initialize";
 import { OnSnapshotConfig } from "../../types";
 import { CollectionConfig, RedisUpdatePayload, RedisUpdateType, TObject } from "akeyless-types-commons";
 import {
@@ -21,7 +21,13 @@ export const redis_snapshots_bulk = async (configs: OnSnapshotConfig[]) => {
 
     for (const config of configs) {
         const { collection_name, extra_parsers, cache_name = collection_name, parse_as, subscription_type = "firebase", debug } = config;
-        if (subscription_type === "firebase" || cache_collections_config[collection_name]?.sync_direction === "redis_to_firebase") {
+        if (
+            !redis_commander_connected ||
+            !redis_listener_connected ||
+            subscription_type === "firebase" ||
+            !cache_collections_config[collection_name] ||
+            cache_collections_config[collection_name].sync_direction === "redis_to_firebase"
+        ) {
             await snapshot(config);
             continue;
         }
@@ -127,12 +133,11 @@ const get_collection_data = async (collection_name: string) => {
     return collection_data.map((data) => convert_object_timestamps(data));
 };
 
-const convert_object_timestamps = (date: TObject<any>) => {
-    Object.entries(date).forEach(([key, value]) => {
-        const role = typeof value === "object" && value._seconds;
-        if (role) {
-            date[key] = new Timestamp(value._seconds, value._nanoseconds);
+const convert_object_timestamps = (data: TObject<any>) => {
+    Object.entries(data).forEach(([key, value]) => {
+        if (typeof value === "object" && value._seconds) {
+            data[key] = new Timestamp(value._seconds, value._nanoseconds);
         }
     });
-    return date;
+    return data;
 };

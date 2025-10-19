@@ -36,10 +36,10 @@ export const basic_init = async (
     main_router: MainRouter,
     project_name: string,
     version: string,
-    { port, log_requests }: AppOptions = {}
+    { port, log_requests, init_snapshot_options }: AppOptions = {}
 ): Promise<Express> => {
     try {
-        await init_snapshots();
+        await init_snapshots(init_snapshot_options);
         const app = await start_server(main_router, project_name, version, { port, log_requests });
         return app;
     } catch (error) {
