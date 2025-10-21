@@ -118,7 +118,6 @@ const parse_redis_snapshot = async (config: OnSnapshotConfig, redis_update?: { u
         return;
     }
 
-
     if (!subscription_collections.has(cache_name)) {
         return;
     }
@@ -194,7 +193,7 @@ const get_collection_data = async (collection_name: string) => {
 
 const convert_object_timestamps = (data: TObject<any>) => {
     Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === "object" && value._seconds) {
+        if (typeof value === "object" && value && value._seconds) {
             data[key] = new Timestamp(value._seconds, value._nanoseconds);
         }
     });
