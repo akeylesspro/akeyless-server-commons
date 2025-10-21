@@ -5,6 +5,7 @@ import { init_env_variables, init_snapshots } from "./";
 import { AppOptions, LogRequests, MainRouter } from "../types";
 import { error_handler } from "../middlewares/error_handling";
 import { request_logger, trim_body_middleware } from "../middlewares";
+import { init_redis } from "./redis/initialize";
 
 export const start_server = async (
     main_router: MainRouter,
@@ -23,10 +24,11 @@ export const start_server = async (
     main_router(app);
     app.use(error_handler);
 
-    return new Promise<Express>((resolve, reject) => {
-        app.listen(port, () => {
+    return new Promise<Express>((resolve) => {
+        app.listen(port, async () => {
             logger.log(`Server is running at http://localhost:${port}`);
             logger.log("project status", { project_name, version, environment: env_data.mode });
+            await init_redis();
             resolve(app);
         });
     });
@@ -39,8 +41,8 @@ export const basic_init = async (
     { port, log_requests, init_snapshot_options }: AppOptions = {}
 ): Promise<Express> => {
     try {
-        await init_snapshots(init_snapshot_options);
         const app = await start_server(main_router, project_name, version, { port, log_requests });
+        await init_snapshots(init_snapshot_options);
         return app;
     } catch (error) {
         logger.error("Error from init function: ", error);

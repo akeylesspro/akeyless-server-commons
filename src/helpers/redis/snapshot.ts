@@ -1,4 +1,4 @@
-import { redis_commander, redis_commander_connected, redis_listener, redis_listener_connected } from "./initialize";
+import { get_redis_commander, get_redis_listener, redis_commander_connected, redis_listener_connected } from "./initialize";
 import { OnSnapshotConfig } from "../../types";
 import { CollectionConfig, RedisUpdatePayload, RedisUpdateType, TObject } from "akeyless-types-commons";
 import {
@@ -29,7 +29,7 @@ export const redis_snapshots_bulk = async (configs: OnSnapshotConfig[]) => {
         await parse_redis_snapshot(config);
     }
     /// on update
-    redis_listener.on("pmessage", async (pattern: string, channel: string, message: string) => {
+    get_redis_listener().on("pmessage", async (pattern: string, channel: string, message: string) => {
         const { collection_name, update_type, data: doc }: RedisUpdatePayload<RedisUpdateType> = JSON.parse(message);
         const update = [convert_object_timestamps(doc)];
         const relevant_configs = configs.filter((config) => config.collection_name === collection_name);
@@ -182,6 +182,7 @@ const default_parsers = (parse_as: "array" | "object" | undefined, update: TObje
 };
 
 const get_collection_data = async (collection_name: string) => {
+    const redis_commander = get_redis_commander();
     const keys = await scan_redis_keys(get_collection_keys(collection_name), redis_commander);
     let collection_data: any[] = [];
     if (keys.length > 0) {

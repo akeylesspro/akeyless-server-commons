@@ -6,18 +6,21 @@ import { logger } from "../../managers";
 import dotenv from "dotenv";
 
 dotenv.config();
-const { redis_ip } = init_env_variables(["redis_ip"]);
 
 export let redis_commander_connected = false;
 export let redis_listener_connected = false;
 
-const MAX_RETRY_ATTEMPTS = 5;
+const MAX_RETRY_ATTEMPTS = 2;
+
+let redis_commander: Redis | null = null;
+let redis_listener: Redis | null = null;
+let redis_initialized = false;
 
 function create_redis_instance(role: "commander" | "listener") {
     let retry_attempts = 0;
 
     const client = new Redis({
-        host: redis_ip,
+        host: init_env_variables(["redis_ip"]).redis_ip,
         lazyConnect: true,
         enableOfflineQueue: false,
         maxRetriesPerRequest: 0,
@@ -28,7 +31,7 @@ function create_redis_instance(role: "commander" | "listener") {
                 logger.error(`❌ Redis ${role} failed after ${MAX_RETRY_ATTEMPTS} attempts. Stopping retries.`);
                 return null;
             }
-            const delay = 1000
+            const delay = 1000;
             logger.warn(`⚠️ Redis ${role} retry attempt ${retry_attempts}/${MAX_RETRY_ATTEMPTS} in ${delay}ms...`);
             return delay;
         },
@@ -61,20 +64,82 @@ function create_redis_instance(role: "commander" | "listener") {
     return client;
 }
 
-export const redis_commander = create_redis_instance("commander");
-export const redis_listener = create_redis_instance("listener");
+export const init_redis = () => {
+    return new Promise<void>((resolve, reject) => {
+        if (redis_initialized) {
+            resolve();
+            return;
+        }
 
-redis_listener.on("connect", () => {
-    const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
-    redis_listener
-        .psubscribe(redis_pattern)
-        .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
-        .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
-});
+        redis_commander = create_redis_instance("commander");
+        redis_listener = create_redis_instance("listener");
+        redis_initialized = true;
 
-process.on("unhandledRejection", (err) => {
-    logger.error("❌ Unhandled promise rejection", err);
-});
-process.on("uncaughtException", (err) => {
-    logger.error("❌ Uncaught exception", err);
-});
+        let commander_ready = false;
+        let listener_ready = false;
+
+        const check_and_resolve = () => {
+            if (commander_ready && listener_ready) {
+                resolve();
+            }
+        };
+
+        redis_commander.on("connect", () => {
+            commander_ready = true;
+            check_and_resolve();
+        });
+
+        redis_listener.on("connect", () => {
+            listener_ready = true;
+            const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
+            redis_listener!
+                .psubscribe(redis_pattern)
+                .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
+                .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
+            check_and_resolve();
+        });
+
+        // Handle case where Redis connections fail
+        const connection_timeout = setTimeout(() => {
+            if (!commander_ready || !listener_ready) {
+                logger.warn("⚠️ Redis connection timeout, proceeding without Redis");
+                resolve();
+            }
+        }, 5000); // 5 seconds timeout
+
+        redis_commander.on("error", () => {
+            if (!commander_ready && !listener_ready) {
+                clearTimeout(connection_timeout);
+                resolve();
+            }
+        });
+
+        redis_listener.on("error", () => {
+            if (!commander_ready && !listener_ready) {
+                clearTimeout(connection_timeout);
+                resolve();
+            }
+        });
+
+        process.on("unhandledRejection", (err) => {
+            logger.error("❌ Unhandled promise rejection", err);
+        });
+        process.on("uncaughtException", (err) => {
+            logger.error("❌ Uncaught exception", err);
+        });
+    });
+};
+
+export const get_redis_commander = (): Redis => {
+    if (!redis_commander) {
+        throw new Error("Redis commander not initialized. Call init_redis() first.");
+    }
+    return redis_commander;
+};
+
+export const get_redis_listener = (): Redis => {
+    if (!redis_listener) {
+        throw new Error("Redis listener not initialized. Call init_redis() first.");
+    }
+    return redis_listener;
+};

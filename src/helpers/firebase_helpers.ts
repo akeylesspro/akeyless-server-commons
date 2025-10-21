@@ -422,37 +422,28 @@ export const snapshot: Snapshot = (config) => {
 
 export const init_snapshots = async (options?: InitSnapshotsOptions): Promise<void> => {
     const { subscription_type = "firebase", debug } = options || {};
-    await snapshot_bulk(
+    await snapshot_bulk_by_names(
         [
-            snapshot({
+            "nx-settings",
+            "settings",
+            {
                 collection_name: "nx-translations",
-                subscription_type,
-                debug,
-                on_first_time: parse_add_update_translations,
-                on_add: parse_add_update_translations,
-                on_modify: parse_add_update_translations,
-                on_remove: parse_delete_translations,
-            }),
-            snapshot({
-                collection_name: "nx-settings",
-                subscription_type,
-                debug,
-                on_first_time: parse_add_update_as_object,
-                on_add: parse_add_update_as_object,
-                on_modify: parse_add_update_as_object,
-                on_remove: parse_delete_as_object,
-            }),
-            snapshot({
-                collection_name: "settings",
-                subscription_type,
-                debug,
-                on_first_time: parse_add_update_as_object,
-                on_add: parse_add_update_as_object,
-                on_modify: parse_add_update_as_object,
-                on_remove: parse_delete_as_object,
-            }),
+                extra_parsers: [
+                    {
+                        on_first_time: parse_add_update_translations,
+                        on_add: parse_add_update_translations,
+                        on_modify: parse_add_update_translations,
+                        on_remove: parse_delete_translations,
+                    },
+                ],
+            },
         ],
-        "Common snapshots"
+        {
+            subscription_type,
+            debug,
+            parse_as: "object",
+            label: "Common snapshots",
+        }
     );
 };
 
