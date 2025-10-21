@@ -14,4 +14,6 @@ export enum NxServiceName {
     installer = "installer",
     ox_server = "ox_server",
     toolbox = "toolbox",
+    end_users = "end_users",
+    notifications = "notifications",
 }

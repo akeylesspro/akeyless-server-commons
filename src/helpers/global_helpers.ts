@@ -72,6 +72,16 @@ export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> 
         : is_prod
         ? "https://nx-api.info/api/devices"
         : "https://nx-api.xyz/api/devices";
+    result[NxServiceName.end_users] = is_local
+        ? "http://10.100.102.9:9011/api/end-users"
+        : is_prod
+        ? "https://nx-api.info/api/end-users"
+        : "https://nx-api.xyz/api/end-users";
+    result[NxServiceName.notifications] = is_local
+        ? "http://localhost.9:9006/api/notifications"
+        : is_prod
+        ? "https://nx-api.info/api/notifications"
+        : "https://nx-api.xyz/api/notifications";
     result[NxServiceName.installer] = is_local ? "http://localhost" : is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
     result[NxServiceName.ox_server] = is_local ? "http://localhost" : is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
     result[NxServiceName.toolbox] = is_local ? "http://localhost" : is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
