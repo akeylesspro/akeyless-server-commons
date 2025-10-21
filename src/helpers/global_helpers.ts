@@ -1,4 +1,4 @@
-import { JsonFailed, JsonOK, NxServiceName } from "../types";
+import { JsonFailed, JsonOK, NxServiceNameMap } from "../types";
 import { readFileSync } from "fs";
 import { cache_manager, logger } from "../managers";
 import { Geo, LanguageOptions, TObject } from "akeyless-types-commons";
@@ -47,46 +47,49 @@ export const get_version = (packageJsonPath: string): string => {
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> => {
-    if (!process.env[env_name]) {
-        throw new Error("missing [mode] environment variable");
-    }
-    const env_value = process.env[env_name].toLowerCase();
-    const is_local = ["local"].includes(env_value);
-    const is_prod = ["production", "prod"].includes(env_value);
-    const is_qa = ["qa"].includes(env_value);
-    const result: TObject<string> = {};
-    result[NxServiceName.bi] = is_local ? "http://localhost:9002/api/bi" : is_prod ? "https://nx-api.info/api/bi" : "https://nx-api.xyz/api/bi";
-    result[NxServiceName.call_center] = is_local
-        ? "http://localhost:9003/api/call-center"
-        : is_prod
-        ? "https://nx-api.info/api/call-center"
-        : "https://nx-api.xyz/api/call-center";
-    result[NxServiceName.dashboard] = is_local
-        ? "http://localhost"
-        : is_prod
-        ? "https://akeyless-dashboard.online"
-        : "https://akeyless-dashboard.xyz";
-    result[NxServiceName.devices] = is_local
-        ? "http://localhost:9001/api/devices"
-        : is_prod
-        ? "https://nx-api.info/api/devices"
-        : "https://nx-api.xyz/api/devices";
-    result[NxServiceName.end_users] = is_local
-        ? "http://10.100.102.9:9011/api/end-users"
-        : is_prod
-        ? "https://nx-api.info/api/end-users"
-        : "https://nx-api.xyz/api/end-users";
-    result[NxServiceName.notifications] = is_local
-        ? "http://localhost.9:9006/api/notifications"
-        : is_prod
-        ? "https://nx-api.info/api/notifications"
-        : "https://nx-api.xyz/api/notifications";
-    result[NxServiceName.installer] = is_local ? "http://localhost" : is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
-    result[NxServiceName.ox_server] = is_local ? "http://localhost" : is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
-    result[NxServiceName.toolbox] = is_local ? "http://localhost" : is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
-    return result;
-};
+const BASE_URLS = {
+    local: {
+        bi: "http://localhost:9002/api/bi",
+        call_center: "http://localhost:9003/api/call-center",
+        dashboard: "http://localhost",
+        devices: "http://localhost:9001/api/devices",
+        end_users: "http://10.100.102.9:9011/api/end-users",
+        notifications: "http://localhost:9006/api/notifications",
+        installer: "http://localhost",
+        ox_server: "http://localhost",
+        toolbox: "http://localhost",
+    },
+    prod: {
+        bi: "https://nx-api.info/api/bi",
+        call_center: "https://nx-api.info/api/call-center",
+        dashboard: "https://akeyless-dashboard.online",
+        devices: "https://nx-api.info/api/devices",
+        end_users: "https://nx-api.info/api/end-users",
+        notifications: "https://nx-api.info/api/notifications",
+        installer: "https://installerapp.online",
+        ox_server: "https://akeyless-online.info",
+        toolbox: "https://akeyless-toolbox.online",
+    },
+    qa: {
+        bi: "https://nx-api.xyz/api/bi",
+        call_center: "https://nx-api.xyz/api/call-center",
+        dashboard: "https://akeyless-dashboard.xyz",
+        devices: "https://nx-api.xyz/api/devices",
+        end_users: "https://nx-api.xyz/api/end-users",
+        notifications: "https://nx-api.xyz/api/notifications",
+        installer: "https://installerapp.xyz",
+        ox_server: "https://akeyless-online.xyz",
+        toolbox: "https://akeyless-toolbox.xyz",
+    },
+} satisfies Record<"local" | "prod" | "qa", NxServiceNameMap>;
+
+export function get_nx_service_urls(env_name: string = "mode"): NxServiceNameMap {
+    const env_value = process.env[env_name]?.toLowerCase();
+    if (!env_value) throw new Error(`missing [${env_name}] environment variable`);
+
+    const env_key = ["production", "prod"].includes(env_value) ? "prod" : env_value === "qa" ? "qa" : "local";
+    return BASE_URLS[env_key];
+}
 
 export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions): Promise<string> => {
     const address_not_found = "";
