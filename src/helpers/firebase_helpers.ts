@@ -2,8 +2,11 @@ import { performance } from "perf_hooks";
 import firebase_admin from "firebase-admin";
 import {
     AddAuditRecord,
+    ExtraSnapshotConfig,
     InitSnapshotsOptions,
+    OnSnapshotCallback,
     OnSnapshotConfig,
+    OnSnapshotParsers,
     QueryDocument,
     QueryDocumentByConditions,
     QueryDocumentOptional,
@@ -285,7 +288,7 @@ const parse_delete_settings = (documents: any[], name_for_cache: string): void =
     cache_manager.setObjectData(name_for_cache, data);
 };
 
-export const parse_add_update_as_object = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse_add_update_as_object: OnSnapshotCallback = (documents, config) => {
     const { collection_name, cache_name = collection_name, doc_key_property = "id" } = config;
     const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
@@ -294,7 +297,7 @@ export const parse_add_update_as_object = (documents: any[], config: OnSnapshotC
     cache_manager.setObjectData(cache_name, data);
 };
 
-export const parse_delete_as_object = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse_delete_as_object: OnSnapshotCallback = (documents, config) => {
     const { collection_name, cache_name = collection_name, doc_key_property = "id" } = config;
     const data: TObject<any> = cache_manager.getObjectData(cache_name, {});
     documents.forEach((doc: TObject<any>) => {
@@ -305,7 +308,7 @@ export const parse_delete_as_object = (documents: any[], config: OnSnapshotConfi
     cache_manager.setObjectData(cache_name, data);
 };
 
-export const parse_add_update_as_array = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse_add_update_as_array: OnSnapshotCallback = (documents, config) => {
     const { on_remove, collection_name, cache_name = collection_name } = config;
     on_remove?.(documents, config);
     const existing_array: any[] = cache_manager.getArrayData(cache_name);
@@ -313,7 +316,7 @@ export const parse_add_update_as_array = (documents: any[], config: OnSnapshotCo
     cache_manager.setArrayData(cache_name, updated_array);
 };
 
-export const parse_delete_as_array = (documents: any[], config: OnSnapshotConfig): void => {
+export const parse_delete_as_array: OnSnapshotCallback = (documents, config) => {
     const { collection_name, cache_name = collection_name } = config;
     const existing_array: any[] = cache_manager.getArrayData(cache_name);
     const keys_to_delete = documents.map((doc) => doc.id);
@@ -460,46 +463,77 @@ export const snapshot_bulk: SnapshotBulk = async (snapshots, label?) => {
     logger.log(`==> ${label || "custom snapshots"} ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };
 
+const get_default_parsers_as_array = (): OnSnapshotParsers => {
+    return {
+        on_first_time: parse_add_update_as_array,
+        on_add: parse_add_update_as_array,
+        on_modify: parse_add_update_as_array,
+        on_remove: parse_delete_as_array,
+    };
+};
+
+const get_default_parsers_as_object = (): OnSnapshotParsers => {
+    return {
+        on_first_time: parse_add_update_as_object,
+        on_add: parse_add_update_as_object,
+        on_modify: parse_add_update_as_object,
+        on_remove: parse_delete_as_object,
+    };
+};
+
+export const get_default_parsers = (parse_as: ExtraSnapshotConfig["parse_as"]): OnSnapshotParsers => {
+    if (parse_as === "array") {
+        return get_default_parsers_as_array();
+    } else {
+        return get_default_parsers_as_object();
+    }
+};
+
 export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, options) => {
-    const { label = "snapshot_bulk_by_names", subscription_type = "firebase", debug } = options || {};
+    const { label = "snapshot_bulk_by_names", subscription_type = "firebase", debug, parse_as = "array", doc_key_property = "id" } = options || {};
     const start = performance.now();
     logger.log(`==> Snapshots ${label} => [${subscription_type}] started... `);
-    const configs: OnSnapshotConfig[] = params.map((param) => {
-        const result: OnSnapshotConfig =
+    const uniq_collections = new Set<string>();
+    const redis_configs: OnSnapshotConfig[] = [];
+    const firebase_promises: Promise<void>[] = [];
+
+    for (const param of params) {
+        const name = typeof param === "string" ? param : param.cache_name || param.collection_name;
+        if (uniq_collections.has(name)) {
+            continue;
+        }
+        uniq_collections.add(name);
+
+        const config: OnSnapshotConfig =
             typeof param === "string"
                 ? {
                       collection_name: param,
                       subscription_type,
+                      doc_key_property,
                       debug,
-                      on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_add: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_modify: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_remove: (docs, config) => parse_delete_as_array(docs, config),
+                      ...get_default_parsers(parse_as),
                   }
                 : {
                       collection_name: param.collection_name,
                       extra_parsers: param.extra_parsers,
                       conditions: param.conditions,
                       cache_name: param.cache_name,
+                      doc_key_property: param.doc_key_property || doc_key_property,
                       subscription_type: param.subscription_type || subscription_type,
                       debug: param.debug || debug,
-                      parse_as: param.parse_as,
-                      on_first_time: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_add: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_modify: (docs, config) => parse_add_update_as_array(docs, config),
-                      on_remove: (docs, config) => parse_delete_as_array(docs, config),
+                      //   parse_as: param.parse_as,
+                      ...get_default_parsers(param.parse_as || parse_as),
                   };
 
-        return result;
-    });
-    const redis_snapshots = configs.filter((config) => config.subscription_type === "redis");
-    const firebase_snapshots = configs
-        .filter((config) => config.subscription_type === "firebase")
-        .map((config) => {
-            return snapshot(config);
-        });
-    await redis_snapshots_bulk(redis_snapshots);
-    await Promise.all(firebase_snapshots);
+        if (config.subscription_type === "redis") {
+            redis_configs.push(config);
+        } else {
+            firebase_promises.push(snapshot(config));
+        }
+    }
+
+    await redis_snapshots_bulk(redis_configs);
+    await Promise.all(firebase_promises);
     logger.log(`==> Snapshots ${label} => [${subscription_type}] ended. It took ${(performance.now() - start).toFixed(2)} ms`);
 };
 

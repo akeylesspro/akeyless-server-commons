@@ -47,7 +47,7 @@ export const get_version = (packageJsonPath: string): string => {
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> => {
+export const get_nx_service_urls = (env_name: string = "mode"): Record<NxServiceName, string> => {
     if (!process.env[env_name]) {
         throw new Error("missing [mode] environment variable");
     }
@@ -62,20 +62,20 @@ export const get_nx_service_urls = (env_name: string = "mode"): TObject<string> 
         : is_prod
         ? "https://nx-api.info/api/call-center"
         : "https://nx-api.xyz/api/call-center";
-    result[NxServiceName.dashboard] = is_local
-        ? "http://localhost"
-        : is_prod
-        ? "https://akeyless-dashboard.online"
-        : "https://akeyless-dashboard.xyz";
     result[NxServiceName.devices] = is_local
         ? "http://localhost:9001/api/devices"
         : is_prod
         ? "https://nx-api.info/api/devices"
         : "https://nx-api.xyz/api/devices";
-    result[NxServiceName.installer] = is_local ? "http://localhost" : is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
+    result[NxServiceName.dashboard] = is_local
+        ? "http://localhost:8002"
+        : is_prod
+        ? "https://akeyless-dashboard.online"
+        : "https://akeyless-dashboard.xyz";
+    result[NxServiceName.installer] = is_local ? "http://localhost:8001" : is_prod ? "https://installerapp.online" : "https://installerapp.xyz";
+    result[NxServiceName.toolbox] = is_local ? "http://localhost:8003" : is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
     result[NxServiceName.ox_server] = is_local ? "http://localhost" : is_prod ? "https://akeyless-online.info" : "https://akeyless-online.xyz";
-    result[NxServiceName.toolbox] = is_local ? "http://localhost" : is_prod ? "https://akeyless-toolbox.online" : "https://akeyless-toolbox.xyz";
-    return result;
+    return result as Record<NxServiceName, string>;
 };
 
 export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: LanguageOptions): Promise<string> => {

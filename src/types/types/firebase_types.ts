@@ -41,7 +41,7 @@ export interface OnSnapshotParsers {
     on_remove?: OnSnapshotCallback;
 }
 
-interface ExtraSnapshotConfig {
+export interface ExtraSnapshotConfig {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
     conditions?: WhereCondition[];
@@ -70,7 +70,9 @@ export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_pa
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
 
-export type SnapshotBulkByNamesOptions = { label?: string; subscription_type?: "redis" | "firebase"; debug?: ExtraSnapshotConfig["debug"] };
+export type SnapshotBulkByNamesOptions = Pick<ExtraSnapshotConfig, "debug" | "subscription_type" | "parse_as" | "doc_key_property"> & {
+    label?: string;
+};
 
 export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[], options?: SnapshotBulkByNamesOptions) => Promise<void>;
 
