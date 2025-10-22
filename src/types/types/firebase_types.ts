@@ -41,12 +41,23 @@ export interface OnSnapshotParsers {
     on_remove?: OnSnapshotCallback;
 }
 
-interface ExtraSnapshotConfig {
+export interface ExtraSnapshotConfig {
     collection_name: string;
     extra_parsers?: OnSnapshotParsers[];
     conditions?: WhereCondition[];
     cache_name?: string;
-    subscribe_to?: "cache" | "db";
+    parse_as?: "object" | "array";
+    doc_key_property?: string;
+    subscription_type?: "redis" | "firebase";
+    debug?: Debug & {
+        extra_parsers?: Debug;
+    };
+}
+interface Debug {
+    on_first_time?: "documents" | "length";
+    on_add?: boolean;
+    on_modify?: boolean;
+    on_remove?: boolean;
 }
 
 export type OnSnapshotConfig = OnSnapshotParsers & ExtraSnapshotConfig;
@@ -58,4 +69,11 @@ export type SnapshotBulkByNamesParamObject = Omit<ExtraSnapshotConfig, "extra_pa
     extra_parsers: OnSnapshotParsers[];
 };
 export type SnapshotBulkByNamesParam = string | SnapshotBulkByNamesParamObject;
-export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[]) => Promise<void>;
+
+export type SnapshotBulkByNamesOptions = Pick<ExtraSnapshotConfig, "debug" | "subscription_type" | "parse_as" | "doc_key_property"> & {
+    label?: string;
+};
+
+export type SnapshotBulkByNames = (params: SnapshotBulkByNamesParam[], options?: SnapshotBulkByNamesOptions) => Promise<void>;
+
+export interface InitSnapshotsOptions extends Pick<ExtraSnapshotConfig, "subscription_type" | "debug"> {}

@@ -1,3 +1,5 @@
+import { InitSnapshotsOptions } from "../types";
+
 export interface MandatoryObject {
     key: string;
     type: "string" | "number" | "boolean" | "object" | "array";
@@ -20,4 +22,5 @@ export interface LogRequests {
 export interface AppOptions {
     port?: number;
     log_requests?: LogRequests;
+    init_snapshot_options?: InitSnapshotsOptions;
 }
