@@ -12,8 +12,8 @@ export let redis_listener_connected = false;
 
 const MAX_RETRY_ATTEMPTS = 2;
 
-let redis_commander: Redis | null = null;
-let redis_listener: Redis | null = null;
+let redis_commander: Redis;
+let redis_listener: Redis;
 let redis_initialized = false;
 
 function create_redis_instance(role: "commander" | "listener") {
@@ -105,19 +105,19 @@ export const init_redis = () => {
                 logger.warn("⚠️ Redis connection timeout, proceeding without Redis");
                 resolve();
             }
-        }, 5000); // 5 seconds timeout
+        }, 5000);
 
         redis_commander.on("error", () => {
             if (!commander_ready && !listener_ready) {
                 clearTimeout(connection_timeout);
-                resolve();
+                reject();
             }
         });
 
         redis_listener.on("error", () => {
             if (!commander_ready && !listener_ready) {
                 clearTimeout(connection_timeout);
-                resolve();
+                reject();
             }
         });
 
