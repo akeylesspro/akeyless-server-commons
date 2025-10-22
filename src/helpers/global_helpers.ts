@@ -47,7 +47,7 @@ export const get_version = (packageJsonPath: string): string => {
 
 export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const BASE_URLS = {
+const BASE_URLS: Record<"local" | "prod" | "qa", NxServiceNameMap> = {
     local: {
         bi: "http://localhost:9002/api/bi",
         call_center: "http://localhost:9003/api/call-center",
@@ -81,7 +81,7 @@ const BASE_URLS = {
         ox_server: "https://akeyless-online.xyz",
         toolbox: "https://akeyless-toolbox.xyz",
     },
-} satisfies Record<"local" | "prod" | "qa", NxServiceNameMap>;
+};
 
 export function get_nx_service_urls(env_name: string = "mode"): NxServiceNameMap {
     const env_value = process.env[env_name]?.toLowerCase();
