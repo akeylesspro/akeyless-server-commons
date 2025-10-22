@@ -6,12 +6,6 @@ export enum SimProvider {
     unknown = "unknown",
 }
 
-export enum NxServiceName {
-    bi = "bi",
-    call_center = "call_center",
-    dashboard = "dashboard",
-    devices = "devices",
-    installer = "installer",
-    ox_server = "ox_server",
-    toolbox = "toolbox",
-}
+export type NxServiceName = "bi" | "call_center" | "dashboard" | "devices" | "installer" | "ox_server" | "toolbox" | "end_users" | "notifications";
+
+export type NxServiceNameMap = Record<NxServiceName, string>;
