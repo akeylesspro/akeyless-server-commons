@@ -8,3 +8,4 @@ export * from "./email_helpers";
 export * from "./phone_number_helpers";
 export * from "./tasks_helpers";
 export * from "./boards_helpers";
+export * from "./redis";
