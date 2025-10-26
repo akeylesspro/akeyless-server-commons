@@ -4,7 +4,6 @@ import { get_document_by_id_optional, set_document } from "./firebase_helpers";
 import admin from "firebase-admin";
 
 export enum TaskName {
-    collect_gprs_balances = "collect_gprs_balances",
     send_reset_sms = "send_reset_sms",
     collect_devices_health = "collect_devices_health",
     collect_billing_balance = "collect_billing_balance",
