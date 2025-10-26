@@ -19,13 +19,13 @@ let redis_initialized = false;
 function create_redis_instance(role: "commander" | "listener") {
     let retry_attempts = 0;
 
-    const client = new Redis({
+    const base_config = {
         host: init_env_variables(["redis_ip"]).redis_ip,
         lazyConnect: true,
         enableOfflineQueue: false,
         maxRetriesPerRequest: 0,
         reconnectOnError: () => false,
-        retryStrategy(times) {
+        retryStrategy(times: number) {
             retry_attempts = times;
             if (retry_attempts >= MAX_RETRY_ATTEMPTS) {
                 logger.error(`❌ Redis ${role} failed after ${MAX_RETRY_ATTEMPTS} attempts. Stopping retries.`);
@@ -35,7 +35,15 @@ function create_redis_instance(role: "commander" | "listener") {
             logger.warn(`⚠️ Redis ${role} retry attempt ${retry_attempts}/${MAX_RETRY_ATTEMPTS} in ${delay}ms...`);
             return delay;
         },
-    });
+    };
+
+    // Listener needs enableReadyCheck: false because it will be in subscriber mode
+    // and cannot respond to PING commands
+    const config = role === "listener" 
+        ? { ...base_config, enableReadyCheck: false }
+        : base_config;
+
+    const client = new Redis(config);
 
     client.on("connect", () => {
         logger.log(`✅ Redis ${role} connected`);
@@ -77,6 +85,7 @@ export const init_redis = () => {
 
         let commander_ready = false;
         let listener_ready = false;
+        let listener_subscribed = false;
 
         const check_and_resolve = () => {
             if (commander_ready && listener_ready) {
@@ -91,11 +100,18 @@ export const init_redis = () => {
 
         redis_listener.on("connect", () => {
             listener_ready = true;
-            const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
-            redis_listener!
-                .psubscribe(redis_pattern)
-                .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
-                .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
+            
+            // Only subscribe once, not on every reconnect
+            // ioredis will automatically resubscribe on reconnection
+            if (!listener_subscribed) {
+                listener_subscribed = true;
+                const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
+                redis_listener!
+                    .psubscribe(redis_pattern)
+                    .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
+                    .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
+            }
+            
             check_and_resolve();
         });
 
