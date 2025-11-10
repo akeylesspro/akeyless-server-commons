@@ -197,6 +197,9 @@ const convert_object_timestamps = (data: TObject<any>) => {
         if (typeof value === "object" && value && value._seconds) {
             data[key] = new Timestamp(value._seconds, value._nanoseconds);
         }
+        if (typeof value === "object" && value && !value._seconds) {
+            convert_object_timestamps(value);
+        }
     });
     return data;
 };
