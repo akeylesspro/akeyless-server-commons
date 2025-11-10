@@ -26,7 +26,8 @@ export const nx_user_login: MW = async (req, res, next) => {
         if (!nx_user) {
             throw `No user found with phone number: ${phone_number} or email: ${email}.`;
         }
-        req.body.user = nx_user;
+        const full_name = `${nx_user.first_name || ""} ${nx_user.last_name || ""}`.trim();
+        req.body.user = { ...nx_user, full_name } as NxUser;
         next();
     } catch (error: any) {
         res.status(403).send(json_failed(error));
