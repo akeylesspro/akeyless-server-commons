@@ -5,6 +5,7 @@ export interface MandatoryObject {
     type: "string" | "number" | "boolean" | "object" | "array";
     length?: number;
     required_keys?: string[];
+    array_types?: ("string" | "number" | "boolean" | "object")[];
 }
 
 export interface MandatoryParams {

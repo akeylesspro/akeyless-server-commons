@@ -3,23 +3,39 @@ import { json_failed } from "../helpers";
 import { LogRequests, MandatoryObject, MandatoryParams, MW, Route, Service } from "../types";
 import { logger } from "../managers";
 
-const validateParameter = (data: any, parameter: MandatoryObject) => {
+const validateParameter = (data: any, parameter: MandatoryObject, is_mandatory: boolean) => {
     if (data[parameter.key] === undefined) {
-        throw `missing mandatory parameter: ${parameter.key}`;
+        if (is_mandatory) {
+            throw `missing mandatory parameter: ${parameter.key}`;
+        } else {
+            return;
+        }
     }
 
     if (parameter.type === "array" && !Array.isArray(data[parameter.key])) {
         throw `parameter ${parameter.key} must be of type: Array`;
     }
+
     if (typeof data[parameter.key] !== parameter.type && parameter.type !== "array") {
         throw `parameter ${parameter.key} must be of type: ${parameter.type}`;
     }
 
-    if (
-        (Array.isArray(data[parameter.key]) && parameter.length && data[parameter.key].length < parameter.length) ||
-        (parameter.type === "string" && parameter.length && data[parameter.key].length < parameter.length)
-    ) {
-        throw `parameter ${parameter.key} must have minimum length: ${parameter.length}`;
+    if (parameter.type === "string" && parameter.length && data[parameter.key].length < parameter.length) {
+        throw `parameter ${parameter.key} must be string and must have minimum length of: ${parameter.length}`;
+    }
+    const is_array = Array.isArray(data[parameter.key]);
+    if (is_array) {
+        if (parameter.length && data[parameter.key].length < parameter.length) {
+            throw `parameter ${parameter.key} must be array and must have minimum length of: ${parameter.length}`;
+        }
+        if (Array.isArray(parameter.array_types) && parameter.array_types.length > 0) {
+            data[parameter.key].forEach((item: any, index: number) => {
+                const item_type = typeof item;
+                if (!parameter.array_types!.includes(item_type as any)) {
+                    throw `item at index ${index} in parameter ${parameter.key} must be of type: ${parameter.array_types!.join(" | ")}`;
+                }
+            });
+        }
     }
 
     if (parameter.type === "object" && parameter.required_keys) {
@@ -45,19 +61,44 @@ export const mandatory = ({ body, headers }: MandatoryParams): MW => {
 
             if (body) {
                 body.forEach((parameter) => {
-                    validateParameter(body_data, parameter);
+                    validateParameter(body_data, parameter, true);
                 });
             }
 
             if (headers) {
                 headers.forEach((parameter) => {
-                    validateParameter(headers_data, parameter);
+                    validateParameter(headers_data, parameter, true);
                 });
             }
 
             next();
         } catch (error) {
-            return res.status(500).send(json_failed(error));
+            return res.send(json_failed(error));
+        }
+    };
+};
+
+export const optional = ({ body, headers }: MandatoryParams): MW => {
+    return (req, res, next) => {
+        try {
+            const body_data = req.body;
+            const headers_data = req.headers;
+
+            if (body) {
+                body.forEach((parameter) => {
+                    validateParameter(body_data, parameter, false);
+                });
+            }
+
+            if (headers) {
+                headers.forEach((parameter) => {
+                    validateParameter(headers_data, parameter, false);
+                });
+            }
+
+            next();
+        } catch (error) {
+            return res.send(json_failed(error));
         }
     };
 };
