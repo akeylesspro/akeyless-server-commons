@@ -28,7 +28,13 @@ const save_task_data_in_cache = (task_name: TaskName, data: any[] | TObject<any>
     }
 };
 
-export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: { save_in?: TaskSaveOptions }) => {
+export interface ExecuteTaskOptions {
+    save_in?: TaskSaveOptions;
+    debug_logs: boolean;
+}
+
+export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: ExecuteTaskOptions) => {
+    const { debug_logs = true, save_in } = options || {};
     try {
         await set_document(
             "nx-tasks",
@@ -42,7 +48,9 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
             },
             false
         );
-        logger.log(`Task [${task_name}] started`);
+        if (debug_logs) {
+            logger.log(`Task [${task_name}] started`);
+        }
         const start = performance.now();
 
         const data = await task();
@@ -53,9 +61,9 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
         };
 
         if (data) {
-            if (options?.save_in === "none") {
+            if (save_in === "none") {
                 update.data = "no data to save";
-            } else if (options?.save_in === "storage" && typeof data === "object") {
+            } else if (save_in === "storage" && typeof data === "object") {
                 save_task_data_in_cache(task_name, data);
                 const url = await keep_task_data_in_storage(task_name, data);
                 update.data = url;
@@ -67,7 +75,9 @@ export const execute_task = async <T = any>(source: string, task_name: TaskName,
             update.data = "no data to save";
         }
         await set_document("nx-tasks", task_name, update);
-        logger.log(`Task [${task_name}] ended. It took ${Math.round(performance.now() - start)} ms`);
+        if (debug_logs) {
+            logger.log(`Task [${task_name}] ended. It took ${Math.round(performance.now() - start)} ms`);
+        }
     } catch (exception: unknown) {
         const error_for_db = exception instanceof Error ? exception.message : exception;
         logger.error(`Task [${task_name}] error`, error_for_db);
