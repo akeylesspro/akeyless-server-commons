@@ -8,6 +8,10 @@ export const convert_to_short_phone_number = (phone_number: string): string => {
 
 /// nx user
 export const get_user_by_identifier = async (identifier: string, ignore_log = false): Promise<NxUser | null> => {
+    if (identifier.includes("@") && identifier.includes(".")) {
+        const email_query: NxUser | null = await query_document_optional("nx-users", "email", "==", identifier, ignore_log);
+        return email_query;
+    }
     const phone_query: NxUser | null = await query_document_optional(
         "nx-users",
         "phone_number",
@@ -16,10 +20,6 @@ export const get_user_by_identifier = async (identifier: string, ignore_log = fa
         ignore_log
     );
 
-    if (!phone_query) {
-        const email_query: NxUser | null = await query_document_optional("nx-users", "email", "==", identifier, ignore_log);
-        return email_query;
-    }
     return phone_query;
 };
 
