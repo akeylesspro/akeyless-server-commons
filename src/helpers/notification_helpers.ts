@@ -3,7 +3,7 @@ import { cache_manager, logger, translation_manager } from "../managers";
 import { add_document, messaging, add_audit_record } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice, TObject } from "akeyless-types-commons";
-import { is_iccid, is_international_phone_number } from "./phone_number_helpers";
+import { is_iccid, is_international_phone_number, is_israel_long_phone_number, is_thailand_long_phone_number } from "./phone_number_helpers";
 import { Twilio } from "twilio";
 import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
@@ -109,7 +109,9 @@ export const send_sms = async (recepient: string, text: string, entity_for_audit
             if (is_iccid(recepient)) {
                 return await send_iccid_sms(recepient, text, details);
             }
-            if (is_international_phone_number(recepient)) {
+            const is_international =
+                is_international_phone_number(recepient) && !is_thailand_long_phone_number(recepient) && !is_israel_long_phone_number(recepient);
+            if (is_international) {
                 return send_international_sms(recepient, text, details);
             }
             return await send_local_sms(recepient, text, details);
