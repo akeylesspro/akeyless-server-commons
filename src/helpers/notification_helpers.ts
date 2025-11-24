@@ -23,6 +23,9 @@ const send_local_sms: SmsFunction = async (recepient, text, details) => {
     data.append("recipient", recepient);
     data.append("message", text);
     data.append("customermessageid", msgId);
+    if (is_international_phone_number(recepient)) {
+        data.append("international", "1");
+    }
 
     const config = {
         method: "post",
