@@ -6,7 +6,6 @@ import admin from "firebase-admin";
 export enum TaskName {
     send_reset_sms = "send_reset_sms",
     collect_devices_health = "collect_devices_health",
-    collect_billing_balance = "collect_billing_balance",
     collect_charge_locations = "collect_charge_locations",
     collect_charge_cdrs = "collect_charge_cdrs",
 }
@@ -30,7 +29,7 @@ const save_task_data_in_cache = (task_name: TaskName, data: any[] | TObject<any>
 
 export interface ExecuteTaskOptions {
     save_in?: TaskSaveOptions;
-    debug_logs: boolean;
+    debug_logs?: boolean;
 }
 
 export const execute_task = async <T = any>(source: string, task_name: TaskName, task: () => Promise<T>, options?: ExecuteTaskOptions) => {

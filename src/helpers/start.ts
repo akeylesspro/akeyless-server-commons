@@ -28,7 +28,11 @@ export const start_server = async (
         app.listen(port, async () => {
             logger.log(`Server is running at http://localhost:${port}`);
             logger.log("project status", { project_name, version, environment: env_data.mode });
-            await init_redis();
+            try {
+                await init_redis();
+            } catch (err) {
+                logger.warn("Redis unavailable, continuing without it", { err });
+            }
             resolve(app);
         });
     });
