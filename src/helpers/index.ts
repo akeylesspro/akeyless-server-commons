@@ -9,3 +9,4 @@ export * from "./phone_number_helpers";
 export * from "./tasks_helpers";
 export * from "./boards_helpers";
 export * from "./redis";
+export * from "./location_helpers";

@@ -2,8 +2,8 @@ import { Timestamp } from "firebase-admin/firestore";
 import moment from "moment";
 import { firebase_timestamp } from "akeyless-types-commons";
 
-export function sort_by_timestamp(a: firebase_timestamp, b: firebase_timestamp, reverse: boolean = false) {
-    return reverse ? timestamp_to_millis(b) - timestamp_to_millis(a) : timestamp_to_millis(a) - timestamp_to_millis(b);
+export function sort_by_timestamp(a: Timestamp, b: Timestamp, reverse: boolean = false) {
+    return reverse ? any_datetime_to_millis(b) - any_datetime_to_millis(a) : any_datetime_to_millis(a) - any_datetime_to_millis(b);
 }
 export interface TimePassedByDate {
     seconds_passed: number;
