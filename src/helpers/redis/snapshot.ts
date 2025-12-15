@@ -194,10 +194,10 @@ const get_collection_data = async (collection_name: string) => {
 
 const convert_object_timestamps = (data: TObject<any>) => {
     Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === "object" && value && value._seconds) {
+        if (typeof value === "object" && value && value._seconds !== undefined) {
             data[key] = new Timestamp(value._seconds, value._nanoseconds);
         }
-        if (typeof value === "object" && value && !value._seconds) {
+        if (typeof value === "object" && value && value._seconds === undefined) {
             convert_object_timestamps(value);
         }
     });
