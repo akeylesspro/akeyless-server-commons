@@ -434,12 +434,14 @@ export const snapshot: Snapshot = (config) => {
                     safe_resolve();
 
                     try {
+                        logger.log(`Error listening to collection -> unsubscribe from: ${config.collection_name}`);
                         unsubscribe?.();
                     } catch {}
                     unsubscribe = null;
 
                     const delay_ms = Math.min(30_000, 500 * 2 ** attempt++);
                     setTimeout(() => {
+                        logger.log(`Error listening to collection -> subscribe to: ${config.collection_name}`);
                         start();
                     }, delay_ms);
                 }
