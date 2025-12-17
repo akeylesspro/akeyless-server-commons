@@ -11,7 +11,7 @@ export const start_server = async (
     main_router: MainRouter,
     project_name: string,
     version: string,
-    { port, log_requests }: AppOptions = {}
+    { port, log_requests, initialize_redis = true }: AppOptions = {}
 ): Promise<Express> => {
     const app: Express = express();
     let env_data = init_env_variables(["mode"]);
@@ -28,10 +28,13 @@ export const start_server = async (
         app.listen(port, async () => {
             logger.log(`Server is running at http://localhost:${port}`);
             logger.log("project status", { project_name, version, environment: env_data.mode });
-            try {
-                await init_redis();
-            } catch (err) {
-                logger.warn("Redis unavailable, continuing without it", { err });
+            if (initialize_redis) {
+                try {
+                    logger.log("Initializing Redis...");
+                    await init_redis();
+                } catch (err) {
+                    logger.warn("Redis unavailable, continuing without it", { err });
+                }
             }
             resolve(app);
         });
@@ -42,10 +45,10 @@ export const basic_init = async (
     main_router: MainRouter,
     project_name: string,
     version: string,
-    { port, log_requests, init_snapshot_options }: AppOptions = {}
+    { port, log_requests, init_snapshot_options, initialize_redis }: AppOptions = {}
 ): Promise<Express> => {
     try {
-        const app = await start_server(main_router, project_name, version, { port, log_requests });
+        const app = await start_server(main_router, project_name, version, { port, log_requests, initialize_redis });
         await init_snapshots(init_snapshot_options);
         return app;
     } catch (error) {

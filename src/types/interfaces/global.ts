@@ -24,4 +24,5 @@ export interface AppOptions {
     port?: number;
     log_requests?: LogRequests;
     init_snapshot_options?: InitSnapshotsOptions;
+    initialize_redis?: boolean;
 }
