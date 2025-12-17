@@ -338,30 +338,44 @@ export const snapshot: Snapshot = (config) => {
                 q = q.where(field_name, operator, value);
             });
         }
-        q.onSnapshot(
-            (snapshot) => {
-                if (!snapshots_first_time.includes(cache_name)) {
-                    snapshots_first_time.push(cache_name);
-                    const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
-                    if (debug?.on_first_time) {
-                        logger.log(
-                            `${cache_name} => Firebase snapshot on first time: `,
-                            debug.on_first_time === "documents" ? documents : { length: documents.length }
-                        );
-                    }
-                    config.on_first_time?.(documents, config);
-                    config.extra_parsers?.forEach((extra_parser) => {
-                        if (debug?.extra_parsers?.on_first_time) {
+        let attempt = 0;
+        let unsubscribe: (() => void) | null = null;
+
+        // 🔒 CRITICAL: prevent startup deadlock
+        let resolved = false;
+        const safe_resolve = () => {
+            if (resolved) return;
+            resolved = true;
+            resolve();
+        };
+
+        const start = () => {
+            unsubscribe = q.onSnapshot(
+                (snapshot) => {
+                    if (!snapshots_first_time.includes(cache_name)) {
+                        snapshots_first_time.push(cache_name);
+                        const documents = snapshot.docs.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
+                        if (debug?.on_first_time) {
                             logger.log(
-                                `${cache_name} => Firebase snapshot extra parsers on first time: `,
-                                debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
+                                `${cache_name} => Firebase snapshot on first time: `,
+                                debug.on_first_time === "documents" ? documents : { length: documents.length }
                             );
                         }
-                        extra_parser.on_first_time?.(documents, config);
-                    });
+                        config.on_first_time?.(documents, config);
+                        config.extra_parsers?.forEach((extra_parser) => {
+                            if (debug?.extra_parsers?.on_first_time) {
+                                logger.log(
+                                    `${cache_name} => Firebase snapshot extra parsers on first time: `,
+                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
+                                );
+                            }
+                            extra_parser.on_first_time?.(documents, config);
+                        });
 
-                    resolve();
-                } else {
+                        safe_resolve(); // ✅ boot can continue
+                        return;
+                    }
+
                     const get_docs_from_snapshot = (action: string): TObject<any>[] => {
                         return snapshot
                             .docChanges()
@@ -412,12 +426,28 @@ export const snapshot: Snapshot = (config) => {
                             extra_parser.on_remove?.(removed, config);
                         }
                     });
+                },
+                (error) => {
+                    logger.error(`Error listening to collection: ${config.collection_name}`, error);
+
+                    // 🚑 DO NOT BLOCK BOOT
+                    safe_resolve();
+
+                    try {
+                        logger.log(`Error listening to collection -> unsubscribe from: ${config.collection_name}`);
+                        unsubscribe?.();
+                    } catch {}
+                    unsubscribe = null;
+
+                    const delay_ms = Math.min(30_000, 500 * 2 ** attempt++);
+                    setTimeout(() => {
+                        logger.log(`Error listening to collection -> subscribe to: ${config.collection_name}`);
+                        start();
+                    }, delay_ms);
                 }
-            },
-            (error) => {
-                logger.error(`Error listening to collection: ${config.collection_name}`, error);
-            }
-        );
+            );
+        };
+        start();
     });
 };
 
