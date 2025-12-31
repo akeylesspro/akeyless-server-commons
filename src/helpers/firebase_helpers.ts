@@ -570,7 +570,7 @@ export const add_audit_record: AddAuditRecord = async (action, entity, details, 
     try {
         await db.collection("nx-audit").add(data);
     } catch (error: any) {
-        throw { msg: "unable to add audit record", data };
+        throw { msg: "unable to add audit record", data, error };
     }
 };
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
-import { add_document, messaging, add_audit_record } from "./firebase_helpers";
+import { add_document, messaging, add_audit_record, get_nx_settings } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice, TObject } from "akeyless-types-commons";
 import { is_iccid, is_international_phone_number, is_israel_long_phone_number, is_thailand_long_phone_number } from "./phone_number_helpers";
@@ -108,23 +108,36 @@ const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
 
 export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: TObject<any>) => {
     try {
-        const send = async () => {
-            if (is_iccid(recepient)) {
-                return await send_iccid_sms(recepient, text, details);
+        let sms_to_send = [];
+        
+        const { sms_groups } = await get_nx_settings();
+        if (sms_groups && sms_groups.values[recepient]) {
+            sms_groups.values[recepient].forEach((number: string) => {
+                sms_to_send.push(number);
+            });
+        } else {
+            sms_to_send.push(recepient);
+        }
+        sms_to_send = [...new Set(sms_to_send)];
+        const promises = sms_to_send.map(async (number) => {
+            let service: SmsService | null = null;
+            if (is_iccid(number)) {
+                service = await send_iccid_sms(number, text, details);
             }
             const is_international =
-                is_international_phone_number(recepient) && !is_thailand_long_phone_number(recepient) && !is_israel_long_phone_number(recepient);
+                is_international_phone_number(number) && !is_thailand_long_phone_number(number) && !is_israel_long_phone_number(number);
             if (is_international) {
-                return send_international_sms(recepient, text, details);
+                service = await send_international_sms(number, text, details);
             }
-            return await send_local_sms(recepient, text, details);
-        };
-        const service = await send();
-        await add_audit_record("send_sms", entity_for_audit || "general", {
-            recepient,
-            message: text,
-            service,
+            service = await send_local_sms(number, text, details);
+            await add_audit_record("send_sms", entity_for_audit || "general", {
+                recepient: number,
+                message: text,
+                service,
+            });
         });
+
+        await Promise.all(promises);
     } catch (error) {
         logger.error(`${entity_for_audit}, send_sms failed:`, error);
         throw `${entity_for_audit}, send_sms failed: ` + error;
