@@ -8,24 +8,100 @@
   <body>
     <div class="content">
     <h1>src/helpers</h1>
+    
     <h2>Contents</h2>
+    <p>This directory contains stateless utility functions and service integrations organized by domain. Each helper module provides focused functionality for specific use cases.</p>
+
+    <h3>Infrastructure & Bootstrap</h3>
     <ul>
-      <li><a href="boards_helpers.html"><code>boards_helpers.ts</code></a>: board/provider utilities using cached settings and boards.</li>
-      <li><a href="email_helpers.html"><code>email_helpers.ts</code></a>: SendGrid email helpers and attachment builders.</li>
-      <li><a href="firebase_helpers.html"><code>firebase_helpers.ts</code></a>: Firebase Admin init, Firestore queries, snapshots, storage, and auditing.</li>
-      <li><a href="global_helpers.html"><code>global_helpers.ts</code></a>: env bootstrap, JSON responses, URL config, trimming, misc utilities.</li>
-      <li><a href="index.html"><code>index.ts</code></a>: helper barrel exports.</li>
-      <li><a href="location_helpers.html"><code>location_helpers.ts</code></a>: geo distance and maps URL helpers.</li>
-      <li><a href="login_helpers.html"><code>login_helpers.ts</code></a>: lookup helpers for users and mobile app users.</li>
-      <li><a href="notification_helpers.html"><code>notification_helpers.ts</code></a>: SMS and push notification helpers.</li>
-      <li><a href="phone_number_helpers.html"><code>phone_number_helpers.ts</code></a>: phone parsing, validation, and SIM provider resolution.</li>
-      <li><a href="start.html"><code>start.ts</code></a>: Express server bootstrap and initialization.</li>
-      <li><a href="tasks_helpers.html"><code>tasks_helpers.ts</code></a>: task execution, caching, and persistence helpers.</li>
-      <li><a href="time_helpers.html"><code>time_helpers.ts</code></a>: time formatting and conversions.</li>
-      <li><a href="redis/index.html"><code>redis/</code></a>: Redis initialization, keys, and snapshot integration.</li>
+      <li><a href="global_helpers.html"><code>global_helpers.ts</code></a> - Environment validation, JSON response formatting, service URL resolution, geocoding, data normalization utilities, and HTTP helpers. Provides foundational utilities used across the entire application.</li>
+      <li><a href="start.html"><code>start.ts</code></a> - Express server bootstrap with standardized middleware setup, logging, error handling, and optional Redis initialization. Provides <code>start_server</code> for basic setup and <code>basic_init</code> for complete initialization including snapshot loading.</li>
+      <li><a href="firebase_helpers.html"><code>firebase_helpers.ts</code></a> - Firebase Admin SDK initialization, comprehensive Firestore CRUD operations, real-time snapshot subscriptions, Firebase Storage helpers, authentication token verification, and audit logging. Central integration point for all Firebase operations.</li>
     </ul>
+
+    <h3>Data & Communication</h3>
+    <ul>
+      <li><a href="email_helpers.html"><code>email_helpers.ts</code></a> - SendGrid email sending with comprehensive attachment support (files, buffers, URLs), group-based recipient management, automatic audit logging, and MIME type detection. Supports HTML and plain text emails.</li>
+      <li><a href="notification_helpers.html"><code>notification_helpers.ts</code></a> - Multi-provider SMS sending (Multisend, Twilio, Monogoto) with automatic provider selection, SMS group expansion, Firebase Cloud Messaging (FCM) push notifications, event-based notifications, and comprehensive audit logging.</li>
+      <li><a href="phone_number_helpers.html"><code>phone_number_helpers.ts</code></a> - Phone number normalization, validation, format detection (Israeli, international, ICCID), SIM provider inference, and conversion between short/long formats. Used for SMS routing and user lookups.</li>
+    </ul>
+
+    <h3>Domain-Specific</h3>
+    <ul>
+      <li><a href="login_helpers.html"><code>login_helpers.ts</code></a> - User lookup helpers for finding NX users and mobile app users by email, phone number, or UID. Supports flexible identifier resolution with automatic format detection.</li>
+      <li><a href="time_helpers.html"><code>time_helpers.ts</code></a> - Comprehensive time conversion and formatting utilities for Firebase timestamps, JavaScript Dates, strings, and numbers. Supports multiple input formats, timezone conversion, custom formatting, and time elapsed calculations.</li>
+      <li><a href="location_helpers.html"><code>location_helpers.ts</code></a> - Geospatial utilities for calculating distances between coordinates using Haversine formula and generating Google Maps URLs for location sharing.</li>
+      <li><a href="tasks_helpers.html"><code>tasks_helpers.ts</code></a> - Task execution orchestration with status tracking, result caching, and optional persistence to Firestore or Firebase Storage. Designed for scheduled/recurring backend tasks.</li>
+      <li><a href="boards_helpers.html"><code>boards_helpers.ts</code></a> - Board provider resolution utilities for determining board makers (ERM, Jimi, Ruptela, Servision, Jimi IoT Hub) based on board types and cached settings. Used for routing device logic.</li>
+    </ul>
+
+    <h3>Redis Integration</h3>
+    <ul>
+      <li><a href="redis/index.html"><code>redis/initialize.ts</code></a> - Redis client initialization with dual-client architecture (commander for read/write, listener for Pub/Sub), connection management, retry logic, and automatic subscription setup.</li>
+      <li><a href="redis/keys.html"><code>redis/keys.ts</code></a> - Redis key and pattern utilities for building consistent key names, collection patterns, update channels, and key scanning operations using SCAN command.</li>
+      <li><a href="redis/snapshot.html"><code>redis/snapshot.ts</code></a> - Redis Pub/Sub snapshot integration with automatic fallback to Firebase snapshots. Provides same cache parsing interface as Firebase snapshots for seamless data source switching.</li>
+    </ul>
+
     <h2>Context</h2>
-    <p>Helpers are stateless utilities and service functions. They use <a href="../managers/index.html">managers</a> for cache, logging, and translations, and rely on shared <a href="../types/index.html">types</a> for consistent signatures.</p>
+    <p>Helpers are stateless utility functions and service integrations. They:</p>
+    <ul>
+      <li><strong>Use Managers</strong> - Access <a href="../managers/cache_manager.html"><code>cache_manager</code></a> for cached data, <a href="../managers/logger_manager.html"><code>logger</code></a> for logging, and <a href="../managers/translation_manager.html"><code>translation_manager</code></a> for translations</li>
+      <li><strong>Rely on Types</strong> - Use shared <a href="../types/index.html">TypeScript types</a> for consistent function signatures</li>
+      <li><strong>Follow Patterns</strong> - Consistent error handling, logging, and data access patterns</li>
+      <li><strong>Support Snapshots</strong> - Work with Firebase and Redis snapshot systems for real-time data</li>
+    </ul>
+
+    <h2>Documentation</h2>
+    <p>Each helper module has detailed documentation with:</p>
+    <ul>
+      <li><strong>Purpose</strong> - What the module does and why it exists</li>
+      <li><strong>Dependencies</strong> - External libraries and internal dependencies</li>
+      <li><strong>Function Documentation</strong> - Detailed parameter descriptions, return types, behavior, examples</li>
+      <li><strong>Context</strong> - Common use cases and best practices</li>
+    </ul>
+
+    <h2>Usage Patterns</h2>
+    
+    <h3>Importing Helpers</h3>
+    <pre><code>// Import specific helpers
+import { send_email, query_document } from 'akeyless-server-commons/helpers';
+
+// Import from specific module
+import { send_email } from 'akeyless-server-commons/helpers/email_helpers';</code></pre>
+
+    <h3>Common Patterns</h3>
+    <pre><code>// Environment validation
+const env = init_env_variables(['mode', 'port']);
+
+// JSON responses
+res.json(json_ok({ data: 'success' }));
+res.json(json_failed(new Error('Error')));
+
+// Firebase operations
+const user = await query_document('nx-users', 'email', '==', 'user@example.com');
+
+// Email sending
+await send_email({
+  to: 'user@example.com',
+  subject: 'Welcome',
+  body_html: '&lt;h1&gt;Welcome!&lt;/h1&gt;',
+  entity_for_audit: 'user_registration'
+});
+
+// SMS sending
+await send_sms('+972501234567', 'Your code is 1234', 'user_verification');
+
+// Cache access
+const settings = cache_manager.getObjectData('nx-settings');</code></pre>
+
+    <h2>Best Practices</h2>
+    <ol>
+      <li><strong>Use Cached Data</strong> - Access frequently used data from <code>cache_manager</code> (populated by snapshots)</li>
+      <li><strong>Handle Errors</strong> - Use try-catch or optional helpers (<code>query_document_optional</code>) for non-critical operations</li>
+      <li><strong>Audit Logging</strong> - Always provide <code>entity_for_audit</code> for operations that need tracking</li>
+      <li><strong>Type Safety</strong> - Use TypeScript types from the package for consistent API shapes</li>
+      <li><strong>Consistent Responses</strong> - Use <code>json_ok</code> and <code>json_failed</code> for all API responses</li>
+    </ol>
     </div>
   </body>
 </html>

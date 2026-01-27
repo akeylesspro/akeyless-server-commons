@@ -8,26 +8,70 @@
   <body>
     <div class="content">
     <h1>src/helpers/redis/initialize.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Initialize Redis commander and listener clients with retry logic and Pub/Sub subscription setup.</p>
+    <p>Initialize Redis commander and listener clients with connection management, retry logic, and Pub/Sub subscription setup. Uses a dual-client architecture: commander for read/write operations and listener for subscribing to update channels.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li><code>ioredis</code></li>
-      <li><a href="../global_helpers.html"><code>init_env_variables</code></a> for <code>redis_ip</code></li>
-      <li><a href="../../managers/logger_manager.html"><code>logger</code></a></li>
-      <li><a href="keys.html"><code>get_collection_keys</code></a> and <code>REDIS_UPDATES_PREFIX</code></li>
+      <li><code>ioredis</code> - Redis client library for Node.js</li>
+      <li><a href="../global_helpers.html"><code>init_env_variables</code></a> - Environment variable validation</li>
+      <li><a href="../../managers/logger_manager.html"><code>logger</code></a> - Logging manager</li>
+      <li><a href="keys.html"><code>get_collection_keys</code></a> - Redis key pattern helper</li>
+      <li><code>REDIS_UPDATES_PREFIX</code> - Prefix constant from <code>akeyless-types-commons</code></li>
     </ul>
+
+    <h2>Architecture</h2>
+    <h3>Dual Client Pattern</h3>
+    <p>The module creates two separate Redis clients:</p>
+    <ol>
+      <li><strong>Commander Client</strong> (<code>redis_commander</code>): Used for read/write operations (GET, SET, MGET, SCAN, etc.), can respond to PING commands</li>
+      <li><strong>Listener Client</strong> (<code>redis_listener</code>): Used exclusively for Pub/Sub subscriptions, cannot respond to PING commands (subscriber mode)</li>
+    </ol>
+    <p><strong>Why Two Clients?</strong> Redis clients in subscriber mode cannot execute regular commands. Separating concerns allows both subscription and command execution.</p>
 
     <h2>Exports and behavior</h2>
-    <ul>
-      <li>Connection flags: <code>redis_commander_connected</code>, <code>redis_listener_connected</code></li>
-      <li><code>init_redis</code>: create clients, subscribe, resolve on readiness or timeout.</li>
-      <li><code>get_redis_commander</code>, <code>get_redis_listener</code>: accessors that throw if not initialized.</li>
-    </ul>
+    
+    <h3><code>redis_commander_connected: boolean</code></h3>
+    <p>Connection status flag for commander client. Updated automatically on connect/disconnect events.</p>
+
+    <h3><code>redis_listener_connected: boolean</code></h3>
+    <p>Connection status flag for listener client. Updated automatically on connect/disconnect events.</p>
+
+    <h3><code>init_redis(): Promise&lt;void&gt;</code></h3>
+    <p>Initializes both Redis clients and sets up Pub/Sub subscription.</p>
+    <p><strong>Returns:</strong> Promise resolving when both clients are connected and listener is subscribed</p>
+    <p><strong>Behavior:</strong></p>
+    <ol>
+      <li><strong>Idempotency:</strong> Returns immediately if already initialized</li>
+      <li><strong>Client Creation:</strong> Creates commander and listener clients</li>
+      <li><strong>Connection Tracking:</strong> Tracks readiness flags for both clients</li>
+      <li><strong>Subscription Setup:</strong> Subscribes listener to update pattern (only once, auto-resubscribes on reconnect)</li>
+      <li><strong>Timeout Handling:</strong> 5-second timeout, resolves anyway (fail-open) to prevent blocking startup</li>
+      <li><strong>Error Handling:</strong> Rejects only if both clients fail before timeout</li>
+    </ol>
+
+    <h3><code>get_redis_commander(): Redis</code></h3>
+    <p>Returns the commander Redis client instance.</p>
+    <p><strong>Throws:</strong> Error if not initialized</p>
+
+    <h3><code>get_redis_listener(): Redis</code></h3>
+    <p>Returns the listener Redis client instance.</p>
+    <p><strong>Throws:</strong> Error if not initialized</p>
+    <p><strong>Note:</strong> Listener is typically accessed internally by snapshot helpers, not directly by application code.</p>
+
+    <h2>Environment Variables</h2>
+    <p><strong>Required:</strong> <code>redis_ip</code> - Redis server IP address or hostname</p>
 
     <h2>Context</h2>
-    <p>Used by snapshot helpers to read collections and subscribe to update events without blocking service startup.</p>
+    <p>This module provides the foundation for Redis integration:</p>
+    <ul>
+      <li><strong>Dual Client Architecture</strong> - Separates commands from subscriptions</li>
+      <li><strong>Fail-Open Design</strong> - Server continues even if Redis unavailable</li>
+      <li><strong>Automatic Reconnection</strong> - ioredis handles reconnection automatically</li>
+      <li><strong>Connection Status</strong> - Exported flags for health checks</li>
+      <li><strong>Pub/Sub Setup</strong> - Automatic subscription to update channels</li>
+    </ul>
     </div>
   </body>
 </html>

@@ -8,15 +8,23 @@
   <body>
     <div class="content">
     <h1>src/helpers/redis</h1>
+    
     <h2>Contents</h2>
     <ul>
-      <li><a href="index.html"><code>index.ts</code></a>: barrel exports.</li>
-      <li><a href="initialize.html"><code>initialize.ts</code></a>: Redis clients for commander/listener with retry and subscription bootstrap.</li>
-      <li><a href="keys.html"><code>keys.ts</code></a>: key/pattern helpers and scan.</li>
-      <li><a href="snapshot.html"><code>snapshot.ts</code></a>: Redis-backed snapshot syncing into cache with Firebase fallback.</li>
+      <li><a href="index.html"><code>index.ts</code></a> - Barrel export for Redis helper modules</li>
+      <li><a href="initialize.html"><code>initialize.ts</code></a> - Redis client initialization with dual-client architecture (commander for read/write, listener for Pub/Sub), connection management, retry logic, and automatic subscription setup</li>
+      <li><a href="keys.html"><code>keys.ts</code></a> - Redis key and pattern utilities for building consistent key names, collection patterns, update channels, and key scanning operations using SCAN command</li>
+      <li><a href="snapshot.html"><code>snapshot.ts</code></a> - Redis Pub/Sub snapshot integration with automatic fallback to Firebase snapshots. Provides same cache parsing interface as Firebase snapshots for seamless data source switching</li>
     </ul>
+    
     <h2>Context</h2>
-    <p>Redis helpers allow cache hydration and live updates using Redis Pub/Sub while preserving compatibility with <a href="../firebase_helpers.html">Firebase snapshot</a> flows.</p>
+    <p>Redis helpers allow cache hydration and live updates using Redis Pub/Sub while preserving compatibility with <a href="../firebase_helpers.html">Firebase snapshot</a> flows. The Redis integration provides:</p>
+    <ul>
+      <li><strong>Dual-Client Architecture</strong> - Separate clients for commands and subscriptions</li>
+      <li><strong>Automatic Fallback</strong> - Falls back to Firebase when Redis unavailable</li>
+      <li><strong>Real-time Updates</strong> - Pub/Sub for live cache updates</li>
+      <li><strong>Consistent Interface</strong> - Same parsing interface as Firebase snapshots</li>
+    </ul>
     </div>
   </body>
 </html>

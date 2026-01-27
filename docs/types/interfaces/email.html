@@ -9,12 +9,68 @@
     <div class="content">
     <h1>src/types/interfaces/email.ts</h1>
     <h2>Purpose</h2>
-    <p>Email data models for SendGrid helpers.</p>
+    <p>Defines TypeScript interfaces for email-related data structures used by the SendGrid email helpers. These interfaces provide type safety for email composition, attachments, and configuration settings stored in Firestore.</p>
+
     <h2>Exports</h2>
+
+    <h3><code>EmailData</code> Interface</h3>
+    <p>Main interface for email composition data passed to the <code>send_email</code> helper function.</p>
+    <p><strong>Properties:</strong></p>
     <ul>
-      <li><code>EmailData</code>: input payload for email send (used by <a href="../../helpers/email_helpers.html">email_helpers</a>).</li>
-      <li><code>EmailAttachment</code>: base64 attachment model.</li>
-      <li><code>EmailSettings</code>: Firestore settings model.</li>
+      <li><code>subject: string</code> (Required) - The email subject line</li>
+      <li><code>entity_for_audit: string</code> (Required) - Identifier for audit logging</li>
+      <li><code>to?: string | string[]</code> (Optional) - Recipient email address(es)</li>
+      <li><code>from?: string | { email: string; name?: string }</code> (Optional) - Sender email/name</li>
+      <li><code>group_name?: string</code> (Optional) - Email group name from settings</li>
+      <li><code>cc?: string | string[]</code> (Optional) - CC recipient(s)</li>
+      <li><code>body_plain_text?: string</code> (Optional) - Plain text email body</li>
+      <li><code>body_html?: string</code> (Optional) - HTML email body</li>
+      <li><code>attachments?: EmailAttachment[]</code> (Optional) - Array of email attachments</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const emailData: EmailData = {
+  subject: "Welcome to Our Service",
+  entity_for_audit: "user_registration",
+  to: "user@example.com",
+  from: { email: "noreply@example.com", name: "Support Team" },
+  body_html: "&lt;h1&gt;Welcome!&lt;/h1&gt;",
+  body_plain_text: "Welcome! Thank you for joining."
+};</code></pre>
+
+    <h3><code>EmailAttachment</code> Interface</h3>
+    <p>Interface for email attachment data. Attachments are sent as base64-encoded content.</p>
+    <p><strong>Properties:</strong></p>
+    <ul>
+      <li><code>content: string</code> (Required) - Base64-encoded file content</li>
+      <li><code>filename: string</code> (Required) - Attachment filename</li>
+      <li><code>type?: string</code> (Optional) - MIME type (e.g., "application/pdf")</li>
+      <li><code>disposition?: "attachment" | "inline"</code> (Optional) - Content disposition</li>
+      <li><code>content_id?: string</code> (Optional) - Content ID for inline attachments</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const attachment: EmailAttachment = {
+  content: base64Content,
+  filename: "invoice.pdf",
+  type: "application/pdf",
+  disposition: "attachment"
+};</code></pre>
+
+    <h3><code>EmailSettings</code> Interface</h3>
+    <p>Interface for email configuration settings stored in Firestore. Defines default sender, default CC recipients, and email groups.</p>
+    <p><strong>Properties:</strong></p>
+    <ul>
+      <li><code>default_from: { email: string; name?: string }</code> (Required) - Default sender configuration</li>
+      <li><code>default_cc: string[]</code> (Required) - Default CC recipients for all emails</li>
+      <li><code>groups: Record&lt;string, { cc?: string[]; to: string[] }&gt;</code> (Required) - Email groups configuration</li>
+      <li><code>sendgrid_api_key: string</code> (Required) - SendGrid API key for authentication</li>
+    </ul>
+    <p><strong>Context:</strong> This interface represents the structure of the email settings document stored in Firestore (typically in <code>nx-settings</code> collection). The email helpers read this configuration to determine default senders, CC recipients, and group recipients.</p>
+
+    <h2>Related Helpers</h2>
+    <ul>
+      <li>Used by <a href="../../helpers/email_helpers.html">email_helpers.send_email()</a> function</li>
+      <li>Settings are typically stored in Firestore <code>nx-settings</code> collection</li>
+      <li>Attachments are processed and sent via SendGrid API</li>
     </ul>
     </div>
   </body>

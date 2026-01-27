@@ -9,13 +9,91 @@
     <div class="content">
     <h1>src/types/interfaces/global.ts</h1>
     <h2>Purpose</h2>
-    <p>Interfaces for request validation and app initialization options.</p>
+    <p>Defines TypeScript interfaces for request validation middleware configuration and application initialization options. These interfaces provide type safety for middleware parameters and server bootstrap configuration.</p>
+
     <h2>Exports</h2>
+
+    <h3><code>MandatoryObject</code> Interface</h3>
+    <p>Interface defining validation rules for a single request parameter. Used by the <code>mandatory</code> and <code>optional</code> middleware factories to specify validation requirements.</p>
+    <p><strong>Properties:</strong></p>
     <ul>
-      <li><code>MandatoryObject</code>: validation rule for a single parameter.</li>
-      <li><code>MandatoryParams</code>: body/header validation rules.</li>
-      <li><code>LogRequests</code>: request logging flags.</li>
-      <li><code>AppOptions</code>: server startup options.</li>
+      <li><code>key: string</code> (Required) - The name of the parameter to validate</li>
+      <li><code>type: "string" | "number" | "boolean" | "object" | "array"</code> (Required) - The expected data type</li>
+      <li><code>length?: number</code> (Optional) - Minimum length for strings/arrays</li>
+      <li><code>required_keys?: string[]</code> (Optional) - Required keys for object types</li>
+      <li><code>array_types?: ("string" | "number" | "boolean" | "object")[]</code> (Optional) - Allowed types for array elements</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const emailRule: MandatoryObject = {
+  key: "email",
+  type: "string",
+  length: 5
+};
+
+const userRule: MandatoryObject = {
+  key: "user",
+  type: "object",
+  required_keys: ["name", "email", "age"]
+};</code></pre>
+    <p><strong>Context:</strong> Used by <a href="../../middlewares/global_mw.html">global_mw.mandatory()</a> and <a href="../../middlewares/global_mw.html">global_mw.optional()</a> middleware factories.</p>
+
+    <h3><code>MandatoryParams</code> Interface</h3>
+    <p>Interface containing optional arrays of validation rules for request body and headers. Used as the parameter type for <code>mandatory</code> and <code>optional</code> middleware factories.</p>
+    <p><strong>Properties:</strong></p>
+    <ul>
+      <li><code>body?: MandatoryObject[]</code> (Optional) - Validation rules for request body parameters</li>
+      <li><code>headers?: MandatoryObject[]</code> (Optional) - Validation rules for request header parameters</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const validationRules: MandatoryParams = {
+  body: [
+    { key: "email", type: "string", length: 5 },
+    { key: "age", type: "number" }
+  ],
+  headers: [
+    { key: "authorization", type: "string" }
+  ]
+};</code></pre>
+
+    <h3><code>LogRequests</code> Interface</h3>
+    <p>Interface defining boolean flags for conditional request logging. Used by the <code>request_logger</code> middleware factory to configure which parts of the request should be logged.</p>
+    <p><strong>Properties:</strong></p>
+    <ul>
+      <li><code>url?: boolean</code> (Optional) - Log request method and URL</li>
+      <li><code>headers?: boolean</code> (Optional) - Log request headers</li>
+      <li><code>query?: boolean</code> (Optional) - Log query parameters</li>
+      <li><code>body?: boolean</code> (Optional) - Log request body for POST/PUT/PATCH</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const logAll: LogRequests = {
+  url: true,
+  headers: true,
+  query: true,
+  body: true
+};</code></pre>
+
+    <h3><code>AppOptions</code> Interface</h3>
+    <p>Interface defining options for server initialization and application configuration. Used by server bootstrap functions like <code>basic_init</code> and <code>start_server</code>.</p>
+    <p><strong>Properties:</strong></p>
+    <ul>
+      <li><code>port?: number</code> (Optional) - Server port number</li>
+      <li><code>log_requests?: LogRequests</code> (Optional) - Request logging configuration</li>
+      <li><code>init_snapshot_options?: InitSnapshotsOptions</code> (Optional) - Snapshot initialization options</li>
+      <li><code>initialize_redis?: boolean</code> (Optional) - Whether to initialize Redis connection</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>const options: AppOptions = {
+  port: 3000,
+  log_requests: { url: true, body: true },
+  initialize_redis: true
+};</code></pre>
+    <p><strong>Context:</strong> Used by server initialization helpers in <a href="../../helpers/start.html">start.ts</a> to configure Express server, middleware, and external service connections.</p>
+
+    <h2>Related Middlewares and Helpers</h2>
+    <ul>
+      <li><code>MandatoryObject</code> and <code>MandatoryParams</code> are used by <a href="../../middlewares/global_mw.html">global_mw.mandatory()</a> and <a href="../../middlewares/global_mw.html">global_mw.optional()</a></li>
+      <li><code>LogRequests</code> is used by <a href="../../middlewares/global_mw.html">global_mw.request_logger()</a> and <code>AppOptions</code></li>
+      <li><code>AppOptions</code> is used by server bootstrap functions in <a href="../../helpers/start.html">start.ts</a></li>
     </ul>
     </div>
   </body>

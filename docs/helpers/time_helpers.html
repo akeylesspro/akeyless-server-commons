@@ -8,27 +8,73 @@
   <body>
     <div class="content">
     <h1>src/helpers/time_helpers.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Time conversion and formatting helpers for Firebase timestamps, Dates, and string inputs.</p>
+    <p>Comprehensive time conversion and formatting utilities for Firebase timestamps, JavaScript Dates, strings, and numbers. Supports multiple input formats, timezone conversion, custom formatting, and provides both modern flexible functions and legacy compatibility functions.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li><code>moment</code>, <code>moment-timezone</code></li>
-      <li>Firebase <code>Timestamp</code></li>
-      <li><code>firebase_timestamp</code> type</li>
+      <li><code>moment</code> - Date manipulation and formatting library</li>
+      <li><code>moment-timezone</code> - Timezone support for moment</li>
+      <li>Firebase <code>Timestamp</code> - Firestore timestamp type</li>
+      <li><code>firebase_timestamp</code> type from <code>akeyless-types-commons</code> - Legacy timestamp format</li>
     </ul>
 
-    <h2>Exports and behavior</h2>
+    <h2>Sorting and Comparison</h2>
+    
+    <h3><code>sort_by_timestamp(a: Timestamp, b: Timestamp, reverse: boolean = false): number</code></h3>
+    <p>Comparator function for sorting Firebase Timestamps.</p>
+    <p><strong>Returns:</strong> Number for Array.sort() - negative if <code>a &lt; b</code> (ascending), positive if <code>a &gt; b</code> (ascending), zero if equal</p>
+
+    <h2>Time Elapsed Calculation</h2>
+    
+    <h3><code>calculate_time_passed(datetime: Date): TimePassedByDate</code></h3>
+    <p>Calculates elapsed time from a given date to now.</p>
+    <p><strong>Returns:</strong> Object with:</p>
     <ul>
-      <li><code>sort_by_timestamp</code>: comparator based on millis.</li>
-      <li><code>calculate_time_passed</code>: returns elapsed fields and formatted strings.</li>
-      <li><code>any_datetime_to_string</code>: converts many inputs to formatted string.</li>
-      <li><code>any_datetime_to_millis</code>: converts many inputs to millis.</li>
-      <li><code>timestamp_to_string</code>, <code>timestamp_to_millis</code>: legacy helpers.</li>
+      <li><code>seconds_passed</code>, <code>minutes_passed</code>, <code>hours_passed</code>, <code>days_passed</code></li>
+      <li><code>time_passed_formatted_short</code> - Format: <code>"D:HH:MM:SS"</code></li>
+      <li><code>time_passed_formatted_long</code> - Format: <code>"X d X h X min X sec"</code></li>
+    </ul>
+
+    <h2>Flexible Time Conversion</h2>
+    
+    <h3><code>any_datetime_to_string(firebaseTimestamp: Timestamp | Date | string | firebase_timestamp | number, options?: TimeToStringOptions): string</code></h3>
+    <p>Converts any datetime format to a formatted string.</p>
+    <p><strong>Parameters:</strong></p>
+    <ul>
+      <li><code>firebaseTimestamp</code> - Datetime in any supported format (Timestamp, Date, string, number, firebase_timestamp)</li>
+      <li><code>options</code> - Optional configuration:
+        <ul>
+          <li><code>format</code> - Output format string (default: <code>"DD/MM/YYYY HH:mm:ss"</code>)</li>
+          <li><code>fromFormat</code> - Input format for string parsing</li>
+          <li><code>tz</code> - Timezone string (e.g., <code>"Asia/Jerusalem"</code>)</li>
+          <li><code>defaultReturnedValue</code> - Value to return if conversion fails (default: <code>"-"</code>)</li>
+        </ul>
+      </li>
+    </ul>
+    <p><strong>Returns:</strong> Formatted date string or <code>defaultReturnedValue</code> if conversion fails</p>
+    <p><strong>Supported Input Formats:</strong> Firebase Timestamp, JavaScript Date, String/Number (parsed with moment), Legacy Firebase format</p>
+
+    <h3><code>any_datetime_to_millis(firebaseTimestamp: Timestamp | Date | string | number | firebase_timestamp, options?: TimeToMillisOptions): number</code></h3>
+    <p>Converts any datetime format to milliseconds since Unix epoch.</p>
+    <p><strong>Returns:</strong> Milliseconds since Unix epoch or <code>defaultReturnedValue</code> if conversion fails</p>
+
+    <h2>Legacy Functions</h2>
+    <ul>
+      <li><code>timestamp_to_string(firebaseTimestamp, format?)</code> - Legacy function for converting Firebase timestamp to string</li>
+      <li><code>timestamp_to_millis(firebaseTimestamp)</code> - Legacy function for converting Firebase timestamp to milliseconds</li>
     </ul>
 
     <h2>Context</h2>
-    <p>Used by services that work with Firebase timestamps and need consistent display and sorting logic.</p>
+    <p>These helpers provide comprehensive datetime handling:</p>
+    <ul>
+      <li><strong>Format Flexibility</strong> - Accepts multiple input formats (Firebase, Date, string, number)</li>
+      <li><strong>Timezone Support</strong> - Convert between timezones using moment-timezone</li>
+      <li><strong>Custom Formatting</strong> - Use moment format strings for display</li>
+      <li><strong>Error Handling</strong> - Graceful fallbacks for invalid inputs</li>
+      <li><strong>Legacy Support</strong> - Maintains compatibility with old timestamp formats</li>
+    </ul>
     </div>
   </body>
 </html>

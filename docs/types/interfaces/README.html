@@ -8,11 +8,50 @@
   <body>
     <div class="content">
     <h1>src/types/interfaces</h1>
+    <h2>Overview</h2>
+    <p>The interfaces subdirectory contains TypeScript interfaces for configuration objects, data models, and middleware options. These interfaces provide type safety for complex objects used throughout the package.</p>
+
     <h2>Contents</h2>
+
+    <h3><a href="global.html"><code>global.ts</code></a></h3>
+    <p>Interfaces for request validation middleware configuration and application initialization options.</p>
+    <p><strong>Key Interfaces:</strong></p>
     <ul>
-      <li><a href="global.html"><code>global.ts</code></a>: middleware and app option interfaces.</li>
-      <li><a href="email.html"><code>email.ts</code></a>: email data, attachment, and settings interfaces.</li>
-      <li><a href="index.html"><code>index.ts</code></a>: barrel export.</li>
+      <li><code>MandatoryObject</code> - Validation rule interface for single parameters</li>
+      <li><code>MandatoryParams</code> - Validation parameters interface (body/headers)</li>
+      <li><code>LogRequests</code> - Request logging configuration interface</li>
+      <li><code>AppOptions</code> - Server initialization options interface</li>
+    </ul>
+    <p><strong>See:</strong> <a href="global.html">global.html</a> for detailed documentation</p>
+
+    <h3><a href="email.html"><code>email.ts</code></a></h3>
+    <p>Interfaces for email-related data structures used by SendGrid email helpers.</p>
+    <p><strong>Key Interfaces:</strong></p>
+    <ul>
+      <li><code>EmailData</code> - Email composition interface (subject, to, from, body, attachments, etc.)</li>
+      <li><code>EmailAttachment</code> - Email attachment interface (content, filename, type, disposition)</li>
+      <li><code>EmailSettings</code> - Email configuration interface (default_from, default_cc, groups, sendgrid_api_key)</li>
+    </ul>
+    <p><strong>See:</strong> <a href="email.html">email.html</a> for detailed documentation</p>
+
+    <h3><a href="index.html"><code>index.ts</code></a></h3>
+    <p>Barrel export file that re-exports all interfaces from <code>global.ts</code> and <code>email.ts</code>.</p>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all interfaces
+import { MandatoryParams, EmailData, AppOptions } from 'akeyless-server-commons/types/interfaces';
+
+// Import specific modules
+import { MandatoryParams, AppOptions } from 'akeyless-server-commons/types/interfaces/global';
+import { EmailData, EmailAttachment } from 'akeyless-server-commons/types/interfaces/email';</code></pre>
+
+    <h2>Context</h2>
+    <p>These interfaces are used throughout the package:</p>
+    <ul>
+      <li><strong>Middleware Interfaces</strong> (<code>global.ts</code>) - Used by validation and logging middlewares</li>
+      <li><strong>Email Interfaces</strong> (<code>email.ts</code>) - Used by email helpers for SendGrid integration</li>
+      <li><strong>Type Safety</strong> - Ensures consistent object shapes and compile-time validation</li>
+      <li><strong>Configuration</strong> - Provides clear contracts for configuration objects</li>
     </ul>
     </div>
   </body>

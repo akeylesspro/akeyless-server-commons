@@ -8,33 +8,54 @@
   <body>
     <div class="content">
     <h1>src/helpers/redis/snapshot.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Consume Redis Pub/Sub updates and hydrate cache using Redis data, with Firebase snapshot fallback when Redis is unavailable or unsupported.</p>
+    <p>Consume Redis Pub/Sub updates and hydrate cache using Redis data, with automatic fallback to Firebase snapshots when Redis is unavailable or unsupported. Provides the same cache parsing interface as Firebase snapshots, allowing seamless switching between data sources.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li>Redis helpers and connection flags</li>
-      <li>Firebase snapshot helpers and parsers</li>
-      <li><a href="keys.html"><code>get_collection_keys</code></a>, <a href="keys.html"><code>scan_redis_keys</code></a></li>
-      <li><a href="../../managers/logger_manager.html"><code>logger</code></a>, Firestore <code>Timestamp</code></li>
+      <li>Redis helpers: <a href="initialize.html"><code>get_redis_commander</code></a>, <a href="initialize.html"><code>get_redis_listener</code></a>, connection flags</li>
+      <li>Firebase snapshot helpers: <a href="../firebase_helpers.html"><code>snapshot</code></a>, parsers, <a href="../firebase_helpers.html"><code>get_nx_settings</code></a></li>
+      <li><a href="keys.html"><code>get_collection_keys</code></a>, <a href="keys.html"><code>scan_redis_keys</code></a> - Key utilities</li>
+      <li><a href="../../managers/logger_manager.html"><code>logger</code></a> - Logging manager</li>
+      <li>Firestore <code>Timestamp</code> - Timestamp conversion</li>
+      <li>Types from <code>akeyless-types-commons</code></li>
     </ul>
 
-    <h2>Exports and behavior</h2>
+    <h2>Main Function</h2>
+    
+    <h3><code>redis_snapshots_bulk(configs: OnSnapshotConfig[]): Promise&lt;void&gt;</code></h3>
+    <p>Orchestrates Redis snapshot subscriptions with validation and Firebase fallback.</p>
+    <p><strong>Parameters:</strong></p>
     <ul>
-      <li><code>redis_snapshots_bulk</code>: validates configs, hydrates cache, subscribes to updates.</li>
+      <li><code>configs</code> - Array of snapshot configurations</li>
     </ul>
+    <p><strong>Returns:</strong> Promise resolving when all snapshots are initialized</p>
+    <p><strong>Behavior:</strong></p>
+    <ol>
+      <li><strong>First-Time Initialization:</strong> Validates each config, loads initial data from Redis if valid, triggers Firebase snapshot if invalid</li>
+      <li><strong>Update Subscription:</strong> Sets up <code>pmessage</code> listener, parses JSON payload, updates cache based on update type (add/update/delete)</li>
+    </ol>
 
-    <h2>Internal flow</h2>
+    <h2>Validation</h2>
+    <p>The <code>validate_config</code> function checks:</p>
     <ul>
-      <li><code>validate_config</code>: ensures Redis readiness and settings allow Redis.</li>
-      <li><code>parse_redis_snapshot</code>: initial load or incremental update handling.</li>
-      <li><code>default_parsers</code>: routes to object/array parsers.</li>
-      <li><code>get_collection_data</code>: SCAN and MGET data from Redis.</li>
-      <li><code>convert_object_timestamps</code>: converts timestamp-like objects.</li>
+      <li>Redis connection status (commander and listener must be connected)</li>
+      <li>Subscription type must be <code>"redis"</code></li>
+      <li>Collection must be configured in <code>nx-settings.cache_collections_config</code></li>
+      <li>Sync direction must be <code>"firebase_to_redis"</code> (not <code>"redis_to_firebase"</code>)</li>
+      <li>No duplicate subscriptions per cache name</li>
     </ul>
 
     <h2>Context</h2>
-    <p>Allows Redis to be the live data source while keeping the same cache parsing behavior as Firebase snapshots.</p>
+    <p>This module enables Redis as a live data source:</p>
+    <ul>
+      <li><strong>Seamless Integration</strong> - Same interface as Firebase snapshots</li>
+      <li><strong>Automatic Fallback</strong> - Falls back to Firebase when Redis unavailable</li>
+      <li><strong>Real-time Updates</strong> - Pub/Sub for live cache updates</li>
+      <li><strong>Consistent Parsing</strong> - Uses same parsers as Firebase snapshots</li>
+      <li><strong>Configuration-Driven</strong> - Settings determine data source</li>
+    </ul>
     </div>
   </body>
 </html>

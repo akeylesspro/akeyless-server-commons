@@ -8,61 +8,142 @@
   <body>
     <div class="content">
     <h1>src/helpers/firebase_helpers.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Initializes Firebase Admin SDK and provides Firestore/Storage helpers, snapshot subscriptions, audit logging, and cached settings access.</p>
+    <p>Initialize Firebase Admin SDK and provide comprehensive Firestore CRUD operations, real-time snapshot subscriptions, Firebase Storage helpers, authentication token verification, and audit logging. This is the central integration point for all Firebase operations in the application.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li><code>firebase-admin</code>, <code>dotenv</code>, <a href="global_helpers.html"><code>init_env_variables</code></a>.</li>
-      <li>Managers: <a href="../managers/cache_manager.html"><code>cache_manager</code></a>, <a href="../managers/logger_manager.html"><code>logger</code></a>, <a href="../managers/translation_manager.html"><code>translation_manager</code></a>.</li>
-      <li>Redis snapshot integration via <a href="redis/snapshot.html"><code>redis_snapshots_bulk</code></a>.</li>
-      <li>Types from <a href="../types/index.html"><code>src/types</code></a>.</li>
+      <li><code>firebase-admin</code> - Firebase Admin SDK for Node.js
+        <ul>
+          <li><code>firestore</code> - Database operations</li>
+          <li><code>auth</code> - Authentication and token verification</li>
+          <li><code>messaging</code> - FCM push notifications</li>
+          <li><code>storage</code> - File storage operations</li>
+        </ul>
+      </li>
+      <li><code>dotenv</code> - Environment variable loading</li>
+      <li><a href="global_helpers.html"><code>init_env_variables</code></a> - Environment validation helper</li>
+      <li>Managers:
+        <ul>
+          <li><a href="../managers/cache_manager.html"><code>cache_manager</code></a> - In-memory cache for collections</li>
+          <li><a href="../managers/logger_manager.html"><code>logger</code></a> - Logging utility</li>
+          <li><a href="../managers/translation_manager.html"><code>translation_manager</code></a> - Translation cache</li>
+        </ul>
+      </li>
+      <li>Redis snapshot integration: <a href="redis/snapshot.html"><code>redis_snapshots_bulk</code></a> from <code>./redis</code></li>
+      <li>Types from <a href="../types/index.html"><code>src/types</code></a> - TypeScript type definitions</li>
+      <li><code>akeyless-types-commons</code> - Shared types (<code>TObject</code>)</li>
     </ul>
 
     <h2>Initialization</h2>
+    <h3>Firebase Admin Setup</h3>
+    <p>The module initializes Firebase Admin SDK on import by:</p>
+    <ol>
+      <li><strong>Reading Environment Variables</strong> - Validates and loads required service account credentials:
+        <ul>
+          <li><code>type</code>, <code>project_id</code>, <code>private_key_id</code>, <code>private_key</code>, <code>client_email</code>, <code>client_id</code></li>
+          <li><code>auth_uri</code>, <code>token_uri</code>, <code>auth_provider_x509_cert_url</code>, <code>client_x509_cert_url</code>, <code>universe_domain</code></li>
+        </ul>
+      </li>
+      <li><strong>Service Account Configuration</strong> - Builds <code>service_account_firebase</code> object with proper key formatting</li>
+      <li><strong>Firebase App Initialization</strong> - Initializes app with credentials and storage bucket</li>
+      <li><strong>Exported Instances</strong>:
+        <ul>
+          <li><code>db</code> - Firestore database instance</li>
+          <li><code>messaging</code> - FCM messaging instance</li>
+          <li><code>auth</code> - Firebase Auth instance</li>
+          <li><code>storage</code> - Firebase Storage instance</li>
+          <li><code>service_account_firebase</code> - Service account configuration object</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h2>Firestore CRUD Operations</h2>
+    
+    <h3>Document Extraction</h3>
     <ul>
-      <li>Reads service account env vars into <code>service_account_firebase</code>.</li>
-      <li>Initializes Admin app and exports <code>db</code>, <code>messaging</code>, <code>auth</code>, <code>storage</code>.</li>
+      <li><code>simple_extract_data(doc)</code> - Merges document data with ID</li>
     </ul>
 
-    <h2>Firestore CRUD helpers</h2>
+    <h3>Query Operations</h3>
     <ul>
-      <li><code>simple_extract_data</code>, <code>get_all_documents</code></li>
-      <li><code>query_documents</code>, <code>query_documents_by_conditions</code></li>
-      <li><code>query_document</code>, <code>query_document_optional</code></li>
-      <li><code>query_document_by_conditions</code></li>
-      <li><code>get_document_by_id</code>, <code>get_document_by_id_optional</code></li>
-      <li><code>set_document</code>, <code>add_document</code>, <code>delete_document</code></li>
+      <li><code>get_all_documents(collection_path)</code> - Fetches all documents from a collection</li>
+      <li><code>query_documents(collection_path, field_name, operator, value)</code> - Single where clause returning array</li>
+      <li><code>query_documents_by_conditions(collection_path, where_conditions)</code> - Multiple where clauses returning array</li>
+      <li><code>query_document(collection_path, field_name, operator, value, ignore_log?)</code> - Single where clause returning first doc or error</li>
+      <li><code>query_document_optional(collection_path, field_name, operator, value, ignore_log?)</code> - Single where clause returning first doc or null</li>
+      <li><code>query_document_by_conditions(collection_path, where_conditions, log?)</code> - Multiple where clauses returning single document or error</li>
     </ul>
 
-    <h2>Auth helper</h2>
+    <h3>Document Operations</h3>
     <ul>
-      <li><code>verify_token</code> validates bearer token via Firebase auth.</li>
+      <li><code>get_document_by_id(collection_path, doc_id)</code> - Returns doc by id or throws</li>
+      <li><code>get_document_by_id_optional(collection_path, doc_id)</code> - Returns doc by id or null</li>
+      <li><code>set_document(collection_path, doc_id, data, merge?)</code> - Creates/merges document</li>
+      <li><code>add_document(collection_path, data, include_id?, custom_id?)</code> - Adds doc and returns id</li>
+      <li><code>delete_document(collection_path, doc_id)</code> - Deletes document</li>
     </ul>
 
-    <h2>Snapshot parsers</h2>
+    <h2>Authentication</h2>
     <ul>
-      <li>Translation parsers update <a href="../managers/translation_manager.html"><code>translation_manager</code></a>.</li>
-      <li>Settings parsers update <a href="../managers/cache_manager.html"><code>cache_manager</code></a>.</li>
-      <li>Generic object/array parsers for cached collections.</li>
+      <li><code>verify_token(authorization)</code> - Validates bearer token using Firebase auth, extracts token from "Bearer {token}" format, returns decoded token with user information</li>
     </ul>
 
-    <h2>Snapshot orchestration</h2>
+    <h2>Snapshot Parsers</h2>
+    <p>Snapshot parsers transform Firestore document changes into cache updates:</p>
     <ul>
-      <li><code>snapshot</code>: Firestore listener with safe boot and retry.</li>
-      <li><code>init_snapshots</code>: common settings/translations subscriptions.</li>
-      <li><code>snapshot_bulk</code> and <code>snapshot_bulk_by_names</code>.</li>
+      <li><code>parse_add_update_translations</code> - Updates translation cache</li>
+      <li><code>parse_delete_translations</code> - Removes translations from cache</li>
+      <li><code>parse_add_update_settings</code> - Updates settings cache</li>
+      <li><code>parse_delete_settings</code> - Removes settings from cache</li>
+      <li><code>parse_add_update_as_object</code> - Generic parser for object-based caches</li>
+      <li><code>parse_delete_as_object</code> - Removes documents from object-based cache</li>
+      <li><code>parse_add_update_as_array</code> - Generic parser for array-based caches</li>
+      <li><code>parse_delete_as_array</code> - Removes documents from array-based cache</li>
     </ul>
 
-    <h2>Audit and storage helpers</h2>
+    <h2>Snapshot Orchestration</h2>
     <ul>
-      <li><code>add_audit_record</code>: writes to <code>nx-audit</code>.</li>
-      <li><code>save_file_in_storage</code> and <code>get_file_url_from_storage</code>.</li>
-      <li><code>get_nx_settings</code>: cached <code>nx-settings</code> access.</li>
+      <li><code>snapshot(config)</code> - Firestore snapshot listener with first-time bootstrap, incremental updates, exponential backoff on failure, boot-safety resolution to avoid deadlocks</li>
+      <li><code>init_snapshots(options?)</code> - Common snapshots for settings and translations</li>
+      <li><code>snapshot_bulk(promises, label?)</code> - Logs duration across multiple snapshots</li>
+      <li><code>get_default_parsers(parse_as)</code> - Default parser set by data shape</li>
+      <li><code>snapshot_bulk_by_names(params, options?)</code> - Orchestrates Firebase + Redis snapshot subscriptions</li>
+    </ul>
+
+    <h2>Audit and Storage Helpers</h2>
+    <ul>
+      <li><code>add_audit_record(action, entity, details, user?)</code> - Writes audit record to <code>nx-audit</code> collection with action, entity, details, datetime, and user</li>
+      <li><code>save_file_in_storage(file_path, buffer, options?)</code> - Saves file to Firebase Storage and returns signed URL with configurable options (content_type, make_public, signed_url_ttl_ms, etc.)</li>
+      <li><code>get_file_url_from_storage(file_path)</code> - Gets signed URL for existing file (valid for 7 days)</li>
+      <li><code>get_nx_settings()</code> - Retrieves <code>nx-settings</code> collection data, using cache if available, otherwise fetches from Firestore and caches result</li>
     </ul>
 
     <h2>Context</h2>
-    <p>This is the central integration point for Firestore data access and caching. Helpers and middlewares rely on these exports for auth, settings, and notifications.</p>
+    <p>This module is the central integration point for all Firebase operations:</p>
+    <ul>
+      <li><strong>Data Access</strong> - All Firestore CRUD operations go through these helpers</li>
+      <li><strong>Real-time Sync</strong> - Snapshot subscriptions keep caches up-to-date</li>
+      <li><strong>Authentication</strong> - Token verification for protected routes</li>
+      <li><strong>File Storage</strong> - Firebase Storage integration for file uploads/downloads</li>
+      <li><strong>Audit Trail</strong> - Centralized audit logging for compliance</li>
+    </ul>
+    <p><strong>Architecture Notes:</strong></p>
+    <ul>
+      <li>Snapshots use a "fail-open" approach to prevent boot deadlocks</li>
+      <li>Cache is populated by snapshots, reducing Firestore read operations</li>
+      <li>Supports both Firebase and Redis snapshot sources</li>
+      <li>All operations include comprehensive error logging</li>
+    </ul>
+    <p><strong>Best Practices:</strong></p>
+    <ul>
+      <li>Use cached data from <code>cache_manager</code> when possible (populated by snapshots)</li>
+      <li>Use <code>query_document_optional</code> or <code>get_document_by_id_optional</code> for non-critical lookups</li>
+      <li>Always use <code>add_audit_record</code> for important operations</li>
+      <li>Prefer <code>snapshot_bulk_by_names</code> for multiple collections</li>
+      <li>Use appropriate <code>parse_as</code> setting based on how data is accessed (array vs object lookup)</li>
+    </ul>
     </div>
   </body>
 </html>

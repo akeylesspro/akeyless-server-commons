@@ -9,14 +9,46 @@
     <div class="content">
     <h1>src/middlewares/index.ts</h1>
     <h2>Purpose</h2>
-    <p>Barrel export for middleware modules.</p>
+    <p>Barrel export file that re-exports all middleware modules for convenient importing. This file allows importing all middlewares from a single import path.</p>
+
     <h2>Exports</h2>
+    <p>All exports are re-exported from their respective modules:</p>
+
+    <h3><a href="global_mw.html"><code>global_mw</code></a></h3>
     <ul>
-      <li><a href="global_mw.html"><code>global_mw</code></a></li>
-      <li><a href="auth_mw.html"><code>auth_mw</code></a></li>
-      <li><a href="error_handling.html"><code>error_handling</code></a></li>
-      <li><a href="trim_mw.html"><code>trim_mw</code></a></li>
+      <li><code>mandatory</code> - Middleware factory for mandatory parameter validation</li>
+      <li><code>optional</code> - Middleware factory for optional parameter validation</li>
+      <li><code>request_logger</code> - Middleware factory for conditional request logging</li>
     </ul>
+
+    <h3><a href="auth_mw.html"><code>auth_mw</code></a></h3>
+    <ul>
+      <li><code>verify_user_auth</code> - Firebase user authentication middleware</li>
+      <li><code>nx_user_login</code> - NX user login middleware</li>
+      <li><code>client_login</code> - API client authentication middleware</li>
+    </ul>
+
+    <h3><a href="error_handling.html"><code>error_handling</code></a></h3>
+    <ul>
+      <li><code>async_error_handler</code> - Wrapper for async route handlers</li>
+      <li><code>error_handler</code> - Global Express error handler middleware</li>
+    </ul>
+
+    <h3><a href="trim_mw.html"><code>trim_mw</code></a></h3>
+    <ul>
+      <li><code>trim_body_middleware</code> - Middleware to trim string values in request bodies</li>
+    </ul>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all middlewares from single path
+import { mandatory, verify_user_auth, async_error_handler, trim_body_middleware } from 'akeyless-server-commons/middlewares';
+
+// Or import specific modules
+import { mandatory } from 'akeyless-server-commons/middlewares/global_mw';
+import { verify_user_auth } from 'akeyless-server-commons/middlewares/auth_mw';</code></pre>
+
+    <h2>Context</h2>
+    <p>This barrel export pattern allows consumers to import multiple middlewares from a single import statement, improving code organization and reducing import complexity.</p>
     </div>
   </body>
 </html>

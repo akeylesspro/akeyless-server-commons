@@ -8,10 +8,38 @@
   <body>
     <div class="content">
     <h1>src/types/enums</h1>
+    <h2>Overview</h2>
+    <p>The enums subdirectory contains shared enumerations and service name type definitions used across the Akeyless platform. These enums provide type-safe constants for SIM providers and service identification.</p>
+
     <h2>Contents</h2>
+
+    <h3><a href="global.html"><code>global.ts</code></a></h3>
+    <p>Platform-wide enums and service name types.</p>
+    <p><strong>Key Exports:</strong></p>
     <ul>
-      <li><a href="global.html"><code>global.ts</code></a>: SIM provider enum and service URL mapping types.</li>
-      <li><a href="index.html"><code>index.ts</code></a>: barrel export.</li>
+      <li><code>SimProvider</code> - Enumeration of SIM card providers (partner, pelephone, celcom, monogoto, unknown)</li>
+      <li><code>NxServiceName</code> - Union type for service names ("bi", "call_center", "dashboard", "devices", etc.)</li>
+      <li><code>NxServiceNameMap</code> - Record type mapping service names to URLs</li>
+    </ul>
+    <p><strong>See:</strong> <a href="global.html">global.html</a> for detailed documentation</p>
+
+    <h3><a href="index.html"><code>index.ts</code></a></h3>
+    <p>Barrel export file that re-exports all enums from <code>global.ts</code>.</p>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all enums
+import { SimProvider, NxServiceName, NxServiceNameMap } from 'akeyless-server-commons/types/enums';
+
+// Import specific module
+import { SimProvider, NxServiceName } from 'akeyless-server-commons/types/enums/global';</code></pre>
+
+    <h2>Context</h2>
+    <p>These enums are used throughout the package:</p>
+    <ul>
+      <li><strong>SimProvider</strong> - Used by phone number helpers for SIM provider detection and SMS routing</li>
+      <li><strong>NxServiceName</strong> - Used by global helpers for service URL resolution and inter-service communication</li>
+      <li><strong>Type Safety</strong> - Provides compile-time checking for valid enum values and service names</li>
+      <li><strong>IntelliSense</strong> - Enables IDE autocomplete for valid enum values</li>
     </ul>
     </div>
   </body>

@@ -9,16 +9,69 @@
     <div class="content">
     <h1>src/types/types/firebase_types.ts</h1>
     <h2>Purpose</h2>
-    <p>Type definitions for Firestore queries and snapshot subscription flow.</p>
+    <p>Comprehensive type definitions for Firestore query operations and real-time snapshot subscription flows. These types provide type safety for Firebase Firestore queries, snapshot listeners, and Redis-backed cache synchronization. Used extensively by Firebase helpers and snapshot management systems.</p>
+
     <h2>Exports</h2>
+
+    <h3>Query Function Types</h3>
     <ul>
-      <li>Query helpers: <code>QueryDocuments</code>, <code>QueryDocumentsByConditions</code>, <code>QueryDocument</code>, <code>QueryDocumentOptional</code>, <code>QueryDocumentByConditions</code>, <code>WhereCondition</code>.</li>
-      <li>Snapshot types: <code>OnSnapshotCallback</code>, <code>OnSnapshotParsers</code>, <code>ExtraSnapshotConfig</code>, <code>OnSnapshotConfig</code>.</li>
-      <li>Bulk helpers: <code>Snapshot</code>, <code>SnapshotBulk</code>, <code>SnapshotBulkByNames</code> and related params/options.</li>
-      <li><code>InitSnapshotsOptions</code>.</li>
+      <li><code>QueryDocuments</code> - Query multiple documents with single condition</li>
+      <li><code>QueryDocumentsByConditions</code> - Query multiple documents with multiple conditions</li>
+      <li><code>QueryDocument</code> - Query single document (throws if not found)</li>
+      <li><code>QueryDocumentOptional</code> - Query single document (returns null if not found)</li>
+      <li><code>QueryDocumentByConditions</code> - Query single document with multiple conditions</li>
+      <li><code>WhereCondition</code> - Interface for Firestore where conditions</li>
     </ul>
+
+    <h3>Snapshot Types</h3>
+    <ul>
+      <li><code>OnSnapshotCallback</code> - Callback function type for snapshot events</li>
+      <li><code>OnSnapshotParsers</code> - Interface for snapshot event callbacks (on_first_time, on_add, on_modify, on_remove)</li>
+      <li><code>ExtraSnapshotConfig</code> - Interface for snapshot configuration options</li>
+      <li><code>OnSnapshotConfig</code> - Combined type for snapshot configuration</li>
+      <li><code>Snapshot</code> - Function type for creating single snapshot</li>
+      <li><code>SnapshotBulk</code> - Function type for creating multiple snapshots</li>
+      <li><code>SnapshotBulkByNames</code> - Function type for bulk snapshots by collection names</li>
+      <li><code>InitSnapshotsOptions</code> - Interface for snapshot initialization options</li>
+    </ul>
+
+    <h2>Key Features</h2>
+    <ul>
+      <li><strong>Query Types</strong> - Type-safe Firestore query functions for single and multiple document retrieval</li>
+      <li><strong>Snapshot System</strong> - Real-time data synchronization with Firebase or Redis backends</li>
+      <li><strong>Event Callbacks</strong> - Configurable callbacks for snapshot events (add, modify, remove)</li>
+      <li><strong>Cache Integration</strong> - Snapshot data automatically cached in cache_manager</li>
+      <li><strong>Bulk Operations</strong> - Support for initializing multiple snapshots simultaneously</li>
+    </ul>
+
     <h2>Context</h2>
-    <p>These types underpin Firebase helpers and Redis snapshot orchestration, ensuring consistent config shapes and callbacks.</p>
+    <p>These types are fundamental to:</p>
+    <ul>
+      <li><strong>Firebase Helpers</strong> - All Firestore query functions use these types</li>
+      <li><strong>Snapshot System</strong> - Real-time data synchronization uses snapshot types</li>
+      <li><strong>Redis Integration</strong> - Redis-backed snapshots use the same type system</li>
+      <li><strong>Cache Management</strong> - Snapshot data is stored in cache_manager using these types</li>
+      <li><strong>Server Bootstrap</strong> - Initial snapshot loading uses <code>InitSnapshotsOptions</code></li>
+    </ul>
+
+    <h2>Usage Examples</h2>
+    <h3>Query Example</h3>
+    <pre><code>const users = await query_documents("nx-users", "status", "==", "active");</code></pre>
+
+    <h3>Snapshot Example</h3>
+    <pre><code>await snapshot({
+  collection_name: "nx-users",
+  cache_name: "users",
+  parse_as: "array",
+  on_first_time: (docs) => console.log("Loaded", docs.length),
+  on_add: (docs) => console.log("Added", docs.length)
+});</code></pre>
+
+    <h3>Bulk Snapshots Example</h3>
+    <pre><code>await snapshot_bulk_by_names(
+  ["nx-users", "nx-devices"],
+  { subscription_type: "firebase", parse_as: "array" }
+);</code></pre>
     </div>
   </body>
 </html>

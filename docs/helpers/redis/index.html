@@ -8,13 +8,31 @@
   <body>
     <div class="content">
     <h1>src/helpers/redis/index.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Barrel export for Redis helper modules.</p>
+    <p>Barrel export file that re-exports all Redis helper modules for convenient importing. Provides a single entry point for accessing Redis initialization, key utilities, and snapshot functionality.</p>
+    
     <h2>Exports</h2>
     <ul>
-      <li><a href="initialize.html"><code>initialize</code></a></li>
-      <li><a href="keys.html"><code>keys</code></a></li>
-      <li><a href="snapshot.html"><code>snapshot</code></a></li>
+      <li><a href="initialize.html"><code>initialize</code></a> - Redis client initialization with dual-client architecture (commander/listener), connection management, retry logic, and automatic Pub/Sub subscription setup</li>
+      <li><a href="keys.html"><code>keys</code></a> - Redis key and pattern utilities for building consistent key names, collection patterns, update channels, and key scanning operations using SCAN command</li>
+      <li><a href="snapshot.html"><code>snapshot</code></a> - Redis Pub/Sub snapshot integration with automatic fallback to Firebase snapshots, providing the same cache parsing interface as Firebase snapshots for seamless data source switching</li>
+    </ul>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all Redis helpers
+import { init_redis, get_redis_commander, get_doc_key, redis_snapshots_bulk } from 'akeyless-server-commons/helpers/redis';
+
+// Or import specific modules
+import { init_redis } from 'akeyless-server-commons/helpers/redis/initialize';
+import { get_doc_key } from 'akeyless-server-commons/helpers/redis/keys';</code></pre>
+
+    <h2>Context</h2>
+    <p>This barrel export provides convenient access to all Redis-related functionality. The Redis helpers work together to provide:</p>
+    <ul>
+      <li><strong>Dual-Client Architecture</strong> - Separate clients for commands and subscriptions</li>
+      <li><strong>Key Management</strong> - Consistent key naming and pattern matching</li>
+      <li><strong>Snapshot Integration</strong> - Real-time cache updates via Redis Pub/Sub with Firebase fallback</li>
     </ul>
     </div>
   </body>

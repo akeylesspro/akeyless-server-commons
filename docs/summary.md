@@ -389,14 +389,19 @@ This documentation is organized as follows:
 
 - **`docs/README.html`** - Project overview and cross-module relationships
 - **`docs/summary.html`** - This comprehensive summary (HTML version)
-- **`docs/helpers/`** - Detailed documentation for each helper module
-- **`docs/managers/`** - Documentation for cache, logger, and translation managers
+- **`docs/helpers/`** - Detailed documentation for each helper module with comprehensive function descriptions, parameters, return types, examples, and usage patterns
+- **`docs/managers/`** - Documentation for cache, logger, and translation managers with detailed API descriptions
 - **`docs/middlewares/`** - Middleware documentation
 - **`docs/types/`** - Type definitions documentation
 
 Each folder contains:
-- `README.html` - Overview of the folder contents
-- Individual `.html` and `.md` files for each module
+- `README.html` / `README.md` - Overview of the folder contents
+- Individual `.html` and `.md` files for each module with expanded documentation including:
+  - Detailed function signatures and parameters
+  - Return types and behavior descriptions
+  - Code examples and usage patterns
+  - Error handling and edge cases
+  - Best practices and common use cases
 
 ## Key Design Patterns
 

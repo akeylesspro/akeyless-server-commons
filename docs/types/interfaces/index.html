@@ -9,12 +9,36 @@
     <div class="content">
     <h1>src/types/interfaces/index.ts</h1>
     <h2>Purpose</h2>
-    <p>Barrel export for interfaces.</p>
+    <p>Barrel export file that re-exports all interfaces from the interfaces subdirectory. This file allows importing all interfaces from a single import path.</p>
+
     <h2>Exports</h2>
+    <p>All exports are re-exported from their respective modules:</p>
+
+    <h3><a href="global.html"><code>global</code></a></h3>
     <ul>
-      <li><a href="global.html"><code>global</code></a></li>
-      <li><a href="email.html"><code>email</code></a></li>
+      <li><code>MandatoryObject</code> - Validation rule interface</li>
+      <li><code>MandatoryParams</code> - Validation parameters interface</li>
+      <li><code>LogRequests</code> - Request logging configuration interface</li>
+      <li><code>AppOptions</code> - Server initialization options interface</li>
     </ul>
+
+    <h3><a href="email.html"><code>email</code></a></h3>
+    <ul>
+      <li><code>EmailData</code> - Email composition interface</li>
+      <li><code>EmailAttachment</code> - Email attachment interface</li>
+      <li><code>EmailSettings</code> - Email configuration interface</li>
+    </ul>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all interfaces from barrel export
+import { MandatoryParams, EmailData, AppOptions } from 'akeyless-server-commons/types/interfaces';
+
+// Or import specific modules
+import { MandatoryParams, AppOptions } from 'akeyless-server-commons/types/interfaces/global';
+import { EmailData, EmailAttachment } from 'akeyless-server-commons/types/interfaces/email';</code></pre>
+
+    <h2>Context</h2>
+    <p>This barrel export pattern allows consumers to import multiple interfaces from a single import statement, improving code organization and reducing import complexity.</p>
     </div>
   </body>
 </html>

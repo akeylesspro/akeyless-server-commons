@@ -8,17 +8,59 @@
   <body>
     <div class="content">
     <h1>src/managers/cache_manager.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Singleton in-memory cache for arrays and objects by key.</p>
+    <p>Singleton in-memory cache manager for storing arrays and objects by key. Provides fast access to frequently accessed data that is populated by Firebase snapshots or Redis subscriptions. Data persists for the lifetime of the server process.</p>
+
+    <h2>Architecture</h2>
+    <h3>Singleton Pattern</h3>
+    <p>The <code>CacheManager</code> uses the singleton pattern to ensure a single shared cache instance across the entire application.</p>
+
     <h2>Exports and behavior</h2>
+    
+    <h3><code>CacheManager</code> Class</h3>
     <ul>
-      <li><code>CacheManager.getInstance()</code> returns a singleton.</li>
-      <li><code>setArrayData</code> / <code>getArrayData</code> (defaults to empty array).</li>
-      <li><code>setObjectData</code> / <code>getObjectData</code> (default optional).</li>
-      <li><code>cache_manager</code> is the singleton instance.</li>
+      <li><code>getInstance(): CacheManager</code> - Returns the singleton instance</li>
+      <li><code>setArrayData(key: string, data: any[]): void</code> - Stores an array in the cache</li>
+      <li><code>getArrayData(key: string): any[]</code> - Retrieves an array from the cache (returns empty array if not found)</li>
+      <li><code>setObjectData(key: string, data: any): void</code> - Stores an object in the cache</li>
+      <li><code>getObjectData(key: string, default_value: any = null): any</code> - Retrieves an object from the cache (returns default_value if not found)</li>
     </ul>
+
+    <h3><code>cache_manager: CacheManager</code></h3>
+    <p>Exported singleton instance for direct use.</p>
+
+    <h2>Common Patterns</h2>
+    <ul>
+      <li><strong>Array Cache Pattern</strong> - Used for collections accessed as arrays</li>
+      <li><strong>Object Cache Pattern</strong> - Used for collections accessed by ID (keyed by document ID)</li>
+      <li><strong>Settings Pattern</strong> - Common pattern for settings objects with safe access</li>
+    </ul>
+
+    <h2>Cache Population</h2>
+    <p>Cache is populated by:</p>
+    <ol>
+      <li><strong>Firebase Snapshots</strong> - Real-time Firestore listeners update cache</li>
+      <li><strong>Redis Snapshots</strong> - Redis Pub/Sub updates cache</li>
+      <li><strong>Task Results</strong> - Task helpers save results to cache</li>
+      <li><strong>Manual Updates</strong> - Application code can update cache directly</li>
+    </ol>
+
     <h2>Context</h2>
-    <p>Used across helpers for caching settings, snapshots, and task data.</p>
+    <p>The cache manager is central to application performance:</p>
+    <ul>
+      <li><strong>Fast Access</strong> - In-memory access (no database queries)</li>
+      <li><strong>Real-time Updates</strong> - Updated by snapshots automatically</li>
+      <li><strong>Flexible Storage</strong> - Supports both arrays and objects</li>
+      <li><strong>Singleton Pattern</strong> - Single shared instance</li>
+    </ul>
+    <p><strong>Best Practices:</strong></p>
+    <ul>
+      <li>Use array cache for collections accessed sequentially</li>
+      <li>Use object cache for collections accessed by ID</li>
+      <li>Always provide default values for object access</li>
+      <li>Don't mutate cached arrays/objects directly (create copies)</li>
+    </ul>
     </div>
   </body>
 </html>

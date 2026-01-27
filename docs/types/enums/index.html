@@ -9,11 +9,27 @@
     <div class="content">
     <h1>src/types/enums/index.ts</h1>
     <h2>Purpose</h2>
-    <p>Barrel export for enums.</p>
+    <p>Barrel export file that re-exports all enums from the enums subdirectory. This file allows importing all enums from a single import path.</p>
+
     <h2>Exports</h2>
+    <p>All exports are re-exported from the <code>global</code> module:</p>
+
+    <h3><a href="global.html"><code>global</code></a></h3>
     <ul>
-      <li><a href="global.html"><code>global</code></a></li>
+      <li><code>SimProvider</code> - SIM card provider enumeration</li>
+      <li><code>NxServiceName</code> - Service name union type</li>
+      <li><code>NxServiceNameMap</code> - Service name to URL mapping type</li>
     </ul>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all enums from barrel export
+import { SimProvider, NxServiceName, NxServiceNameMap } from 'akeyless-server-commons/types/enums';
+
+// Or import specific module
+import { SimProvider, NxServiceName } from 'akeyless-server-commons/types/enums/global';</code></pre>
+
+    <h2>Context</h2>
+    <p>This barrel export pattern allows consumers to import multiple enums from a single import statement, improving code organization and reducing import complexity.</p>
     </div>
   </body>
 </html>

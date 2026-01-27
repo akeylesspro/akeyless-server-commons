@@ -8,22 +8,60 @@
   <body>
     <div class="content">
     <h1>src/helpers/location_helpers.ts</h1>
+    
     <h2>Purpose</h2>
-    <p>Geospatial helpers for distance calculation and Google Maps URLs.</p>
+    <p>Geospatial utility functions for calculating distances between geographic coordinates and generating Google Maps URLs. Uses the Haversine formula for accurate distance calculations on Earth's surface.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li><code>Geo</code> type from <code>akeyless-types-commons</code></li>
+      <li><code>Geo</code> type from <code>akeyless-types-commons</code> - Geographic coordinate interface with <code>lat</code> and <code>lng</code> properties</li>
     </ul>
 
     <h2>Exports and behavior</h2>
+    
+    <h3><code>get_distance_in_meters_between_geo_points(location1: Geo, location2: Geo): number</code></h3>
+    <p>Calculates the great-circle distance between two geographic points using the Haversine formula.</p>
+    <p><strong>Parameters:</strong></p>
     <ul>
-      <li><code>get_distance_in_meters_between_geo_points</code>: Haversine distance in meters.</li>
-      <li><code>get_location_url</code>: Google Maps URL for coordinates.</li>
+      <li><code>location1</code> - First location with <code>lat</code> (latitude) and <code>lng</code> (longitude) properties</li>
+      <li><code>location2</code> - Second location with <code>lat</code> and <code>lng</code> properties</li>
     </ul>
+    <p><strong>Returns:</strong> Distance in meters (number)</p>
+    <p><strong>Algorithm:</strong></p>
+    <ul>
+      <li>Uses Haversine formula for calculating distances on a sphere</li>
+      <li>Assumes Earth's radius of 6,371,000 meters (6,371 km)</li>
+      <li>Converts degrees to radians for trigonometric calculations</li>
+      <li>Formula accounts for Earth's curvature for accurate results</li>
+    </ul>
+    <p><strong>Accuracy:</strong> Accurate for distances up to a few hundred kilometers. For very long distances, consider using more sophisticated methods.</p>
+
+    <h3><code>get_location_url(location: Geo): string</code></h3>
+    <p>Generates a Google Maps URL for viewing a location.</p>
+    <p><strong>Parameters:</strong></p>
+    <ul>
+      <li><code>location</code> - Location with <code>lat</code> and <code>lng</code> properties</li>
+    </ul>
+    <p><strong>Returns:</strong> Google Maps URL string</p>
+    <p><strong>URL Format:</strong> <code>https://www.google.com/maps?q={lat},{lng}</code></p>
+    <p><strong>Behavior:</strong> Creates a Google Maps link that opens the location when clicked</p>
 
     <h2>Context</h2>
-    <p>Used by services needing distance or location sharing utilities.</p>
+    <p>These helpers are used for:</p>
+    <ul>
+      <li><strong>Distance Calculations</strong> - Determining proximity between vehicles, users, or locations</li>
+      <li><strong>Location Sharing</strong> - Generating shareable map links for locations</li>
+      <li><strong>Geofencing</strong> - Checking if locations are within certain distances</li>
+      <li><strong>Route Planning</strong> - Calculating distances for route optimization</li>
+    </ul>
+    <p><strong>Use Cases:</strong></p>
+    <ul>
+      <li>Vehicle tracking and proximity alerts</li>
+      <li>Finding nearest service locations</li>
+      <li>Calculating delivery distances</li>
+      <li>Location-based notifications</li>
+      <li>Map link generation for UI components</li>
+    </ul>
     </div>
   </body>
 </html>

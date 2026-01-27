@@ -8,16 +8,79 @@
   <body>
     <div class="content">
     <h1>src/middlewares</h1>
+    <h2>Overview</h2>
+    <p>The middlewares module provides Express middleware functions for common server-side concerns including request validation, authentication, error handling, and data normalization. These middlewares can be composed together to build robust API endpoints with consistent behavior.</p>
+
     <h2>Contents</h2>
-    <ul>
-      <li><a href="global_mw.html"><code>global_mw.ts</code></a>: validation and request logging middleware.</li>
-      <li><a href="auth_mw.html"><code>auth_mw.ts</code></a>: auth helpers for Firebase users and API clients.</li>
-      <li><a href="error_handling.html"><code>error_handling.ts</code></a>: async wrapper and global error handler.</li>
-      <li><a href="trim_mw.html"><code>trim_mw.ts</code></a>: request body string trimming.</li>
-      <li><a href="index.html"><code>index.ts</code></a>: barrel exports.</li>
-    </ul>
+
+    <h3><a href="global_mw.html"><code>global_mw.ts</code></a></h3>
+    <p>Comprehensive validation middleware and request logging utilities.</p>
+    <p><strong>Exports:</strong> <code>mandatory</code>, <code>optional</code>, <code>request_logger</code></p>
+    <p><strong>Features:</strong> Type validation, length constraints, array element validation, object required keys, configurable logging</p>
+
+    <h3><a href="auth_mw.html"><code>auth_mw.ts</code></a></h3>
+    <p>Authentication middleware for different user/client types.</p>
+    <p><strong>Exports:</strong> <code>verify_user_auth</code>, <code>nx_user_login</code>, <code>client_login</code></p>
+    <p><strong>Features:</strong> Firebase token verification, NX user lookup, API client authentication</p>
+
+    <h3><a href="error_handling.html"><code>error_handling.ts</code></a></h3>
+    <p>Error handling utilities for async routes and global error management.</p>
+    <p><strong>Exports:</strong> <code>async_error_handler</code>, <code>error_handler</code></p>
+    <p><strong>Features:</strong> Automatic error catching, centralized logging, standardized error responses</p>
+
+    <h3><a href="trim_mw.html"><code>trim_mw.ts</code></a></h3>
+    <p>Request body normalization middleware.</p>
+    <p><strong>Exports:</strong> <code>trim_body_middleware</code></p>
+    <p><strong>Features:</strong> Recursive string trimming, handles nested objects and arrays</p>
+
+    <h3><a href="index.html"><code>index.ts</code></a></h3>
+    <p>Barrel export file for convenient importing.</p>
+
+    <h2>Common Usage Patterns</h2>
+    <h3>Request Validation + Authentication</h3>
+    <pre><code>app.post('/api/users',
+  trim_body_middleware(),
+  mandatory({
+    body: [
+      { key: 'email', type: 'string', length: 5 },
+      { key: 'name', type: 'string' }
+    ]
+  }),
+  nx_user_login,
+  async_error_handler(async (req, res) => {
+    // req.body.user is available and validated
+    res.json(json_ok({ user: req.body.user }));
+  })
+);</code></pre>
+
+    <h2>Middleware Order</h2>
+    <p>Recommended middleware order:</p>
+    <ol>
+      <li>Body Parsing - <code>express.json()</code></li>
+      <li>Request Logging - <code>request_logger()</code> (optional)</li>
+      <li>Body Trimming - <code>trim_body_middleware()</code> (optional)</li>
+      <li>Validation - <code>mandatory()</code> or <code>optional()</code></li>
+      <li>Authentication - <code>verify_user_auth</code>, <code>nx_user_login</code>, or <code>client_login</code></li>
+      <li>Route Handlers - Your business logic</li>
+      <li>Error Handler - <code>error_handler()</code> (last)</li>
+    </ol>
+
     <h2>Context</h2>
-    <p>Middlewares standardize request validation, authentication, logging, and error handling across services. They depend on <a href="../helpers/index.html">helpers</a> for JSON responses, auth verification, and trimming.</p>
+    <p>These middlewares standardize request handling across all Akeyless microservices:</p>
+    <ul>
+      <li><strong>Consistency</strong> - Same validation and authentication patterns everywhere</li>
+      <li><strong>Type Safety</strong> - TypeScript types ensure correct usage</li>
+      <li><strong>Error Handling</strong> - Centralized error management</li>
+      <li><strong>Security</strong> - Authentication and input validation built-in</li>
+      <li><strong>Observability</strong> - Request logging for debugging and monitoring</li>
+    </ul>
+
+    <h2>Related Modules</h2>
+    <ul>
+      <li><a href="../helpers/index.html">Helpers</a> - Middlewares use helpers for JSON responses, auth verification, and data manipulation</li>
+      <li><a href="../types/index.html">Types</a> - Middlewares use types for consistent interfaces and type safety</li>
+      <li><a href="../managers/index.html">Managers</a> - Middlewares use managers for logging and caching</li>
+    </ul>
     </div>
   </body>
 </html>

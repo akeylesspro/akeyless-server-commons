@@ -9,27 +9,195 @@
     <div class="content">
     <h1>src/middlewares/global_mw.ts</h1>
     <h2>Purpose</h2>
-    <p>Validation middleware for mandatory/optional parameters and request logging utilities.</p>
+    <p>Provides comprehensive request validation middleware for Express applications, including mandatory and optional parameter validation, and configurable request logging. Ensures that incoming requests meet specified requirements before reaching route handlers.</p>
 
     <h2>Dependencies</h2>
     <ul>
-      <li><a href="../helpers/global_helpers.html"><code>json_failed</code></a> from helpers</li>
-      <li>Types: <a href="../types/interfaces/global.html"><code>MandatoryObject</code></a>, <a href="../types/interfaces/global.html"><code>MandatoryParams</code></a>, <a href="../types/interfaces/global.html"><code>LogRequests</code></a>, <a href="../types/types/global.html"><code>MW</code></a></li>
-      <li><a href="../managers/logger_manager.html"><code>logger</code></a> manager</li>
+      <li><strong>Helpers:</strong>
+        <ul>
+          <li><a href="../helpers/global_helpers.html"><code>json_failed</code></a> - Creates standardized error response objects for validation failures</li>
+        </ul>
+      </li>
+      <li><strong>Types:</strong>
+        <ul>
+          <li><a href="../types/interfaces/global.html"><code>MandatoryObject</code></a> - Interface defining validation rules for a single parameter</li>
+          <li><a href="../types/interfaces/global.html"><code>MandatoryParams</code></a> - Interface containing optional arrays of body and header validation rules</li>
+          <li><a href="../types/interfaces/global.html"><code>LogRequests</code></a> - Interface defining flags for which request parts to log</li>
+          <li><a href="../types/types/global.html"><code>MW</code></a> - Express middleware type definition</li>
+          <li><a href="../types/types/global.html"><code>Route</code></a>, <a href="../types/types/global.html"><code>Service</code></a> - Route and service handler types</li>
+        </ul>
+      </li>
+      <li><strong>Managers:</strong>
+        <ul>
+          <li><a href="../managers/logger_manager.html"><code>logger</code></a> - Logging manager for request logging</li>
+        </ul>
+      </li>
     </ul>
 
-    <h2>Exports and behavior</h2>
+    <h2>Exports</h2>
+
+    <h3><code>mandatory({ body, headers }: MandatoryParams): MW</code></h3>
+    <p>Middleware factory that creates Express middleware to enforce mandatory parameter validation. All specified parameters must be present and pass validation rules.</p>
+    <p><strong>Parameters:</strong></p>
     <ul>
-      <li><code>mandatory</code>: enforces presence, type, lengths, object keys.</li>
-      <li><code>optional</code>: validates only when values are present.</li>
-      <li><code>request_logger</code>: conditional request logging.</li>
+      <li><code>body?: MandatoryObject[]</code> - Array of validation rules for request body parameters</li>
+      <li><code>headers?: MandatoryObject[]</code> - Array of validation rules for request header parameters</li>
     </ul>
+    <p><strong>Returns:</strong> Express middleware function <code>MW</code></p>
+    <p><strong>Behavior:</strong></p>
+    <ul>
+      <li>Validates all specified body parameters against their rules</li>
+      <li>Validates all specified header parameters against their rules</li>
+      <li>If any validation fails, responds immediately with <code>json_failed</code> error and does not call <code>next()</code></li>
+      <li>If all validations pass, calls <code>next()</code> to continue to the next middleware/route handler</li>
+      <li>Uses <code>validateParameter</code> internally with <code>is_mandatory = true</code></li>
+    </ul>
+    <p><strong>Validation Rules Applied:</strong></p>
+    <ul>
+      <li>Parameter must exist (undefined values fail)</li>
+      <li>Type checking (string, number, boolean, object, array)</li>
+      <li>Minimum length for strings and arrays</li>
+      <li>Array element type validation</li>
+      <li>Required keys for object types</li>
+      <li>Non-empty values for required object keys</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>app.post('/api/users',
+  mandatory({
+    body: [
+      { key: 'email', type: 'string', length: 5 },
+      { key: 'age', type: 'number' },
+      { key: 'tags', type: 'array', array_types: ['string'], length: 1 }
+    ],
+    headers: [
+      { key: 'authorization', type: 'string' }
+    ]
+  }),
+  (req, res) => {
+    // All parameters validated and available here
+  }
+);</code></pre>
+    <p><strong>Error Response:</strong> Returns <code>json_failed</code> with descriptive error messages like "missing mandatory parameter: email", "parameter email must be of type: string", etc.</p>
 
-    <h2>Internal logic</h2>
-    <p><code>validateParameter</code> checks types, lengths, array element types, and required object keys.</p>
+    <h3><code>optional({ body, headers }: MandatoryParams): MW</code></h3>
+    <p>Middleware factory that creates Express middleware to validate optional parameters. Only validates parameters that are present; missing parameters are allowed.</p>
+    <p><strong>Parameters:</strong> Same as <code>mandatory</code></p>
+    <p><strong>Returns:</strong> Express middleware function <code>MW</code></p>
+    <p><strong>Behavior:</strong></p>
+    <ul>
+      <li>Only validates parameters that exist in the request</li>
+      <li>If a parameter is undefined, validation is skipped (unlike <code>mandatory</code>)</li>
+      <li>If a parameter exists but fails validation, responds with <code>json_failed</code> error</li>
+      <li>Uses the same validation rules as <code>mandatory</code> but with <code>is_mandatory = false</code></li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>app.post('/api/users',
+  optional({
+    body: [
+      { key: 'phone', type: 'string', length: 10 }, // Optional, but if present must be valid
+      { key: 'metadata', type: 'object', required_keys: ['source'] }
+    ]
+  }),
+  (req, res) => {
+    // phone and metadata are optional, but if present they're validated
+  }
+);</code></pre>
+
+    <h3><code>request_logger(log_requests: LogRequests): RequestHandler</code></h3>
+    <p>Middleware factory that creates Express middleware for conditional request logging.</p>
+    <p><strong>Parameters:</strong></p>
+    <ul>
+      <li><code>log_requests: LogRequests</code> - Configuration object with boolean flags:
+        <ul>
+          <li><code>url?: boolean</code> - Log the request method and URL</li>
+          <li><code>headers?: boolean</code> - Log request headers</li>
+          <li><code>query?: boolean</code> - Log query parameters</li>
+          <li><code>body?: boolean</code> - Log request body (only for POST, PUT, PATCH methods)</li>
+        </ul>
+      </li>
+    </ul>
+    <p><strong>Returns:</strong> Express RequestHandler middleware</p>
+    <p><strong>Behavior:</strong></p>
+    <ul>
+      <li>Logs request information based on the provided flags</li>
+      <li>Always logs the method and URL if <code>url</code> flag is true: <code>"GET /api/users"</code></li>
+      <li>Logs headers if <code>headers</code> flag is true</li>
+      <li>Logs query parameters if <code>query</code> flag is true</li>
+      <li>Logs body only for POST, PUT, PATCH methods if <code>body</code> flag is true</li>
+      <li>Uses <code>logger.log()</code> for all logging</li>
+      <li>Always calls <code>next()</code> to continue the middleware chain</li>
+    </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>app.use(request_logger({
+  url: true,
+  headers: true,
+  body: true,
+  query: true
+}));</code></pre>
+
+    <h2>Internal Implementation</h2>
+    <h3><code>validateParameter(data: any, parameter: MandatoryObject, is_mandatory: boolean)</code></h3>
+    <p>Internal validation function that performs comprehensive parameter validation.</p>
+    <p><strong>Validation Steps:</strong></p>
+    <ol>
+      <li><strong>Existence Check:</strong> If parameter is undefined and <code>is_mandatory</code> is true, throws error</li>
+      <li><strong>Type Validation:</strong> Checks if value matches expected type (string, number, boolean, object, array)</li>
+      <li><strong>Length Validation:</strong> Validates minimum length for strings and arrays</li>
+      <li><strong>Array Element Type Validation:</strong> Validates each array element's type if <code>array_types</code> is specified</li>
+      <li><strong>Object Required Keys Validation:</strong> Checks that all required keys exist and have non-empty values</li>
+    </ol>
+    <p><strong>Error Handling:</strong> All validation errors are thrown as strings and caught by the middleware, then wrapped in <code>json_failed</code> responses.</p>
 
     <h2>Context</h2>
-    <p>Used to standardize input validation and optional request logging across Express routes.</p>
+    <p>These middlewares are used throughout the application to:</p>
+    <ul>
+      <li><strong>Input Validation</strong> - Ensure request data meets API requirements before processing</li>
+      <li><strong>Type Safety</strong> - Validate data types at runtime before they reach route handlers</li>
+      <li><strong>Error Prevention</strong> - Catch invalid data early and return clear error messages</li>
+      <li><strong>Request Logging</strong> - Provide configurable logging for debugging and monitoring</li>
+      <li><strong>API Consistency</strong> - Standardize validation and error responses across all endpoints</li>
+    </ul>
+
+    <h2>Common Use Cases</h2>
+    <h3>Validating User Registration</h3>
+    <pre><code>app.post('/api/register',
+  mandatory({
+    body: [
+      { key: 'email', type: 'string', length: 5 },
+      { key: 'password', type: 'string', length: 8 },
+      { key: 'name', type: 'string', length: 2 }
+    ]
+  }),
+  async (req, res) => {
+    // All fields validated
+  }
+);</code></pre>
+
+    <h3>Validating Nested Objects</h3>
+    <pre><code>app.post('/api/order',
+  mandatory({
+    body: [
+      { key: 'items', type: 'array', length: 1, array_types: ['object'] },
+      { 
+        key: 'shipping', 
+        type: 'object', 
+        required_keys: ['address', 'city', 'zip'] 
+      }
+    ]
+  }),
+  async (req, res) => {
+    // items array and shipping object validated
+  }
+);</code></pre>
+
+    <h2>Best Practices</h2>
+    <ul>
+      <li>Use <code>mandatory</code> for required fields - Don't rely on route handlers to check for required fields</li>
+      <li>Use <code>optional</code> for optional fields - Validate optional fields if they're provided</li>
+      <li>Be specific with validation rules - Use length constraints and type checks to catch errors early</li>
+      <li>Use <code>request_logger</code> judiciously - Don't log sensitive data in production</li>
+      <li>Combine with auth middlewares - Use validation before authentication to fail fast</li>
+    </ul>
     </div>
   </body>
 </html>

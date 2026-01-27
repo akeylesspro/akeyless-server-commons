@@ -9,18 +9,126 @@
     <div class="content">
     <h1>src/middlewares/trim_mw.ts</h1>
     <h2>Purpose</h2>
-    <p>Middleware to trim string values in request bodies.</p>
+    <p>Provides a middleware function that automatically trims whitespace from all string values in request bodies. This ensures consistent data handling by removing leading and trailing whitespace from user input before it reaches route handlers.</p>
+
     <h2>Dependencies</h2>
     <ul>
-      <li><a href="../helpers/global_helpers.html"><code>trim_strings</code></a> helper</li>
-      <li><a href="../types/types/global.html"><code>MW</code></a> type</li>
+      <li><strong>Helpers:</strong>
+        <ul>
+          <li><a href="../helpers/global_helpers.html"><code>trim_strings</code></a> - Recursively trims all string values in an object</li>
+        </ul>
+      </li>
+      <li><strong>Types:</strong>
+        <ul>
+          <li><a href="../types/types/global.html"><code>MW</code></a> - Express middleware type definition</li>
+        </ul>
+      </li>
     </ul>
-    <h2>Exports and behavior</h2>
+
+    <h2>Exports</h2>
+
+    <h3><code>trim_body_middleware(): MW</code></h3>
+    <p>Middleware factory that returns an Express middleware function to trim all string values in the request body.</p>
+    <p><strong>Returns:</strong> Express middleware function <code>MW</code></p>
+    <p><strong>Behavior:</strong></p>
     <ul>
-      <li><code>trim_body_middleware</code>: trims all strings in <code>req.body</code> and continues.</li>
+      <li>Checks if <code>req.body</code> exists and is an object</li>
+      <li>If <code>req.body</code> is an object, recursively processes it using <code>trim_strings</code> helper to trim all string values</li>
+      <li>Replaces <code>req.body</code> with the trimmed version</li>
+      <li>Calls <code>next()</code> to continue to the next middleware/route handler</li>
+      <li>If <code>req.body</code> is not an object or doesn't exist, still calls <code>next()</code> (no error thrown)</li>
     </ul>
+    <p><strong>Usage:</strong></p>
+    <pre><code>// Apply globally to all routes
+app.use(trim_body_middleware());
+
+// Or apply to specific routes
+app.post('/api/users', trim_body_middleware(), (req, res) => {
+  // req.body.email and all other string fields are trimmed
+  const email = req.body.email; // "  user@example.com  " becomes "user@example.com"
+});</code></pre>
+
+    <p><strong>What Gets Trimmed:</strong></p>
+    <ul>
+      <li>All string values at any nesting level in the request body</li>
+      <li>Nested objects: <code>{ user: { name: "  John  " } }</code> → <code>{ user: { name: "John" } }</code></li>
+      <li>Arrays of strings: <code>{ tags: ["  tag1  ", "  tag2  "] }</code> → <code>{ tags: ["tag1", "tag2"] }</code></li>
+      <li>Arrays of objects: <code>{ items: [{ name: "  Item  " }] }</code> → <code>{ items: [{ name: "Item" }] }</code></li>
+    </ul>
+
+    <p><strong>What Doesn't Get Modified:</strong></p>
+    <ul>
+      <li>Non-string values (numbers, booleans, null, undefined)</li>
+      <li>Non-object request bodies (strings, numbers, etc.)</li>
+      <li>Missing request bodies</li>
+    </ul>
+
     <h2>Context</h2>
-    <p>Used in server bootstrap to normalize input payloads.</p>
+    <p>This middleware is used in server bootstrap to normalize input payloads before they reach route handlers. It helps:</p>
+    <ul>
+      <li><strong>Data Consistency</strong> - Ensures all string inputs are trimmed, preventing issues with leading/trailing whitespace</li>
+      <li><strong>Database Integrity</strong> - Prevents storing strings with unwanted whitespace in the database</li>
+      <li><strong>User Experience</strong> - Handles cases where users accidentally include spaces when copying/pasting or typing</li>
+      <li><strong>Validation</strong> - Works well with validation middlewares like <code>mandatory</code> - trimmed values are validated after trimming</li>
+      <li><strong>Normalization</strong> - Standardizes input data format across all endpoints</li>
+    </ul>
+
+    <h2>Common Use Cases</h2>
+    <h3>User Registration</h3>
+    <pre><code>app.post('/api/register',
+  trim_body_middleware(),
+  mandatory({
+    body: [
+      { key: 'email', type: 'string' },
+      { key: 'name', type: 'string' }
+    ]
+  }),
+  async (req, res) => {
+    // Email and name are already trimmed
+    // "  user@example.com  " → "user@example.com"
+  }
+);</code></pre>
+
+    <h2>Integration Notes</h2>
+    <ul>
+      <li><strong>Order Matters</strong> - Typically applied early in the middleware chain, before validation</li>
+      <li><strong>Works with Body Parsers</strong> - Requires Express body parser middleware (like <code>express.json()</code>) to be applied first</li>
+      <li><strong>Non-Destructive</strong> - Only modifies string values, leaves other data types unchanged</li>
+      <li><strong>Recursive</strong> - Handles deeply nested objects and arrays automatically</li>
+      <li><strong>Safe</strong> - Doesn't throw errors if body is missing or not an object</li>
+    </ul>
+
+    <h2>Best Practices</h2>
+    <ul>
+      <li>Apply Early - Use <code>trim_body_middleware()</code> before validation middlewares so trimmed values are validated</li>
+      <li>Global Application - Consider applying globally if all endpoints should trim input</li>
+      <li>Combine with Validation - Use with <code>mandatory</code> or <code>optional</code> middlewares for complete input sanitization</li>
+      <li>Be Aware of Edge Cases - Empty strings become empty strings (not null), whitespace-only strings become empty strings</li>
+    </ul>
+
+    <h2>Example Transformation</h2>
+    <p><strong>Input:</strong></p>
+    <pre><code>{
+  "email": "  user@example.com  ",
+  "name": "  John Doe  ",
+  "age": 30,
+  "tags": ["  tag1  ", "  tag2  "],
+  "metadata": {
+    "source": "  web  ",
+    "active": true
+  }
+}</code></pre>
+    <p><strong>After <code>trim_body_middleware()</code>:</strong></p>
+    <pre><code>{
+  "email": "user@example.com",
+  "name": "John Doe",
+  "age": 30,
+  "tags": ["tag1", "tag2"],
+  "metadata": {
+    "source": "web",
+    "active": true
+  }
+}</code></pre>
     </div>
   </body>
 </html>

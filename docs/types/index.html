@@ -9,12 +9,81 @@
     <div class="content">
     <h1>src/types/index.ts</h1>
     <h2>Purpose</h2>
-    <p>Barrel export for all type categories.</p>
+    <p>Barrel export file that re-exports all type categories (types, interfaces, enums) for convenient importing. This file allows importing all types from a single import path.</p>
+
     <h2>Exports</h2>
+    <p>All exports are re-exported from their respective modules:</p>
+
+    <h3><a href="types/index.html"><code>types</code></a></h3>
+    <p>Type aliases for HTTP responses, middleware, routes, Firebase operations, and application helpers.</p>
     <ul>
-      <li><a href="types/index.html"><code>types</code></a></li>
-      <li><a href="interfaces/index.html"><code>interfaces</code></a></li>
-      <li><a href="enums/index.html"><code>enums</code></a></li>
+      <li><a href="types/global.html"><code>types/global</code></a> - Core types (MW, Service, Route, JsonOK, JsonFailed, etc.)</li>
+      <li><a href="types/firebase_types.html"><code>types/firebase_types</code></a> - Firestore query and snapshot types</li>
+    </ul>
+
+    <h3><a href="interfaces/index.html"><code>interfaces</code></a></h3>
+    <p>Interfaces for configuration objects, data models, and middleware options.</p>
+    <ul>
+      <li><a href="interfaces/global.html"><code>interfaces/global</code></a> - Middleware and app configuration interfaces</li>
+      <li><a href="interfaces/email.html"><code>interfaces/email</code></a> - Email data models (EmailData, EmailSettings, EmailAttachment)</li>
+    </ul>
+
+    <h3><a href="enums/index.html"><code>enums</code></a></h3>
+    <p>Shared enums and service name type definitions.</p>
+    <ul>
+      <li><a href="enums/global.html"><code>enums/global</code></a> - Platform-wide enums (SimProvider, NxServiceName, NxServiceNameMap)</li>
+    </ul>
+
+    <h2>Usage</h2>
+    <pre><code>// Import all types
+import { MW, JsonOK, MandatoryParams, EmailData, SimProvider } from 'akeyless-server-commons/types';
+
+// Import specific categories
+import { types } from 'akeyless-server-commons/types/types';
+import { interfaces } from 'akeyless-server-commons/types/interfaces';
+import { enums } from 'akeyless-server-commons/types/enums';</code></pre>
+
+    <h2>Type Categories</h2>
+    <h3>Core Types (<code>types/</code>)</h3>
+    <p>Foundation types used throughout the package:</p>
+    <ul>
+      <li><strong>HTTP Response Types</strong> - <code>JsonOK&lt;T&gt;</code>, <code>JsonFailed</code> for standardized API responses</li>
+      <li><strong>Express Types</strong> - <code>MW</code>, <code>Service</code>, <code>Route</code> for middleware and route handlers</li>
+      <li><strong>Application Types</strong> - <code>MainRouter</code>, <code>AddAuditRecord</code> for app-level functions</li>
+      <li><strong>Firebase Types</strong> - Query and snapshot types for Firestore operations</li>
+    </ul>
+
+    <h3>Interfaces (<code>interfaces/</code>)</h3>
+    <p>Configuration and data model interfaces:</p>
+    <ul>
+      <li><strong>Middleware Interfaces</strong> - <code>MandatoryObject</code>, <code>MandatoryParams</code>, <code>LogRequests</code> for request validation</li>
+      <li><strong>App Interfaces</strong> - <code>AppOptions</code> for server initialization</li>
+      <li><strong>Email Interfaces</strong> - <code>EmailData</code>, <code>EmailAttachment</code>, <code>EmailSettings</code> for email operations</li>
+    </ul>
+
+    <h3>Enums (<code>enums/</code>)</h3>
+    <p>Enumerations and service name types:</p>
+    <ul>
+      <li><strong>Provider Enum</strong> - <code>SimProvider</code> for SIM card providers</li>
+      <li><strong>Service Types</strong> - <code>NxServiceName</code>, <code>NxServiceNameMap</code> for service identification</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>This barrel export pattern provides:</p>
+    <ul>
+      <li><strong>Convenience</strong> - Import multiple types from different categories in a single statement</li>
+      <li><strong>Organization</strong> - Types are logically grouped but accessible from one location</li>
+      <li><strong>Flexibility</strong> - Can still import from specific subdirectories if needed</li>
+      <li><strong>Type Safety</strong> - All exports maintain full TypeScript type information</li>
+      <li><strong>Discoverability</strong> - Easy to find and use types across the entire package</li>
+    </ul>
+
+    <h2>Related Files</h2>
+    <ul>
+      <li><a href="types/README.html">types/README.html</a> - Detailed documentation for type aliases</li>
+      <li><a href="interfaces/README.html">interfaces/README.html</a> - Detailed documentation for interfaces</li>
+      <li><a href="enums/README.html">enums/README.html</a> - Detailed documentation for enums</li>
+      <li><a href="README.html">README.html</a> - Overview of the entire types module</li>
     </ul>
     </div>
   </body>
