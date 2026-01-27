@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/start.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/start.ts</h1>
+    <h2>Purpose</h2>
+    <p>Express server bootstrap with common middleware, logging, error handling, and optional Redis initialization.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>express</code>, <code>cors</code></li>
+      <li><code>logger</code> manager</li>
+      <li><a href="global_helpers.html"><code>init_env_variables</code></a>, <a href="firebase_helpers.html"><code>init_snapshots</code></a></li>
+      <li>Middlewares: <a href="../middlewares/error_handling.html"><code>error_handler</code></a>, <a href="../middlewares/global_mw.html"><code>request_logger</code></a>, <a href="../middlewares/trim_mw.html"><code>trim_body_middleware</code></a></li>
+      <li><a href="redis/initialize.html"><code>init_redis</code></a></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>start_server</code>: builds Express app, installs middleware, starts server, optionally init Redis.</li>
+      <li><code>basic_init</code>: starts server then initializes snapshots, exits on failure.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by services to standardize boot flow and ensure caches are populated early.</p>
+    </div>
+  </body>
+</html>

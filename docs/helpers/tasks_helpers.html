@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/tasks_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/tasks_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>Task execution orchestration with status tracking, caching, and optional storage persistence.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="../managers/cache_manager.html"><code>cache_manager</code></a>, <a href="../managers/logger_manager.html"><code>logger</code></a></li>
+      <li>Firebase helpers: <a href="firebase_helpers.html"><code>set_document</code></a>, <a href="firebase_helpers.html"><code>get_document_by_id_optional</code></a></li>
+      <li>Firebase Admin storage</li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>TaskName</code>, <code>TaskStatus</code>, <code>TaskSaveOptions</code></li>
+      <li><code>execute_task</code>: write status, run task, store output, update status.</li>
+      <li><code>get_task_data</code>: cache-first with Firestore/Storage fallback.</li>
+      <li><code>get_task_data_from_storage</code> and <code>keep_task_data_in_storage</code>.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used for scheduled/recurring backend tasks with persisted output and cache acceleration.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>server_commons docs</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>server_commons docs</h1>
+    <p>This documentation mirrors the <code>src</code> tree and explains each TypeScript file.</p>
+    <p>Each folder also has a <code>README.md</code> and <code>README.html</code> that list its contents.</p>
+    <p><strong>📖 Start here:</strong> <a href="summary.html">Complete Project Summary</a> - Comprehensive guide to what the package contains, how it works, and how to use it.</p>
+
+    <h2>Project map (high level)</h2>
+    <ul>
+      <li><a href="helpers/index.html"><code>src/helpers</code></a>: env bootstrapping, Firebase data access, Redis snapshots, messaging/email, phone utilities, geo, tasks, and server bootstrap.</li>
+      <li><a href="managers/index.html"><code>src/managers</code></a>: singletons for cache, logging, and translations.</li>
+      <li><a href="middlewares/index.html"><code>src/middlewares</code></a>: Express middleware for validation, auth, error handling, logging, and body trimming.</li>
+      <li><a href="types/index.html"><code>src/types</code></a>: shared types, enums, and interfaces.</li>
+      <li><a href="index.html"><code>src/index.ts</code></a>: package barrel exports.</li>
+    </ul>
+
+    <h2>Cross-module relationships</h2>
+    <ul>
+      <li>Helpers depend on managers for caching, logging, and translations.</li>
+      <li>Middlewares depend on helpers for JSON responses, auth verification, and trimming.</li>
+      <li>Redis snapshot helpers reuse Firebase snapshot parsing flows.</li>
+      <li>Types are imported across helpers/managers/middlewares to keep API shapes consistent.</li>
+    </ul>
+    </div>
+  </body>
+</html>

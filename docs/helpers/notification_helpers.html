@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/notification_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/notification_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>SMS and push-notification helpers for devices and mobile users.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>axios</code>, <code>FormData</code>, <code>Twilio</code></li>
+      <li>Firebase <code>messaging</code></li>
+      <li>Managers: <a href="../managers/cache_manager.html"><code>cache_manager</code></a>, <a href="../managers/logger_manager.html"><code>logger</code></a>, <a href="../managers/translation_manager.html"><code>translation_manager</code></a></li>
+      <li>Firebase helpers: <a href="firebase_helpers.html"><code>add_document</code></a>, <a href="firebase_helpers.html"><code>add_audit_record</code></a>, <a href="firebase_helpers.html"><code>get_nx_settings</code></a></li>
+      <li>Phone utilities from <a href="phone_number_helpers.html"><code>phone_number_helpers</code></a></li>
+    </ul>
+
+    <h2>SMS flow</h2>
+    <ul>
+      <li>ICCID → Monogoto, international → Twilio, default → Multisend.</li>
+      <li><code>send_sms</code> expands groups, sends in parallel, and audits.</li>
+      <li><code>keep_outgoing_sms</code> stores outbound SMS in Firestore.</li>
+    </ul>
+
+    <h2>Push notifications</h2>
+    <ul>
+      <li><code>push_event_to_mobile_users</code> resolves drivers and sends FCM.</li>
+      <li><code>send_fcm_message</code> builds and sends a multicast message.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Coordinates notifications using cached settings, translations, and Firebase messaging.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/phone_number_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/phone_number_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>Phone number normalization, validation, and SIM provider inference.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="../types/enums/global.html"><code>SimProvider</code></a> enum from <a href="../types/enums/index.html"><code>src/types/enums</code></a></li>
+      <li><code>TObject</code> from <code>akeyless-types-commons</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li>Long/short checks and Israel/Thailand detection.</li>
+      <li>ICCID detection via <code>is_iccid</code>.</li>
+      <li>SIM provider helpers and <code>get_sim_provider</code>.</li>
+      <li><code>long_short_phone_numbers</code> normalization.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by notification and login helpers to normalize identifiers and route SMS provider logic.</p>
+    </div>
+  </body>
+</html>

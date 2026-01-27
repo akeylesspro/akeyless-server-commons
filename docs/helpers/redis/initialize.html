@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/redis/initialize.ts</title>
+    <link rel="stylesheet" href="../../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/redis/initialize.ts</h1>
+    <h2>Purpose</h2>
+    <p>Initialize Redis commander and listener clients with retry logic and Pub/Sub subscription setup.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>ioredis</code></li>
+      <li><a href="../global_helpers.html"><code>init_env_variables</code></a> for <code>redis_ip</code></li>
+      <li><a href="../../managers/logger_manager.html"><code>logger</code></a></li>
+      <li><a href="keys.html"><code>get_collection_keys</code></a> and <code>REDIS_UPDATES_PREFIX</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li>Connection flags: <code>redis_commander_connected</code>, <code>redis_listener_connected</code></li>
+      <li><code>init_redis</code>: create clients, subscribe, resolve on readiness or timeout.</li>
+      <li><code>get_redis_commander</code>, <code>get_redis_listener</code>: accessors that throw if not initialized.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by snapshot helpers to read collections and subscribe to update events without blocking service startup.</p>
+    </div>
+  </body>
+</html>

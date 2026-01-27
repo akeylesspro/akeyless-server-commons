@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/managers/logger_manager.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/managers/logger_manager.ts</h1>
+    <h2>Purpose</h2>
+    <p>Singleton logger with timestamped logs, table formatting, and Axios-aware error handling.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>moment-timezone</code> for timestamps</li>
+      <li><code>axios</code> for error detection</li>
+      <li><code>parse_error</code> helper</li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>log</code>: timestamped log with optional table formatting.</li>
+      <li><code>error</code>: Axios-aware error output.</li>
+      <li><code>warn</code>: warning output.</li>
+      <li><code>logger</code>: singleton instance.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used throughout helpers/middlewares for consistent logging behavior.</p>
+    </div>
+  </body>
+</html>

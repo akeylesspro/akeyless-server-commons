@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/email_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/email_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>Email helpers using SendGrid, plus attachment creation utilities.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>@sendgrid/mail</code></li>
+      <li><code>fs</code> and <code>path</code> for attachments</li>
+      <li>Firebase helpers: <a href="firebase_helpers.html"><code>add_audit_record</code></a>, <a href="firebase_helpers.html"><code>get_document_by_id</code></a>, <a href="global_helpers.html"><code>ignore_ssl_request</code></a></li>
+      <li>Types: <a href="../types/interfaces/email.html"><code>EmailData</code></a>, <a href="../types/interfaces/email.html"><code>EmailSettings</code></a>, <a href="../types/interfaces/email.html"><code>EmailAttachment</code></a></li>
+      <li><a href="../managers/logger_manager.html"><code>logger</code></a> manager</li>
+    </ul>
+
+    <h2>Attachment utilities</h2>
+    <ul>
+      <li><code>create_attachment_from_file</code></li>
+      <li><code>create_attachment_from_buffer</code></li>
+      <li><code>create_attachment_from_url</code></li>
+      <li><code>get_mime_type</code></li>
+    </ul>
+
+    <h2>Email sending</h2>
+    <ul>
+      <li><code>send_email</code> loads settings, merges groups/cc, sends via SendGrid, audits.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Provides a consistent email flow with settings stored in Firestore and attachments from file/buffer/URL.</p>
+    </div>
+  </body>
+</html>

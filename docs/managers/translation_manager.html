@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/managers/translation_manager.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/managers/translation_manager.ts</h1>
+    <h2>Purpose</h2>
+    <p>Singleton translation cache with helpers for generic translations, SMS, and email messages.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li>Types: <a href="../types/types/global.html"><code>EntityOptions</code></a>, <a href="../types/types/global.html"><code>LangOptions</code></a></li>
+      <li><code>TObject</code> from <code>akeyless-types-commons</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>setTranslationData</code> / <code>getTranslationData</code></li>
+      <li><code>get_translation</code>: resolve <code>entity__key</code> from scope/lang.</li>
+      <li><code>get_sms</code> and <code>get_email</code>: return translation or <code>N/A</code>.</li>
+      <li><code>translation_manager</code> singleton instance.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by notification helpers to render localized messages.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/middlewares/auth_mw.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/middlewares/auth_mw.ts</h1>
+    <h2>Purpose</h2>
+    <p>Authentication middleware for Firebase users, NX users, and API clients.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li>Helpers: <a href="../helpers/firebase_helpers.html"><code>verify_token</code></a>, <a href="../helpers/global_helpers.html"><code>json_failed</code></a>, <a href="../helpers/firebase_helpers.html"><code>query_document_optional</code></a>, <a href="../helpers/login_helpers.html"><code>get_user_by_identifier</code></a></li>
+      <li><a href="../managers/logger_manager.html"><code>logger</code></a> manager</li>
+      <li>Types: <a href="../types/types/global.html"><code>MW</code></a></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>verify_user_auth</code>: validates bearer token, stores <code>firebase_user</code>.</li>
+      <li><code>nx_user_login</code>: resolves NX user, stores <code>user</code>.</li>
+      <li><code>client_login</code>: validates API token, stores <code>client</code>.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used to protect endpoints and to attach authenticated user/client data to the request.</p>
+    </div>
+  </body>
+</html>

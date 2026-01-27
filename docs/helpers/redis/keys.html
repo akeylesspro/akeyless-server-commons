@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/redis/keys.ts</title>
+    <link rel="stylesheet" href="../../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/redis/keys.ts</h1>
+    <h2>Purpose</h2>
+    <p>Redis key/pattern utilities and a SCAN helper.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>ioredis</code></li>
+      <li><code>REDIS_UPDATES_PREFIX</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>get_doc_key</code>: build <code>collection:doc_id</code>.</li>
+      <li><code>get_collection_keys</code>: build <code>collection:*</code> pattern.</li>
+      <li><code>get_channel</code>: build update channel name.</li>
+      <li><code>scan_redis_keys</code>: SCAN loop to list keys.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by snapshot logic to locate keys and subscribe to update channels.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/firebase_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/firebase_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>Initializes Firebase Admin SDK and provides Firestore/Storage helpers, snapshot subscriptions, audit logging, and cached settings access.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>firebase-admin</code>, <code>dotenv</code>, <a href="global_helpers.html"><code>init_env_variables</code></a>.</li>
+      <li>Managers: <a href="../managers/cache_manager.html"><code>cache_manager</code></a>, <a href="../managers/logger_manager.html"><code>logger</code></a>, <a href="../managers/translation_manager.html"><code>translation_manager</code></a>.</li>
+      <li>Redis snapshot integration via <a href="redis/snapshot.html"><code>redis_snapshots_bulk</code></a>.</li>
+      <li>Types from <a href="../types/index.html"><code>src/types</code></a>.</li>
+    </ul>
+
+    <h2>Initialization</h2>
+    <ul>
+      <li>Reads service account env vars into <code>service_account_firebase</code>.</li>
+      <li>Initializes Admin app and exports <code>db</code>, <code>messaging</code>, <code>auth</code>, <code>storage</code>.</li>
+    </ul>
+
+    <h2>Firestore CRUD helpers</h2>
+    <ul>
+      <li><code>simple_extract_data</code>, <code>get_all_documents</code></li>
+      <li><code>query_documents</code>, <code>query_documents_by_conditions</code></li>
+      <li><code>query_document</code>, <code>query_document_optional</code></li>
+      <li><code>query_document_by_conditions</code></li>
+      <li><code>get_document_by_id</code>, <code>get_document_by_id_optional</code></li>
+      <li><code>set_document</code>, <code>add_document</code>, <code>delete_document</code></li>
+    </ul>
+
+    <h2>Auth helper</h2>
+    <ul>
+      <li><code>verify_token</code> validates bearer token via Firebase auth.</li>
+    </ul>
+
+    <h2>Snapshot parsers</h2>
+    <ul>
+      <li>Translation parsers update <a href="../managers/translation_manager.html"><code>translation_manager</code></a>.</li>
+      <li>Settings parsers update <a href="../managers/cache_manager.html"><code>cache_manager</code></a>.</li>
+      <li>Generic object/array parsers for cached collections.</li>
+    </ul>
+
+    <h2>Snapshot orchestration</h2>
+    <ul>
+      <li><code>snapshot</code>: Firestore listener with safe boot and retry.</li>
+      <li><code>init_snapshots</code>: common settings/translations subscriptions.</li>
+      <li><code>snapshot_bulk</code> and <code>snapshot_bulk_by_names</code>.</li>
+    </ul>
+
+    <h2>Audit and storage helpers</h2>
+    <ul>
+      <li><code>add_audit_record</code>: writes to <code>nx-audit</code>.</li>
+      <li><code>save_file_in_storage</code> and <code>get_file_url_from_storage</code>.</li>
+      <li><code>get_nx_settings</code>: cached <code>nx-settings</code> access.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>This is the central integration point for Firestore data access and caching. Helpers and middlewares rely on these exports for auth, settings, and notifications.</p>
+    </div>
+  </body>
+</html>

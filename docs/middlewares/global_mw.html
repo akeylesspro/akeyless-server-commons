@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/middlewares/global_mw.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/middlewares/global_mw.ts</h1>
+    <h2>Purpose</h2>
+    <p>Validation middleware for mandatory/optional parameters and request logging utilities.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="../helpers/global_helpers.html"><code>json_failed</code></a> from helpers</li>
+      <li>Types: <a href="../types/interfaces/global.html"><code>MandatoryObject</code></a>, <a href="../types/interfaces/global.html"><code>MandatoryParams</code></a>, <a href="../types/interfaces/global.html"><code>LogRequests</code></a>, <a href="../types/types/global.html"><code>MW</code></a></li>
+      <li><a href="../managers/logger_manager.html"><code>logger</code></a> manager</li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>mandatory</code>: enforces presence, type, lengths, object keys.</li>
+      <li><code>optional</code>: validates only when values are present.</li>
+      <li><code>request_logger</code>: conditional request logging.</li>
+    </ul>
+
+    <h2>Internal logic</h2>
+    <p><code>validateParameter</code> checks types, lengths, array element types, and required object keys.</p>
+
+    <h2>Context</h2>
+    <p>Used to standardize input validation and optional request logging across Express routes.</p>
+    </div>
+  </body>
+</html>

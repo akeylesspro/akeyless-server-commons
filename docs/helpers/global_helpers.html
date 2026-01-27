@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/global_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/global_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>General-purpose server utilities: env validation, JSON response helpers, URL mapping, geocoding, type guards, trimming, and HTTP helpers.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><code>fs.readFileSync</code> for package version reads.</li>
+      <li><code>axios</code> and <code>https</code> for HTTP calls.</li>
+      <li><a href="../managers/cache_manager.html"><code>cache_manager</code></a>, <a href="../managers/logger_manager.html"><code>logger</code></a> from <a href="../managers/index.html"><code>src/managers</code></a>.</li>
+      <li>Types from <a href="../types/index.html"><code>src/types</code></a> and <code>akeyless-types-commons</code>.</li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>init_env_variables(required_vars?)</code>: validates required env vars and returns all env vars as a map.</li>
+      <li><code>json_ok(data)</code>: returns a success response.</li>
+      <li><code>json_failed(error, msg?)</code>: returns a failure response with normalized error.</li>
+      <li><code>parse_error(error)</code>: normalizes Error objects.</li>
+      <li><code>get_version(packageJsonPath)</code>: reads package.json version.</li>
+      <li><code>sleep(ms?)</code>: promise-based delay.</li>
+      <li><code>get_nx_service_urls(env_name?)</code>: resolves service base URLs by env.</li>
+      <li><code>get_address_by_geo({lat,lng}, language)</code>: geocode lookup using cached API key.</li>
+      <li><code>validate_and_cast&lt;T&gt;(variable, condition)</code>: TypeScript predicate helper.</li>
+      <li><code>get_or_default(value, default_value)</code>: returns value or computed default.</li>
+      <li><code>trim_strings(input)</code>: recursively trims strings in objects/arrays (used by <a href="../middlewares/trim_mw.html">trim_mw</a>).</li>
+      <li><code>remove_nulls_and_undefined(obj)</code>: filters null/undefined values.</li>
+      <li><code>ignore_ssl_request(config)</code>: disables SSL verify in QA and runs axios.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used across <a href="index.html">helpers</a> and <a href="../middlewares/index.html">middlewares</a> for consistent error shapes, env bootstrapping, and data normalization.</p>
+    </div>
+  </body>
+</html>

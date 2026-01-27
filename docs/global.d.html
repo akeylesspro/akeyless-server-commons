@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/global.d.ts</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/global.d.ts</h1>
+    <h2>Purpose</h2>
+    <p>Adds a global TypeScript declaration for <code>NodeJS.Global</code> to optionally include a <code>cache_manager</code> instance.</p>
+
+    <h2>Details</h2>
+    <ul>
+      <li>Imports <code>CacheManager</code> from <code>src/managers</code>.</li>
+      <li>Extends <code>NodeJS.Global</code> with <code>cache_manager?: CacheManager</code>.</li>
+      <li>Exports an empty object so the file is treated as a module.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>This allows attaching a shared cache manager to the Node global object while keeping TypeScript happy.</p>
+    </div>
+  </body>
+</html>

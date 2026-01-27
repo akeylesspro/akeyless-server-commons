@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/redis/snapshot.ts</title>
+    <link rel="stylesheet" href="../../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/redis/snapshot.ts</h1>
+    <h2>Purpose</h2>
+    <p>Consume Redis Pub/Sub updates and hydrate cache using Redis data, with Firebase snapshot fallback when Redis is unavailable or unsupported.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li>Redis helpers and connection flags</li>
+      <li>Firebase snapshot helpers and parsers</li>
+      <li><a href="keys.html"><code>get_collection_keys</code></a>, <a href="keys.html"><code>scan_redis_keys</code></a></li>
+      <li><a href="../../managers/logger_manager.html"><code>logger</code></a>, Firestore <code>Timestamp</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>redis_snapshots_bulk</code>: validates configs, hydrates cache, subscribes to updates.</li>
+    </ul>
+
+    <h2>Internal flow</h2>
+    <ul>
+      <li><code>validate_config</code>: ensures Redis readiness and settings allow Redis.</li>
+      <li><code>parse_redis_snapshot</code>: initial load or incremental update handling.</li>
+      <li><code>default_parsers</code>: routes to object/array parsers.</li>
+      <li><code>get_collection_data</code>: SCAN and MGET data from Redis.</li>
+      <li><code>convert_object_timestamps</code>: converts timestamp-like objects.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Allows Redis to be the live data source while keeping the same cache parsing behavior as Firebase snapshots.</p>
+    </div>
+  </body>
+</html>

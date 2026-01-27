@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/middlewares/error_handling.ts</title>
+  </head>
+  <body>
+    <h1>src/middlewares/error_handling.ts</h1>
+    <h2>Purpose</h2>
+    <p>Async error wrapper and global Express error handler.</p>
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="../managers/logger_manager.html"><code>logger</code></a> manager</li>
+      <li>Type: <a href="../types/types/global.html"><code>Service</code></a></li>
+    </ul>
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>async_error_handler</code>: wraps async services and forwards errors.</li>
+      <li><code>error_handler</code>: logs and returns 500 JSON response.</li>
+    </ul>
+    <h2>Context</h2>
+    <p>Used by server bootstrap to standardize error handling for async routes.</p>
+    </div>
+  </body>
+</html>

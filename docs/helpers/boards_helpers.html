@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/boards_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/boards_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>Board-provider utilities for resolving board makers based on board types and cached settings.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="../managers/cache_manager.html"><code>cache_manager</code></a></li>
+      <li>Types from <code>akeyless-types-commons</code> (<code>Board</code>, <code>Car</code>)</li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>extract_board_types_from_settings</code>: returns provider/type mappings.</li>
+      <li><code>get_board_maker_by_board_type</code>: resolves provider from settings.</li>
+      <li><code>get_board_maker_by_car</code>: resolves provider from cached boards.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by services that need to route device logic based on board vendor.</p>
+    </div>
+  </body>
+</html>

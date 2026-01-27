@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>src/helpers/login_helpers.ts</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="content">
+    <h1>src/helpers/login_helpers.ts</h1>
+    <h2>Purpose</h2>
+    <p>User lookup helpers for NX users and mobile app users based on identifiers.</p>
+
+    <h2>Dependencies</h2>
+    <ul>
+      <li><a href="firebase_helpers.html"><code>query_document_optional</code></a> from <a href="firebase_helpers.html"><code>firebase_helpers</code></a></li>
+      <li>Types from <code>akeyless-types-commons</code></li>
+    </ul>
+
+    <h2>Exports and behavior</h2>
+    <ul>
+      <li><code>convert_to_short_phone_number</code>: converts <code>+972</code> to local <code>0</code> prefix.</li>
+      <li><code>get_user_by_identifier</code>: resolves NX user by email or phone.</li>
+      <li><code>get_mobile_app_user_by_uid</code>: resolves mobile app user by uid.</li>
+    </ul>
+
+    <h2>Context</h2>
+    <p>Used by auth middleware and services that need to resolve users from tokens or identifiers.</p>
+    </div>
+  </body>
+</html>
