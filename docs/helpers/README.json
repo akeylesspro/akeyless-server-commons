@@ -1,0 +1,154 @@
+{
+  "metadata": {
+    "source_file": "src/helpers",
+    "path": "docs/helpers/README.md",
+    "type": "directory_overview"
+  },
+  "purpose": "Overview of the helpers directory containing stateless utility functions and service integrations organized by domain.",
+  "sections": [
+    {
+      "title": "Contents",
+      "description": "This directory contains stateless utility functions and service integrations organized by domain. Each helper module provides focused functionality for specific use cases.",
+      "categories": [
+        {
+          "name": "Infrastructure & Bootstrap",
+          "modules": [
+            {
+              "name": "global_helpers.ts",
+              "description": "Environment validation, JSON response formatting, service URL resolution, geocoding, data normalization utilities, and HTTP helpers. Provides foundational utilities used across the entire application."
+            },
+            {
+              "name": "start.ts",
+              "description": "Express server bootstrap with standardized middleware setup, logging, error handling, and optional Redis initialization. Provides start_server for basic setup and basic_init for complete initialization including snapshot loading."
+            },
+            {
+              "name": "firebase_helpers.ts",
+              "description": "Firebase Admin SDK initialization, comprehensive Firestore CRUD operations, real-time snapshot subscriptions, Firebase Storage helpers, authentication token verification, and audit logging. Central integration point for all Firebase operations."
+            }
+          ]
+        },
+        {
+          "name": "Data & Communication",
+          "modules": [
+            {
+              "name": "email_helpers.ts",
+              "description": "SendGrid email sending with comprehensive attachment support (files, buffers, URLs), group-based recipient management, automatic audit logging, and MIME type detection. Supports HTML and plain text emails."
+            },
+            {
+              "name": "notification_helpers.ts",
+              "description": "Multi-provider SMS sending (Multisend, Twilio, Monogoto) with automatic provider selection, SMS group expansion, Firebase Cloud Messaging (FCM) push notifications, event-based notifications, and comprehensive audit logging."
+            },
+            {
+              "name": "phone_number_helpers.ts",
+              "description": "Phone number normalization, validation, format detection (Israeli, international, ICCID), SIM provider inference, and conversion between short/long formats. Used for SMS routing and user lookups."
+            }
+          ]
+        },
+        {
+          "name": "Domain-Specific",
+          "modules": [
+            {
+              "name": "login_helpers.ts",
+              "description": "User lookup helpers for finding NX users and mobile app users by email, phone number, or UID. Supports flexible identifier resolution with automatic format detection."
+            },
+            {
+              "name": "time_helpers.ts",
+              "description": "Comprehensive time conversion and formatting utilities for Firebase timestamps, JavaScript Dates, strings, and numbers. Supports multiple input formats, timezone conversion, custom formatting, and time elapsed calculations."
+            },
+            {
+              "name": "location_helpers.ts",
+              "description": "Geospatial utilities for calculating distances between coordinates using Haversine formula and generating Google Maps URLs for location sharing."
+            },
+            {
+              "name": "tasks_helpers.ts",
+              "description": "Task execution orchestration with status tracking, result caching, and optional persistence to Firestore or Firebase Storage. Designed for scheduled/recurring backend tasks."
+            },
+            {
+              "name": "boards_helpers.ts",
+              "description": "Board provider resolution utilities for determining board makers (ERM, Jimi, Ruptela, Servision, Jimi IoT Hub) based on board types and cached settings. Used for routing device logic."
+            }
+          ]
+        },
+        {
+          "name": "Redis Integration",
+          "modules": [
+            {
+              "name": "redis/initialize.ts",
+              "description": "Redis client initialization with dual-client architecture (commander for read/write, listener for Pub/Sub), connection management, retry logic, and automatic subscription setup."
+            },
+            {
+              "name": "redis/keys.ts",
+              "description": "Redis key and pattern utilities for building consistent key names, collection patterns, update channels, and key scanning operations using SCAN command."
+            },
+            {
+              "name": "redis/snapshot.ts",
+              "description": "Redis Pub/Sub snapshot integration with automatic fallback to Firebase snapshots. Provides same cache parsing interface as Firebase snapshots for seamless data source switching."
+            }
+          ]
+        },
+        {
+          "name": "Index",
+          "modules": [
+            {
+              "name": "index.ts",
+              "description": "Barrel export file that re-exports all helper functions for convenient importing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Context",
+      "description": "Helpers are stateless utility functions and service integrations. They:",
+      "points": [
+        "**Use Managers** - Access cache_manager for cached data, logger for logging, and translation_manager for translations",
+        "**Rely on Types** - Use shared TypeScript types for consistent function signatures",
+        "**Follow Patterns** - Consistent error handling, logging, and data access patterns",
+        "**Support Snapshots** - Work with Firebase and Redis snapshot systems for real-time data"
+      ]
+    },
+    {
+      "title": "Documentation",
+      "description": "Each helper module has detailed documentation in docs/helpers/ with:",
+      "points": [
+        "**Purpose** - What the module does and why it exists",
+        "**Dependencies** - External libraries and internal dependencies",
+        "**Function Documentation** - Detailed parameter descriptions, return types, behavior, examples",
+        "**Context** - Common use cases and best practices"
+      ]
+    },
+    {
+      "title": "Usage Patterns",
+      "subsections": [
+        {
+          "title": "Importing Helpers",
+          "code_examples": [
+            {
+              "code": "// Import specific helpers\nimport { send_email, query_document } from 'akeyless-server-commons/helpers';\n\n// Import from specific module\nimport { send_email } from 'akeyless-server-commons/helpers/email_helpers';",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "title": "Common Patterns",
+          "code_examples": [
+            {
+              "code": "// Environment validation\nconst env = init_env_variables(['mode', 'port']);\n\n// JSON responses\nres.json(json_ok({ data: 'success' }));\nres.json(json_failed(new Error('Error')));\n\n// Firebase operations\nconst user = await query_document('nx-users', 'email', '==', 'user@example.com');\n\n// Email sending\nawait send_email({\n  to: 'user@example.com',\n  subject: 'Welcome',\n  body_html: '<h1>Welcome!</h1>',\n  entity_for_audit: 'user_registration'\n});\n\n// SMS sending\nawait send_sms('+972501234567', 'Your code is 1234', 'user_verification');\n\n// Cache access\nconst settings = cache_manager.getObjectData('nx-settings');",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Best Practices",
+      "points": [
+        "**Use Cached Data** - Access frequently used data from cache_manager (populated by snapshots)",
+        "**Handle Errors** - Use try-catch or optional helpers (query_document_optional) for non-critical operations",
+        "**Audit Logging** - Always provide entity_for_audit for operations that need tracking",
+        "**Type Safety** - Use TypeScript types from the package for consistent API shapes",
+        "**Consistent Responses** - Use json_ok and json_failed for all API responses"
+      ]
+    }
+  ]
+}

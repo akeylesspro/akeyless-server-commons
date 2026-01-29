@@ -1,0 +1,915 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/firebase_helpers.ts",
+    "path": "docs/helpers/firebase_helpers.md",
+    "type": "module"
+  },
+  "purpose": "Initialize Firebase Admin SDK and provide comprehensive Firestore CRUD operations, real-time snapshot subscriptions, Firebase Storage helpers, authentication token verification, and audit logging. This is the central integration point for all Firebase operations in the application.",
+  "dependencies": [
+    "firebase-admin - Firebase Admin SDK for Node.js (firestore, auth, messaging, storage)",
+    "dotenv - Environment variable loading",
+    "init_env_variables - Environment validation helper",
+    "cache_manager - In-memory cache for collections",
+    "logger - Logging utility",
+    "translation_manager - Translation cache",
+    "redis_snapshots_bulk from ./redis - Redis snapshot integration",
+    "Types from src/types - TypeScript type definitions",
+    "TObject from akeyless-types-commons - Shared types"
+  ],
+  "sections": [
+    {
+      "title": "Initialization",
+      "description": "Firebase Admin Setup - The module initializes Firebase Admin SDK on import by: Reading Environment Variables, Service Account Configuration, Firebase App Initialization, Exported Instances (db, messaging, auth, storage, service_account_firebase)",
+      "code_block": {
+        "code": "firebase_admin.initializeApp({\n  credential: firebase_admin.credential.cert(service_account_firebase),\n  storageBucket: `${project_id}.appspot.com`\n});",
+        "language": "typescript"
+      }
+    },
+    {
+      "title": "Firestore CRUD Operations",
+      "exports": [
+        {
+          "name": "simple_extract_data",
+          "signature": "simple_extract_data(doc: FirebaseFirestore.DocumentSnapshot): TObject<any>",
+          "type": "function",
+          "description": "Extracts document data and merges it with the document ID.",
+          "parameters": [
+            {
+              "name": "doc",
+              "type": "FirebaseFirestore.DocumentSnapshot",
+              "description": "Firestore document snapshot"
+            }
+          ],
+          "returns": "Object containing document data with id property added",
+          "behavior": [
+            "Merges doc.data() with { id: doc.id }",
+            "Ensures every document has an accessible id field"
+          ],
+          "examples": [
+            {
+              "code": "const doc = await db.collection('users').doc('123').get();\nconst data = simple_extract_data(doc);\n// Returns: { id: '123', name: 'John', email: 'john@example.com' }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_all_documents",
+          "signature": "get_all_documents(collection_path: string): Promise<TObject<any>[]>",
+          "type": "function",
+          "description": "Fetches all documents from a collection.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Firestore collection path"
+            }
+          ],
+          "returns": "Promise resolving to array of document objects (with id included)",
+          "throws": "Re-throws Firestore errors with logging",
+          "examples": [
+            {
+              "code": "const users = await get_all_documents('nx-users');\n// Returns: [{ id: '1', name: 'John' }, { id: '2', name: 'Jane' }]",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "query_documents",
+          "signature": "query_documents(collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any): Promise<TObject<any>[]>",
+          "type": "function",
+          "description": "Queries documents using a single where clause.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "field_name",
+              "type": "string",
+              "description": "Field to query"
+            },
+            {
+              "name": "operator",
+              "type": "FirebaseFirestore.WhereFilterOp",
+              "description": "Firestore operator (==, !=, <, <=, >, >=, in, array-contains, etc.)"
+            },
+            {
+              "name": "value",
+              "type": "any",
+              "description": "Value to compare against"
+            }
+          ],
+          "returns": "Promise resolving to array of matching documents",
+          "throws": "Logs and re-throws Firestore errors",
+          "examples": [
+            {
+              "code": "const activeUsers = await query_documents('nx-users', 'status', '==', 'active');\nconst premiumUsers = await query_documents('nx-users', 'plan', 'in', ['premium', 'enterprise']);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "query_documents_by_conditions",
+          "signature": "query_documents_by_conditions(collection_path: string, where_conditions: Array<{field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any}>): Promise<TObject<any>[]>",
+          "type": "function",
+          "description": "Queries documents using multiple where clauses (AND conditions).",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "where_conditions",
+              "type": "Array<{field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any}>",
+              "description": "Array of condition objects"
+            }
+          ],
+          "returns": "Promise resolving to array of matching documents",
+          "behavior": [
+            "Chains multiple where() clauses",
+            "All conditions must be satisfied (AND logic)"
+          ],
+          "examples": [
+            {
+              "code": "const results = await query_documents_by_conditions('orders', [\n  { field_name: 'status', operator: '==', value: 'pending' },\n  { field_name: 'amount', operator: '>', value: 100 }\n]);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "query_document_by_conditions",
+          "signature": "query_document_by_conditions(collection_path: string, where_conditions: Array<{field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any}>, log: boolean = true): Promise<TObject<any>>",
+          "type": "function",
+          "description": "Queries for a single document using multiple where clauses.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "where_conditions",
+              "type": "Array<{field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any}>",
+              "description": "Array of condition objects"
+            },
+            {
+              "name": "log",
+              "type": "boolean",
+              "optional": true,
+              "default": "true",
+              "description": "Whether to log errors"
+            }
+          ],
+          "returns": "Promise resolving to first matching document",
+          "throws": "\"no data returned from DB\" if no documents match",
+          "examples": [
+            {
+              "code": "const user = await query_document_by_conditions('nx-users', [\n  { field_name: 'email', operator: '==', value: 'user@example.com' },\n  { field_name: 'status', operator: '==', value: 'active' }\n]);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "query_document",
+          "signature": "query_document(collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log: boolean = false): Promise<TObject<any>>",
+          "type": "function",
+          "description": "Queries for a single document using a single where clause.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "field_name",
+              "type": "string",
+              "description": "Field to query"
+            },
+            {
+              "name": "operator",
+              "type": "FirebaseFirestore.WhereFilterOp",
+              "description": "Firestore operator"
+            },
+            {
+              "name": "value",
+              "type": "any",
+              "description": "Value to compare"
+            },
+            {
+              "name": "ignore_log",
+              "type": "boolean",
+              "optional": true,
+              "default": "false",
+              "description": "Skip error logging"
+            }
+          ],
+          "returns": "Promise resolving to first matching document",
+          "throws": "Error message if no documents found: \"No data to return from: collection: {path}, field_name: {field}, operator: {op}, value: {value}\"",
+          "examples": [
+            {
+              "code": "const user = await query_document('nx-users', 'email', '==', 'user@example.com');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "query_document_optional",
+          "signature": "query_document_optional(collection_path: string, field_name: string, operator: FirebaseFirestore.WhereFilterOp, value: any, ignore_log: boolean = true): Promise<TObject<any> | null>",
+          "type": "function",
+          "description": "Queries for a single document, returning null if not found (non-throwing version).",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "field_name",
+              "type": "string",
+              "description": "Field to query"
+            },
+            {
+              "name": "operator",
+              "type": "FirebaseFirestore.WhereFilterOp",
+              "description": "Firestore operator"
+            },
+            {
+              "name": "value",
+              "type": "any",
+              "description": "Value to compare"
+            },
+            {
+              "name": "ignore_log",
+              "type": "boolean",
+              "optional": true,
+              "default": "true",
+              "description": "Skip error logging"
+            }
+          ],
+          "returns": "Promise resolving to document or null",
+          "behavior": [
+            "Never throws errors",
+            "Returns null if no match found",
+            "Useful for optional lookups"
+          ],
+          "examples": [
+            {
+              "code": "const user = await query_document_optional('nx-users', 'email', '==', 'user@example.com');\nif (user) {\n  // User exists\n}",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_document_by_id",
+          "signature": "get_document_by_id(collection_path: string, doc_id: string): Promise<TObject<any>>",
+          "type": "function",
+          "description": "Retrieves a document by its ID.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "doc_id",
+              "type": "string",
+              "description": "Document ID"
+            }
+          ],
+          "returns": "Promise resolving to document object",
+          "throws": "\"Document not found, document id: {doc_id}\" if document doesn't exist",
+          "examples": [
+            {
+              "code": "const user = await get_document_by_id('nx-users', 'user-123');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_document_by_id_optional",
+          "signature": "get_document_by_id_optional(collection_path: string, doc_id: string): Promise<TObject<any> | null>",
+          "type": "function",
+          "description": "Retrieves a document by ID, returning null if not found.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "doc_id",
+              "type": "string",
+              "description": "Document ID"
+            }
+          ],
+          "returns": "Promise resolving to document or null",
+          "behavior": [
+            "Never throws errors",
+            "Returns null if document doesn't exist"
+          ],
+          "examples": [
+            {
+              "code": "const user = await get_document_by_id_optional('nx-users', 'user-123');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "set_document",
+          "signature": "set_document(collection_path: string, doc_id: string, data: {}, merge: boolean = true): Promise<void>",
+          "type": "function",
+          "description": "Creates or updates a document by ID.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "doc_id",
+              "type": "string",
+              "description": "Document ID"
+            },
+            {
+              "name": "data",
+              "type": "{}",
+              "description": "Document data object"
+            },
+            {
+              "name": "merge",
+              "type": "boolean",
+              "optional": true,
+              "default": "true",
+              "description": "If true, merges with existing data; if false, replaces entire document"
+            }
+          ],
+          "returns": "Promise resolving when complete",
+          "throws": "Error message if operation fails",
+          "examples": [
+            {
+              "code": "// Merge (update existing fields, keep others)\nawait set_document('nx-users', 'user-123', { name: 'John' }, true);\n\n// Replace (overwrite entire document)\nawait set_document('nx-users', 'user-123', { name: 'John', email: 'john@example.com' }, false);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "add_document",
+          "signature": "add_document(collection_path: string, data: {}, include_id: boolean = false, custom_id?: string): Promise<string>",
+          "type": "function",
+          "description": "Adds a new document to a collection.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "data",
+              "type": "{}",
+              "description": "Document data object"
+            },
+            {
+              "name": "include_id",
+              "type": "boolean",
+              "optional": true,
+              "default": "false",
+              "description": "Whether to include id field in document data"
+            },
+            {
+              "name": "custom_id",
+              "type": "string",
+              "optional": true,
+              "description": "Optional custom document ID (if not provided, Firestore generates one)"
+            }
+          ],
+          "returns": "Promise resolving to document ID",
+          "throws": "Error message if operation fails",
+          "examples": [
+            {
+              "code": "// Auto-generated ID\nconst id = await add_document('nx-users', { name: 'John', email: 'john@example.com' });\n\n// Custom ID\nconst id = await add_document('nx-users', { name: 'John' }, false, 'user-123');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "delete_document",
+          "signature": "delete_document(collection_path: string, doc_id: string): Promise<void>",
+          "type": "function",
+          "description": "Deletes a document by ID.",
+          "parameters": [
+            {
+              "name": "collection_path",
+              "type": "string",
+              "description": "Collection path"
+            },
+            {
+              "name": "doc_id",
+              "type": "string",
+              "description": "Document ID"
+            }
+          ],
+          "returns": "Promise resolving when complete",
+          "throws": "Error message if operation fails",
+          "examples": [
+            {
+              "code": "await delete_document('nx-users', 'user-123');",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Authentication",
+      "exports": [
+        {
+          "name": "verify_token",
+          "signature": "verify_token(authorization: string | undefined): Promise<DecodedIdToken>",
+          "type": "function",
+          "description": "Verifies a Firebase ID token from Authorization header.",
+          "parameters": [
+            {
+              "name": "authorization",
+              "type": "string | undefined",
+              "description": "Authorization header value (should be \"Bearer {token}\")"
+            }
+          ],
+          "returns": "Promise resolving to decoded Firebase ID token",
+          "throws": [
+            "\"Authorization token is required\" - If authorization header is missing",
+            "\"Invalid authorization token\" - If header doesn't start with \"bearer\"",
+            "\"validation error: Token not found\" - If token extraction fails",
+            "\"User not found\" - If token verification fails"
+          ],
+          "behavior": [
+            "Extracts token from Bearer {token} format (case-insensitive)",
+            "Verifies token using Firebase Admin Auth",
+            "Returns decoded token with user information"
+          ],
+          "examples": [
+            {
+              "code": "const decodedToken = await verify_token(req.headers.authorization);\n// Returns: { uid: '...', email: '...', ... }",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Snapshot Parsers",
+      "description": "Snapshot parsers transform Firestore document changes into cache updates.",
+      "exports": [
+        {
+          "name": "parse_add_update_translations",
+          "signature": "parse_add_update_translations(documents: any[]): void",
+          "type": "function",
+          "description": "Updates translation cache when translations are added or modified.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "any[]",
+              "description": "Array of document objects"
+            }
+          ],
+          "behavior": [
+            "Updates translation_manager cache",
+            "Removes id field from documents before storing",
+            "Used internally by translation snapshot subscriptions"
+          ]
+        },
+        {
+          "name": "parse_delete_translations",
+          "signature": "parse_delete_translations(documents: any[]): void",
+          "type": "function",
+          "description": "Removes translations from cache when deleted.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "any[]",
+              "description": "Array of document objects"
+            }
+          ],
+          "behavior": [
+            "Removes entries from translation_manager cache by document ID"
+          ]
+        },
+        {
+          "name": "parse_add_update_settings",
+          "signature": "parse_add_update_settings(documents: any[], name_for_cache: string): void",
+          "type": "function",
+          "description": "Updates settings cache when settings are added or modified.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "any[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "name_for_cache",
+              "type": "string",
+              "description": "Cache key name"
+            }
+          ],
+          "behavior": [
+            "Updates cache_manager object cache",
+            "Stores documents keyed by their id"
+          ]
+        },
+        {
+          "name": "parse_delete_settings",
+          "signature": "parse_delete_settings(documents: any[], name_for_cache: string): void",
+          "type": "function",
+          "description": "Removes settings from cache when deleted.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "any[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "name_for_cache",
+              "type": "string",
+              "description": "Cache key name"
+            }
+          ]
+        },
+        {
+          "name": "parse_add_update_as_object",
+          "signature": "parse_add_update_as_object(documents: TObject<any>[], config: OnSnapshotConfig): void",
+          "type": "function",
+          "description": "Generic parser for object-based caches (documents keyed by ID).",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "TObject<any>[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "config",
+              "type": "OnSnapshotConfig",
+              "description": "Snapshot configuration with cache_name and doc_key_property"
+            }
+          ],
+          "behavior": [
+            "Stores documents in cache_manager as object, keyed by doc_key_property (default: \"id\")"
+          ],
+          "examples": [
+            {
+              "code": "// Documents: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }]\n// Cache result: { '1': { id: '1', name: 'A' }, '2': { id: '2', name: 'B' } }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "parse_delete_as_object",
+          "signature": "parse_delete_as_object(documents: TObject<any>[], config: OnSnapshotConfig): void",
+          "type": "function",
+          "description": "Removes documents from object-based cache.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "TObject<any>[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "config",
+              "type": "OnSnapshotConfig",
+              "description": "Snapshot configuration"
+            }
+          ],
+          "behavior": [
+            "Deletes entries from cache object by doc_key_property"
+          ]
+        },
+        {
+          "name": "parse_add_update_as_array",
+          "signature": "parse_add_update_as_array(documents: TObject<any>[], config: OnSnapshotConfig): void",
+          "type": "function",
+          "description": "Generic parser for array-based caches.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "TObject<any>[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "config",
+              "type": "OnSnapshotConfig",
+              "description": "Snapshot configuration with cache_name and optional on_remove callback"
+            }
+          ],
+          "behavior": [
+            "Appends documents to existing array in cache_manager",
+            "Calls on_remove callback if provided before adding"
+          ],
+          "examples": [
+            {
+              "code": "// Existing cache: [{ id: '1' }]\n// New documents: [{ id: '2' }, { id: '3' }]\n// Result: [{ id: '1' }, { id: '2' }, { id: '3' }]",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "parse_delete_as_array",
+          "signature": "parse_delete_as_array(documents: TObject<any>[], config: OnSnapshotConfig): void",
+          "type": "function",
+          "description": "Removes documents from array-based cache.",
+          "parameters": [
+            {
+              "name": "documents",
+              "type": "TObject<any>[]",
+              "description": "Array of document objects"
+            },
+            {
+              "name": "config",
+              "type": "OnSnapshotConfig",
+              "description": "Snapshot configuration"
+            }
+          ],
+          "behavior": [
+            "Filters out documents by matching id field"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Snapshot Orchestration",
+      "exports": [
+        {
+          "name": "snapshot",
+          "signature": "snapshot(config: OnSnapshotConfig): Promise<void>",
+          "type": "function",
+          "description": "Creates a Firestore real-time snapshot listener for a collection.",
+          "parameters": [
+            {
+              "name": "config",
+              "type": "OnSnapshotConfig",
+              "description": "Snapshot configuration object: collection_name, cache_name, conditions, on_first_time, on_add, on_modify, on_remove, extra_parsers, debug"
+            }
+          ],
+          "returns": "Promise that resolves after first-time data load",
+          "behavior": [
+            "Sets up Firestore onSnapshot listener",
+            "On first load: Extracts all documents, Calls on_first_time callback, Calls extra_parsers callbacks, Resolves promise (allows server boot to continue)",
+            "On subsequent changes: Separates changes into added/modified/removed, Calls respective callbacks, Calls extra_parsers callbacks",
+            "Error handling: Exponential backoff retry (max 30 seconds), Prevents boot deadlock by resolving promise even on errors, Automatically resubscribes after errors"
+          ],
+          "examples": [
+            {
+              "code": "await snapshot({\n  collection_name: 'nx-users',\n  cache_name: 'users',\n  on_first_time: (docs) => {\n    console.log(`Loaded ${docs.length} users`);\n  },\n  on_add: (docs) => {\n    console.log(`Added: ${docs.length} users`);\n  },\n  debug: {\n    on_first_time: 'documents',\n    on_add: true\n  }\n});",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "init_snapshots",
+          "signature": "init_snapshots(options?: InitSnapshotsOptions): Promise<void>",
+          "type": "function",
+          "description": "Initializes common snapshots for settings and translations.",
+          "parameters": [
+            {
+              "name": "options",
+              "type": "InitSnapshotsOptions",
+              "optional": true,
+              "description": "Optional configuration: subscription_type (\"firebase\" or \"redis\"), debug"
+            }
+          ],
+          "behavior": [
+            "Subscribes to: nx-settings collection (parsed as object), settings collection (parsed as object), nx-translations collection (with translation-specific parsers)",
+            "Uses snapshot_bulk_by_names for orchestration"
+          ],
+          "examples": [
+            {
+              "code": "await init_snapshots({\n  subscription_type: 'firebase',\n  debug: { on_first_time: 'documents' }\n});",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "snapshot_bulk",
+          "signature": "snapshot_bulk(snapshots: Promise<void>[], label?: string): Promise<void>",
+          "type": "function",
+          "description": "Executes multiple snapshot promises in parallel and logs total duration.",
+          "parameters": [
+            {
+              "name": "snapshots",
+              "type": "Promise<void>[]",
+              "description": "Array of snapshot promises"
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "optional": true,
+              "description": "Optional label for logging (default: \"custom snapshots\")"
+            }
+          ],
+          "returns": "Promise resolving when all snapshots complete",
+          "behavior": [
+            "Executes all snapshots in parallel using Promise.all",
+            "Logs start and end times with duration"
+          ],
+          "examples": [
+            {
+              "code": "await snapshot_bulk([\n  snapshot({ collection_name: 'users' }),\n  snapshot({ collection_name: 'orders' })\n], 'User and order snapshots');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_default_parsers",
+          "signature": "get_default_parsers(parse_as: \"array\" | \"object\"): OnSnapshotParsers",
+          "type": "function",
+          "description": "Returns default parser set based on data shape.",
+          "parameters": [
+            {
+              "name": "parse_as",
+              "type": "\"array\" | \"object\"",
+              "description": "\"array\" or \"object\""
+            }
+          ],
+          "returns": "Object with on_first_time, on_add, on_modify, on_remove parsers",
+          "behavior": [
+            "Returns appropriate parsers for array or object cache storage"
+          ]
+        },
+        {
+          "name": "snapshot_bulk_by_names",
+          "signature": "snapshot_bulk_by_names(params: Array<string | OnSnapshotConfig>, options?: ExtraSnapshotConfig): Promise<void>",
+          "type": "function",
+          "description": "Orchestrates multiple snapshot subscriptions with support for both Firebase and Redis.",
+          "parameters": [
+            {
+              "name": "params",
+              "type": "Array<string | OnSnapshotConfig>",
+              "description": "Array of collection names (strings) or full config objects"
+            },
+            {
+              "name": "options",
+              "type": "ExtraSnapshotConfig",
+              "optional": true,
+              "description": "Configuration: label, subscription_type (\"firebase\" or \"redis\"), parse_as (\"array\" or \"object\"), doc_key_property (default: \"id\"), debug"
+            }
+          ],
+          "returns": "Promise resolving when all snapshots are initialized",
+          "behavior": [
+            "Deduplicates collections by name",
+            "For each collection: Builds snapshot config (merges defaults with provided config), Routes to Firebase or Redis based on subscription_type",
+            "Executes Firebase snapshots and Redis subscriptions in parallel",
+            "Logs total duration"
+          ],
+          "examples": [
+            {
+              "code": "await snapshot_bulk_by_names(\n  ['nx-users', 'nx-orders', { collection_name: 'nx-products', cache_name: 'products' }],\n  {\n    subscription_type: 'firebase',\n    parse_as: 'object',\n    label: 'User data snapshots'\n  }\n);",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Audit and Storage Helpers",
+      "exports": [
+        {
+          "name": "add_audit_record",
+          "signature": "add_audit_record(action: string, entity: string, details: any, user?: string): Promise<void>",
+          "type": "function",
+          "description": "Writes an audit record to the nx-audit collection.",
+          "parameters": [
+            {
+              "name": "action",
+              "type": "string",
+              "description": "Action name (e.g., \"send_email\", \"user_login\")"
+            },
+            {
+              "name": "entity",
+              "type": "string",
+              "description": "Entity identifier (e.g., \"user_registration\", \"order_123\")"
+            },
+            {
+              "name": "details",
+              "type": "any",
+              "description": "Additional details object"
+            },
+            {
+              "name": "user",
+              "type": "string",
+              "optional": true,
+              "description": "Optional user identifier"
+            }
+          ],
+          "returns": "Promise resolving when audit record is written",
+          "behavior": [
+            "Creates audit record with: action, entity, details, datetime - Current Firestore timestamp, user - User identifier or null"
+          ],
+          "throws": "Error object if write fails",
+          "examples": [
+            {
+              "code": "await add_audit_record('send_email', 'user_registration', {\n  to: 'user@example.com',\n  subject: 'Welcome'\n}, 'user-123');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "save_file_in_storage",
+          "signature": "save_file_in_storage(file_path: string, buffer: Buffer | Uint8Array, options?: SaveFileOptions): Promise<string>",
+          "type": "function",
+          "description": "Saves a file to Firebase Storage and returns a signed URL.",
+          "parameters": [
+            {
+              "name": "file_path",
+              "type": "string",
+              "description": "Storage path (leading slashes are removed)"
+            },
+            {
+              "name": "buffer",
+              "type": "Buffer | Uint8Array",
+              "description": "File content as Buffer or Uint8Array"
+            },
+            {
+              "name": "options",
+              "type": "SaveFileOptions",
+              "optional": true,
+              "description": "Optional configuration: content_type, content_disposition, cache_control, make_public (default: true), signed_url_ttl_ms (default: 7 days), resumable (default: false)"
+            }
+          ],
+          "returns": "Promise resolving to signed URL",
+          "throws": "Re-throws storage errors with logging",
+          "examples": [
+            {
+              "code": "const url = await save_file_in_storage(\n  'reports/invoice-123.pdf',\n  pdfBuffer,\n  {\n    content_type: 'application/pdf',\n    make_public: true,\n    signed_url_ttl_ms: 1000 * 60 * 60 * 24 * 30 // 30 days\n  }\n);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_file_url_from_storage",
+          "signature": "get_file_url_from_storage(file_path: string): Promise<string>",
+          "type": "function",
+          "description": "Gets a signed URL for an existing file in Firebase Storage.",
+          "parameters": [
+            {
+              "name": "file_path",
+              "type": "string",
+              "description": "Storage path"
+            }
+          ],
+          "returns": "Promise resolving to signed URL (valid for 7 days)",
+          "throws": [
+            "Error(\"file not exist\") - If file doesn't exist"
+          ],
+          "examples": [
+            {
+              "code": "const url = await get_file_url_from_storage('reports/invoice-123.pdf');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_nx_settings",
+          "signature": "get_nx_settings(): Promise<TObject<any>>",
+          "type": "function",
+          "description": "Retrieves nx-settings collection data, using cache if available.",
+          "returns": "Promise resolving to settings object (keyed by document ID)",
+          "behavior": [
+            "Checks cache_manager for cached settings",
+            "If cached, returns immediately",
+            "If not cached: Fetches all documents from nx-settings collection, Organizes into object keyed by document ID, Caches result, Returns settings object"
+          ],
+          "examples": [
+            {
+              "code": "const settings = await get_nx_settings();\nconst emailSettings = settings.emails;\nconst smsSettings = settings.sms_provider;",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "This module is the central integration point for all Firebase operations:",
+    "Data Access - All Firestore CRUD operations go through these helpers",
+    "Real-time Sync - Snapshot subscriptions keep caches up-to-date",
+    "Authentication - Token verification for protected routes",
+    "File Storage - Firebase Storage integration for file uploads/downloads",
+    "Audit Trail - Centralized audit logging for compliance"
+  ],
+  "architecture": {
+    "pattern": "Central Integration Point",
+    "description": "Firebase operations are centralized through this module",
+    "details": [
+      "Snapshots use a \"fail-open\" approach to prevent boot deadlocks",
+      "Cache is populated by snapshots, reducing Firestore read operations",
+      "Supports both Firebase and Redis snapshot sources",
+      "All operations include comprehensive error logging"
+    ]
+  },
+  "best_practices": [
+    "Use cached data from cache_manager when possible (populated by snapshots)",
+    "Use query_document_optional or get_document_by_id_optional for non-critical lookups",
+    "Always use add_audit_record for important operations",
+    "Prefer snapshot_bulk_by_names for multiple collections",
+    "Use appropriate parse_as setting based on how data is accessed (array vs object lookup)"
+  ]
+}

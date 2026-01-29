@@ -1,0 +1,321 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/phone_number_helpers.ts",
+    "path": "docs/helpers/phone_number_helpers.md",
+    "type": "module"
+  },
+  "purpose": "Phone number normalization, validation, format detection, and SIM provider inference. Provides utilities for working with Israeli phone numbers, international formats, ICCID numbers, and determining SIM card providers based on phone number prefixes.",
+  "dependencies": [
+    "SimProvider enum from src/types/enums - Provider enumeration",
+    "TObject from akeyless-types-commons - Generic object type"
+  ],
+  "sections": [
+    {
+      "title": "Format Detection Functions",
+      "exports": [
+        {
+          "name": "is_long_phone_number",
+          "signature": "is_long_phone_number(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number is in international format (starts with +).",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number string"
+            }
+          ],
+          "returns": "true if number starts with +, false otherwise",
+          "examples": [
+            {
+              "code": "is_long_phone_number('+972501234567'); // true\nis_long_phone_number('0501234567');    // false",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_israel_long_phone_number",
+          "signature": "is_israel_long_phone_number(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number is Israeli international format.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number string"
+            }
+          ],
+          "returns": "true if number starts with +9725 or +972 5",
+          "behavior": [
+            "Supports both formats: +9725XXXXXXXXX and +972 5XXXXXXXXX (with space)"
+          ],
+          "examples": [
+            {
+              "code": "is_israel_long_phone_number('+972501234567'); // true\nis_israel_long_phone_number('+972 501234567'); // true\nis_israel_long_phone_number('+1234567890');    // false",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_thailand_long_phone_number",
+          "signature": "is_thailand_long_phone_number(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number is Thai international format.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number string"
+            }
+          ],
+          "returns": "true if number starts with +66",
+          "examples": [
+            {
+              "code": "is_thailand_long_phone_number('+66123456789'); // true\nis_thailand_long_phone_number('+972501234567'); // false",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_international_phone_number",
+          "signature": "is_international_phone_number(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number is international format but not Israeli.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number string"
+            }
+          ],
+          "returns": "true if number is long format (+) but not Israeli",
+          "behavior": [
+            "Returns true for international numbers excluding Israeli numbers",
+            "Used for determining when to use Twilio for SMS"
+          ],
+          "examples": [
+            {
+              "code": "is_international_phone_number('+1234567890');  // true\nis_international_phone_number('+972501234567'); // false (Israeli)\nis_international_phone_number('0501234567');    // false (not long format)",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_iccid",
+          "signature": "is_iccid(number: string): boolean",
+          "type": "function",
+          "description": "Validates if a string is a valid ICCID (Integrated Circuit Card Identifier) number.",
+          "parameters": [
+            {
+              "name": "number",
+              "type": "string",
+              "description": "String to validate"
+            }
+          ],
+          "returns": "true if valid ICCID, false otherwise",
+          "behavior": [
+            "Length must be between 19 and 22 characters",
+            "Must contain only digits (/^\\d+$/)",
+            "Must start with 89"
+          ],
+          "examples": [
+            {
+              "code": "is_iccid('8912345678901234567890'); // true (valid ICCID)\nis_iccid('1234567890123456789');    // false (doesn't start with 89)\nis_iccid('89123');                  // false (too short)",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Conversion Functions",
+      "exports": [
+        {
+          "name": "convert_to_short_israel_phone",
+          "signature": "convert_to_short_israel_phone(international_number: string): string",
+          "type": "function",
+          "description": "Converts Israeli international phone number to local format.",
+          "parameters": [
+            {
+              "name": "international_number",
+              "type": "string",
+              "description": "Phone number in format +972XXXXXXXXX"
+            }
+          ],
+          "returns": "Phone number in format 0XXXXXXXXX",
+          "behavior": [
+            "Replaces +972 with 0",
+            "Simple string replacement (no validation)"
+          ],
+          "examples": [
+            {
+              "code": "convert_to_short_israel_phone('+972501234567'); // '0501234567'",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SIM Provider Detection",
+      "exports": [
+        {
+          "name": "is_sim_provider_partner",
+          "signature": "is_sim_provider_partner(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number belongs to Partner (Israeli carrier).",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in any format"
+            }
+          ],
+          "returns": "true if number starts with 054 (after normalization)",
+          "behavior": [
+            "Normalizes phone number first using long_short_phone_numbers",
+            "Checks short_phone_number prefix"
+          ],
+          "examples": [
+            {
+              "code": "is_sim_provider_partner('0541234567');     // true\nis_sim_provider_partner('+972541234567'); // true\nis_sim_provider_partner('0501234567');    // false",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_sim_provider_pelephone",
+          "signature": "is_sim_provider_pelephone(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number belongs to Pelephone (Israeli carrier).",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in any format"
+            }
+          ],
+          "returns": "true if number starts with 050",
+          "examples": [
+            {
+              "code": "is_sim_provider_pelephone('0501234567');     // true\nis_sim_provider_pelephone('+972501234567'); // true",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_sim_provider_celcom",
+          "signature": "is_sim_provider_celcom(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if phone number belongs to Celcom (Israeli carrier).",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in any format"
+            }
+          ],
+          "returns": "true if number starts with 052",
+          "examples": [
+            {
+              "code": "is_sim_provider_celcom('0521234567');     // true\nis_sim_provider_celcom('+972521234567'); // true",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "is_sim_provider_monogoto",
+          "signature": "is_sim_provider_monogoto(phone_number: string): boolean",
+          "type": "function",
+          "description": "Checks if identifier is a Monogoto ICCID number.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number or ICCID"
+            }
+          ],
+          "returns": "true if valid ICCID (uses is_iccid)",
+          "examples": [
+            {
+              "code": "is_sim_provider_monogoto('8912345678901234567890'); // true\nis_sim_provider_monogoto('0501234567');             // false",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_sim_provider",
+          "signature": "get_sim_provider(phone_number: string): SimProvider",
+          "type": "function",
+          "description": "Determines SIM provider based on phone number prefix or ICCID.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in any format"
+            }
+          ],
+          "returns": "SimProvider enum value: partner, pelephone, celcom, monogoto, or unknown",
+          "behavior": [
+            "Checks providers in order: Partner → Pelephone → Celcom → Monogoto",
+            "Returns first match or unknown if no match"
+          ],
+          "examples": [
+            {
+              "code": "get_sim_provider('0541234567'); // SimProvider.partner\nget_sim_provider('0501234567'); // SimProvider.pelephone\nget_sim_provider('8912345678901234567890'); // SimProvider.monogoto\nget_sim_provider('+1234567890'); // SimProvider.unknown",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Phone Number Normalization",
+      "exports": [
+        {
+          "name": "long_short_phone_numbers",
+          "signature": "long_short_phone_numbers(phone_number: string): {short_phone_number: string, long_phone_number: string, is_israeli: boolean}",
+          "type": "function",
+          "description": "Normalizes phone number to both short and long formats.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in any format"
+            }
+          ],
+          "returns": "Object with: short_phone_number, long_phone_number, is_israeli",
+          "behavior": [
+            "Empty String: Returns all fields as empty string, is_israeli: true",
+            "ICCID Numbers: Returns ICCID as both short and long (no conversion), is_israeli: false",
+            "Israeli Local Format (05XXXXXXXXX): short_phone_number: 05XXXXXXXXX (as-is), long_phone_number: +9725XXXXXXXXX (replaces 05 with +9725), is_israeli: true",
+            "Israeli International Format (+9725XXXXXXXXX): long_phone_number: +9725XXXXXXXXX (as-is), short_phone_number: 05XXXXXXXXX (replaces +9725 with 05), is_israeli: true",
+            "US Format (+1XXXXXXXXXX): long_phone_number: +1XXXXXXXXXX (as-is), short_phone_number: XXXXXXXXXX (removes +1), is_israeli: false",
+            "Other Formats: Returns number as-is for both formats, is_israeli: false"
+          ],
+          "examples": [
+            {
+              "code": "// Israeli local\nlong_short_phone_numbers('0501234567');\n// Returns: {\n//   short_phone_number: '0501234567',\n//   long_phone_number: '+972501234567',\n//   is_israeli: true\n// }\n\n// Israeli international\nlong_short_phone_numbers('+972501234567');\n// Returns: {\n//   short_phone_number: '0501234567',\n//   long_phone_number: '+972501234567',\n//   is_israeli: true\n// }",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These helpers are used throughout the application for:",
+    "SMS Provider Routing - Determining which SMS provider to use based on number format",
+    "Phone Number Normalization - Converting between formats for storage and display",
+    "User Lookup - Finding users by phone number in various formats",
+    "SIM Provider Detection - Identifying carrier for device management",
+    "Data Validation - Validating phone number formats before processing"
+  ],
+  "best_practices": [
+    "Always normalize phone numbers before storage",
+    "Use long_short_phone_numbers to get both formats",
+    "Check is_israeli flag for country-specific logic",
+    "Use is_iccid to detect device SIM cards",
+    "Use get_sim_provider for carrier-specific operations"
+  ]
+}

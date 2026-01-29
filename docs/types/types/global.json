@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "source_file": "src/types/types/global.ts",
+    "path": "docs/types/types/global.md",
+    "type": "module"
+  },
+  "purpose": "Defines core type aliases for HTTP responses, Express middleware, route handlers, and application-level helper functions. These types provide consistent type definitions used throughout the Akeyless server commons package.",
+  "dependencies": [
+    "Request, Response, Express, NextFunction - Standard Express types",
+    "NxUser - NX user type from akeyless-types-commons",
+    "TObject - Generic object type from akeyless-types-commons"
+  ],
+  "sections": [
+    {
+      "title": "Exports",
+      "type_definitions": [
+        {
+          "name": "JsonOK",
+          "type": "type",
+          "definition": "type JsonOK<T> = (data?: T) => { success: true; data: T | undefined };",
+          "description": "Type alias for successful JSON response functions. Defines the shape of success response creators.",
+          "examples": [
+            {
+              "code": "const json_ok: JsonOK<{ id: string; name: string }> = (data) => ({\n  success: true,\n  data\n});\n\nres.json(json_ok({ id: \"123\", name: \"John\" }));\n// Returns: { success: true, data: { id: \"123\", name: \"John\" } }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "JsonFailed",
+          "type": "type",
+          "definition": "type JsonFailed = (error?: any, msg?: string) => { success: false; error: any };",
+          "description": "Type alias for failed JSON response functions. Defines the shape of error response creators.",
+          "examples": [
+            {
+              "code": "const json_failed: JsonFailed = (error, msg) => ({\n  success: false,\n  error: error || msg || \"An error occurred\"\n});",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "MainRouter",
+          "type": "type",
+          "definition": "type MainRouter = (app: Express) => void;",
+          "description": "Type alias for the main router function that registers routes on an Express application. Used by server bootstrap functions.",
+          "examples": [
+            {
+              "code": "const mainRouter: MainRouter = (app: express.Express) => {\n  app.get('/health', (req, res) => {\n    res.json({ status: 'ok' });\n  });\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "MW",
+          "type": "type",
+          "definition": "type MW = (req: Request, res: Response, next: NextFunction) => void;",
+          "description": "Type alias for Express middleware functions. Provides a consistent type for all middleware functions in the package.",
+          "examples": [
+            {
+              "code": "const myMiddleware: MW = (req, res, next) => {\n  // Do something with req/res\n  next();\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "Service",
+          "type": "type",
+          "definition": "type Service = (req: Request, res: Response) => void;",
+          "description": "Type alias for async route handler/service functions. Used for route handlers that don't need the next function.",
+          "examples": [
+            {
+              "code": "const myService: Service = async (req, res) => {\n  const data = await fetchData();\n  res.json({ success: true, data });\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "Route",
+          "type": "type",
+          "definition": "type Route = (req: Request, res: Response, next?: NextFunction) => Response;",
+          "description": "Type alias for route handler functions with optional next parameter. More flexible than Service as it allows access to next if needed.",
+          "examples": [
+            {
+              "code": "const myRoute: Route = (req, res, next) => {\n  if (someCondition) {\n    return res.status(400).json({ error: \"Bad request\" });\n  }\n  return res.json({ success: true });\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "AddAuditRecord",
+          "type": "type",
+          "definition": "type AddAuditRecord = (action: string, entity: string, details: TObject<any>, user?: NxUser) => Promise<void>;",
+          "description": "Type alias for audit logging function signature. Defines the shape of functions that add records to the audit log.",
+          "examples": [
+            {
+              "code": "const addAuditRecord: AddAuditRecord = async (action, entity, details, user) => {\n  await firestore.collection('nx-audit').add({\n    action,\n    entity,\n    details,\n    user: user?.id,\n    timestamp: new Date()\n  });\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "LangOptions",
+          "type": "type",
+          "definition": "type LangOptions = \"he\" | \"en\" | \"ru\" | (string & {});",
+          "description": "Union type representing allowed language codes for translations and localization.",
+          "examples": [
+            {
+              "code": "const lang: LangOptions = \"he\";\nconst translation = translation_manager.get_translation(\"messages\", lang, \"key\", \"default\");",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "EntityOptions",
+          "type": "type",
+          "definition": "type EntityOptions = \"nx_devices\" | (string & {});",
+          "description": "Union type representing allowed entity names for audit logging and other entity-specific operations.",
+          "examples": [
+            {
+              "code": "const entity: EntityOptions = \"nx_devices\";\nawait addAuditRecord(\"update\", entity, { deviceId: \"123\" });",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These type aliases provide:",
+    "Consistency - Standardized types across all modules",
+    "IntelliSense - Better IDE autocomplete and type checking",
+    "Documentation - Types serve as inline documentation",
+    "Refactoring Safety - TypeScript catches breaking changes",
+    "API Contracts - Clear contracts for function signatures"
+  ]
+}

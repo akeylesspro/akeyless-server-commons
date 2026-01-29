@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "source_file": "src/types/interfaces",
+    "path": "docs/types/interfaces/README.md",
+    "type": "directory_overview"
+  },
+  "purpose": "Overview of TypeScript interfaces for configuration objects, data models, and middleware options.",
+  "sections": [
+    {
+      "title": "Contents",
+      "categories": [
+        {
+          "name": "Modules",
+          "modules": [
+            {
+              "name": "global.ts",
+              "description": "Interfaces for request validation middleware configuration and application initialization options. Key Interfaces: MandatoryObject - Validation rule interface for single parameters, MandatoryParams - Validation parameters interface (body/headers), LogRequests - Request logging configuration interface, AppOptions - Server initialization options interface"
+            },
+            {
+              "name": "email.ts",
+              "description": "Interfaces for email-related data structures used by SendGrid email helpers. Key Interfaces: EmailData - Email composition interface (subject, to, from, body, attachments, etc.), EmailAttachment - Email attachment interface (content, filename, type, disposition), EmailSettings - Email configuration interface (default_from, default_cc, groups, sendgrid_api_key)"
+            },
+            {
+              "name": "index.ts",
+              "description": "Barrel export file that re-exports all interfaces from global.ts and email.ts."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These interfaces are used throughout the package:",
+    "Middleware Interfaces (global.ts) - Used by validation and logging middlewares",
+    "Email Interfaces (email.ts) - Used by email helpers for SendGrid integration",
+    "Type Safety - Ensures consistent object shapes and compile-time validation",
+    "Configuration - Provides clear contracts for configuration objects"
+  ]
+}

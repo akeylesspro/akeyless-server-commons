@@ -1,0 +1,56 @@
+{
+  "metadata": {
+    "source_file": "src/middlewares",
+    "path": "docs/middlewares/README.md",
+    "type": "directory_overview"
+  },
+  "purpose": "Overview of Express middleware functions for common server-side concerns including request validation, authentication, error handling, and data normalization.",
+  "sections": [
+    {
+      "title": "Contents",
+      "categories": [
+        {
+          "name": "Modules",
+          "modules": [
+            {
+              "name": "global_mw.ts",
+              "description": "Comprehensive validation middleware and request logging utilities. Exports: mandatory, optional, request_logger. Features: Type validation, length constraints, array element type validation, object required keys validation, configurable request logging."
+            },
+            {
+              "name": "auth_mw.ts",
+              "description": "Authentication middleware for different user/client types. Exports: verify_user_auth, nx_user_login, client_login. Features: Firebase token verification, NX user lookup, API client authentication, standardized 403 error responses."
+            },
+            {
+              "name": "error_handling.ts",
+              "description": "Error handling utilities for async routes and global error management. Exports: async_error_handler, error_handler. Features: Automatic error catching for async routes, centralized error logging, standardized error responses (500 status), stack trace logging."
+            },
+            {
+              "name": "trim_mw.ts",
+              "description": "Request body normalization middleware. Exports: trim_body_middleware. Features: Recursive string trimming, handles nested objects and arrays, non-destructive (only modifies strings), safe for missing or non-object bodies."
+            },
+            {
+              "name": "index.ts",
+              "description": "Barrel export file for convenient importing."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These middlewares standardize request handling across all Akeyless microservices:",
+    "Consistency - Same validation and authentication patterns everywhere",
+    "Type Safety - TypeScript types ensure correct usage",
+    "Error Handling - Centralized error management",
+    "Security - Authentication and input validation built-in",
+    "Observability - Request logging for debugging and monitoring"
+  ],
+  "best_practices": [
+    "Recommended middleware order: Body Parsing → Request Logging → Body Trimming → Validation → Authentication → Route Handlers → Error Handler",
+    "Use mandatory for required fields",
+    "Use optional for optional fields",
+    "Always use async_error_handler for async route handlers",
+    "Register error_handler last in the middleware chain",
+    "Use request_logger judiciously - don't log sensitive data in production"
+  ]
+}

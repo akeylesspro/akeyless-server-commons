@@ -1,0 +1,99 @@
+{
+  "metadata": {
+    "source_file": "src/middlewares/error_handling.ts",
+    "path": "docs/middlewares/error_handling.md",
+    "type": "module"
+  },
+  "purpose": "Provides error handling utilities for Express applications, including an async error wrapper and a global error handler middleware. Ensures that asynchronous errors in route handlers are properly caught and handled by Express's error handling system.",
+  "dependencies": [
+    "logger - Logging manager for error tracking and stack trace logging",
+    "Service - Type definition for async route handler functions",
+    "Request, Response, NextFunction - Standard Express types"
+  ],
+  "sections": [
+    {
+      "title": "Exports",
+      "exports": [
+        {
+          "name": "async_error_handler",
+          "signature": "async_error_handler(service: Service)",
+          "type": "function",
+          "description": "A higher-order function that wraps async route handlers to automatically catch and forward Promise rejections to Express's error handling middleware.",
+          "parameters": [
+            {
+              "name": "service",
+              "type": "Service",
+              "description": "An async function that takes (req: Request, res: Response) and returns a Promise"
+            }
+          ],
+          "returns": "Express middleware function (req: Request, res: Response, next: NextFunction) => void",
+          "behavior": [
+            "Wraps the provided service function in a Promise.resolve() call",
+            "If the service resolves successfully, the middleware chain continues normally",
+            "If the service rejects (throws an error or returns a rejected Promise), the error is caught and passed to Express's error handling middleware via next(error)",
+            "This allows async route handlers to throw errors naturally without needing try-catch blocks, as Express will route them to the global error handler"
+          ],
+          "examples": [
+            {
+              "code": "app.get('/route', async_error_handler(async (req, res) => {\n  const data = await someAsyncOperation(); // Error here is caught and forwarded\n  res.json(data);\n}));",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "error_handler",
+          "signature": "error_handler(err: Error, req: Request, res: Response, next: NextFunction)",
+          "type": "function",
+          "description": "Global Express error handler middleware that catches all errors in the middleware chain and returns a standardized error response.",
+          "parameters": [
+            {
+              "name": "err",
+              "type": "Error",
+              "description": "The error object that was thrown or passed via next(error)"
+            },
+            {
+              "name": "req",
+              "type": "Request",
+              "description": "Express request object"
+            },
+            {
+              "name": "res",
+              "type": "Response",
+              "description": "Express response object"
+            },
+            {
+              "name": "next",
+              "type": "NextFunction",
+              "description": "Express next function (not used, but required by Express error handler signature)"
+            }
+          ],
+          "behavior": [
+            "Logs the error stack trace using logger.error(\"Global Error Handler:\", err.stack)",
+            "Returns an HTTP 500 (Internal Server Error) status code",
+            "Sends a JSON response with standardized error format: { status: \"error\", message: err.message || \"Internal Server Error\" }",
+            "If the error object doesn't have a message property, defaults to \"Internal Server Error\""
+          ],
+          "examples": [
+            {
+              "code": "app.use(error_handler);\n\napp.get('/route', async_error_handler(async (req, res) => {\n  throw new Error('Something went wrong'); // Caught by error_handler\n}));",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These error handling utilities are essential for:",
+    "Async Route Safety - async_error_handler ensures that async/await errors in route handlers don't crash the server and are properly handled",
+    "Centralized Error Handling - error_handler provides a single point for error logging and response formatting",
+    "Server Bootstrap - Used by the server initialization code to standardize error handling across all routes",
+    "Consistent Error Responses - All errors return the same JSON format, making it easier for clients to handle errors"
+  ],
+  "best_practices": [
+    "Always use async_error_handler for async route handlers to ensure errors are caught",
+    "Register error_handler last in the middleware chain, after all routes",
+    "Use descriptive error messages so they're useful in logs and client responses",
+    "Don't call next() after sending a response - the error handler will handle it"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "source_file": "src/types/types",
+    "path": "docs/types/types/README.md",
+    "type": "directory_overview"
+  },
+  "purpose": "Overview of TypeScript type aliases for HTTP responses, Express middleware, route handlers, Firebase operations, and application-level helper functions.",
+  "sections": [
+    {
+      "title": "Contents",
+      "categories": [
+        {
+          "name": "Modules",
+          "modules": [
+            {
+              "name": "global.ts",
+              "description": "Core type definitions for Express middleware, routes, JSON responses, and application helpers. Key Types: JsonOK<T>, JsonFailed, MW, Service, Route, MainRouter, AddAuditRecord, LangOptions, EntityOptions"
+            },
+            {
+              "name": "firebase_types.ts",
+              "description": "Comprehensive type definitions for Firestore query operations and real-time snapshot subscriptions. Key Types: Query function types (QueryDocument, QueryDocuments, QueryDocumentOptional, etc.), Snapshot types (OnSnapshotConfig, Snapshot, SnapshotBulk, etc.), WhereCondition - Firestore where condition interface, InitSnapshotsOptions - Snapshot initialization options"
+            },
+            {
+              "name": "index.ts",
+              "description": "Barrel export file that re-exports all type aliases from global.ts and firebase_types.ts."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These types are used throughout the package:",
+    "Core Types (global.ts) - Used by all modules for middleware, routes, and responses",
+    "Firebase Types (firebase_types.ts) - Used by Firebase helpers and snapshot system",
+    "Type Safety - Ensures consistent API shapes and compile-time checking",
+    "IntelliSense - Provides better IDE autocomplete and documentation"
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/redis/keys.ts",
+    "path": "docs/helpers/redis/keys.md",
+    "type": "module"
+  },
+  "purpose": "Redis key and pattern utilities for building consistent key names and channel names. Provides helpers for document keys, collection patterns, update channels, and key scanning operations.",
+  "dependencies": [
+    "ioredis - Redis client library",
+    "REDIS_UPDATES_PREFIX - Prefix constant from akeyless-types-commons for update channels"
+  ],
+  "sections": [
+    {
+      "title": "Document and Collection Keys",
+      "exports": [
+        {
+          "name": "get_doc_key",
+          "signature": "get_doc_key(collection: string, doc_id: string): string",
+          "type": "function",
+          "description": "Builds a Redis key for a specific document.",
+          "parameters": [
+            {
+              "name": "collection",
+              "type": "string",
+              "description": "Collection name"
+            },
+            {
+              "name": "doc_id",
+              "type": "string",
+              "description": "Document ID"
+            }
+          ],
+          "returns": "Redis key in format \"{collection}:{doc_id}\"",
+          "examples": [
+            {
+              "code": "get_doc_key('nx-users', 'user-123');\n// Returns: 'nx-users:user-123'",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_collection_keys",
+          "signature": "get_collection_keys(collection: string): string",
+          "type": "function",
+          "description": "Builds a Redis key pattern for all documents in a collection.",
+          "parameters": [
+            {
+              "name": "collection",
+              "type": "string",
+              "description": "Collection name"
+            }
+          ],
+          "returns": "Redis pattern in format \"{collection}:*\"",
+          "examples": [
+            {
+              "code": "get_collection_keys('nx-users');\n// Returns: 'nx-users:*'",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Channel Names",
+      "exports": [
+        {
+          "name": "get_channel",
+          "signature": "get_channel(...args: string[]): string",
+          "type": "function",
+          "description": "Builds a Redis Pub/Sub channel name with update prefix.",
+          "parameters": [
+            {
+              "name": "args",
+              "type": "string[]",
+              "description": "Variable number of string arguments"
+            }
+          ],
+          "returns": "Channel name in format \"{REDIS_UPDATES_PREFIX}:{args.join(':')}\"",
+          "examples": [
+            {
+              "code": "get_channel('nx-users', 'user-123');\n// Returns: '{REDIS_UPDATES_PREFIX}:nx-users:user-123'",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Key Scanning",
+      "exports": [
+        {
+          "name": "scan_redis_keys",
+          "signature": "scan_redis_keys(pattern: string, redis_publisher: Redis): Promise<string[]>",
+          "type": "function",
+          "description": "Scans Redis for all keys matching a pattern using SCAN command.",
+          "parameters": [
+            {
+              "name": "pattern",
+              "type": "string",
+              "description": "Redis key pattern (supports * wildcard)"
+            },
+            {
+              "name": "redis_publisher",
+              "type": "Redis",
+              "description": "Redis client instance (commander)"
+            }
+          ],
+          "returns": "Promise resolving to array of matching key strings",
+          "behavior": [
+            "Starts with cursor \"0\"",
+            "Iteratively calls SCAN with: Current cursor, MATCH pattern, COUNT 100 (processes 100 keys per iteration)",
+            "Accumulates keys from each iteration",
+            "Continues until cursor returns to \"0\" (scan complete)",
+            "Returns all found keys"
+          ],
+          "examples": [
+            {
+              "code": "const commander = get_redis_commander();\nconst keys = await scan_redis_keys('nx-users:*', commander);\n// Returns: ['nx-users:user-1', 'nx-users:user-2', ...]",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These utilities ensure consistent key naming across the application:",
+    "Consistency - All keys follow the same pattern",
+    "Namespacing - Collections are clearly separated",
+    "Pattern Matching - Easy to find related keys",
+    "Pub/Sub - Update channels are properly namespaced"
+  ],
+  "best_practices": [
+    "Always use these helpers instead of manual string concatenation",
+    "Use get_doc_key for document operations",
+    "Use get_collection_keys for pattern matching",
+    "Use get_channel for Pub/Sub channels",
+    "Use scan_redis_keys instead of KEYS command"
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "metadata": {
+    "source_file": "src/managers/cache_manager.ts",
+    "path": "docs/managers/cache_manager.md",
+    "type": "module"
+  },
+  "purpose": "Singleton in-memory cache manager for storing arrays and objects by key. Provides fast access to frequently accessed data that is populated by Firebase snapshots or Redis subscriptions. Data persists for the lifetime of the server process.",
+  "architecture": {
+    "pattern": "Singleton Pattern",
+    "description": "The CacheManager uses the singleton pattern to ensure a single shared cache instance across the entire application. This provides: Consistent data access, Memory efficiency (single cache instance), Thread-safe access (Node.js single-threaded event loop)",
+    "details": [
+      "Data Storage: The cache stores data in a single object (data) that can contain both arrays and objects: Array data: data[key] = [item1, item2, ...], Object data: data[key] = { id1: item1, id2: item2, ... }"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Exports and behavior",
+      "exports": [
+        {
+          "name": "CacheManager",
+          "type": "class",
+          "description": "Singleton class for cache management.",
+          "methods": [
+            {
+              "name": "getInstance",
+              "signature": "getInstance(): CacheManager",
+              "type": "method",
+              "description": "Returns the singleton instance of CacheManager.",
+              "returns": "CacheManager instance",
+              "behavior": [
+                "Creates instance on first call",
+                "Returns same instance on subsequent calls",
+                "Thread-safe in Node.js (single-threaded)"
+              ],
+              "examples": [
+                {
+                  "code": "const manager = CacheManager.getInstance();",
+                  "language": "typescript"
+                }
+              ]
+            },
+            {
+              "name": "setArrayData",
+              "signature": "setArrayData(key: string, data: any[]): void",
+              "type": "method",
+              "description": "Stores an array in the cache.",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": "string",
+                  "description": "Cache key (string identifier)"
+                },
+                {
+                  "name": "data",
+                  "type": "any[]",
+                  "description": "Array to store"
+                }
+              ],
+              "behavior": [
+                "Stores array directly under key",
+                "Overwrites existing data if key exists",
+                "No validation (can store any array)"
+              ],
+              "examples": [
+                {
+                  "code": "cache_manager.setArrayData('users', [\n  { id: '1', name: 'John' },\n  { id: '2', name: 'Jane' }\n]);",
+                  "language": "typescript"
+                }
+              ]
+            },
+            {
+              "name": "getArrayData",
+              "signature": "getArrayData(key: string): any[]",
+              "type": "method",
+              "description": "Retrieves an array from the cache.",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": "string",
+                  "description": "Cache key"
+                }
+              ],
+              "returns": "Array stored under key, or empty array [] if not found",
+              "behavior": [
+                "Returns cached array if exists",
+                "Returns empty array if key doesn't exist",
+                "Never returns null or undefined"
+              ],
+              "examples": [
+                {
+                  "code": "const users = cache_manager.getArrayData('users');\n// Returns: [{ id: '1', name: 'John' }, ...] or []",
+                  "language": "typescript"
+                }
+              ]
+            },
+            {
+              "name": "setObjectData",
+              "signature": "setObjectData(key: string, data: any): void",
+              "type": "method",
+              "description": "Stores an object in the cache.",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": "string",
+                  "description": "Cache key"
+                },
+                {
+                  "name": "data",
+                  "type": "any",
+                  "description": "Object to store (can be any type, not just plain objects)"
+                }
+              ],
+              "behavior": [
+                "Stores data directly under key",
+                "Overwrites existing data if key exists",
+                "No validation (can store any value)"
+              ],
+              "examples": [
+                {
+                  "code": "cache_manager.setObjectData('nx-settings', {\n  emails: { sendgrid_api_key: '...' },\n  sms_provider: { ... }\n});",
+                  "language": "typescript"
+                }
+              ]
+            },
+            {
+              "name": "getObjectData",
+              "signature": "getObjectData(key: string, default_value: any = null): any",
+              "type": "method",
+              "description": "Retrieves an object from the cache.",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": "string",
+                  "description": "Cache key"
+                },
+                {
+                  "name": "default_value",
+                  "type": "any",
+                  "optional": true,
+                  "default": "null",
+                  "description": "Value to return if key doesn't exist"
+                }
+              ],
+              "returns": "Cached value or default_value if not found",
+              "behavior": [
+                "Returns cached value if exists",
+                "Returns default_value if key doesn't exist",
+                "Can return any type (object, array, primitive, etc.)"
+              ],
+              "examples": [
+                {
+                  "code": "const settings = cache_manager.getObjectData('nx-settings');\n// Returns: { emails: {...}, ... } or null",
+                  "language": "typescript"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "cache_manager",
+          "type": "variable",
+          "description": "Exported singleton instance for direct use."
+        }
+      ]
+    }
+  ],
+  "context": [
+    "The cache manager is central to application performance:",
+    "Fast Access - In-memory access (no database queries)",
+    "Real-time Updates - Updated by snapshots automatically",
+    "Flexible Storage - Supports both arrays and objects",
+    "Singleton Pattern - Single shared instance",
+    "Simple API - Easy to use get/set methods"
+  ],
+  "best_practices": [
+    "Use array cache for collections accessed sequentially",
+    "Use object cache for collections accessed by ID",
+    "Always provide default values for object access",
+    "Don't mutate cached arrays/objects directly (create copies)",
+    "Cache is process-local (not shared across instances)"
+  ]
+}

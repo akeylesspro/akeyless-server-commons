@@ -1,0 +1,417 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/global_helpers.ts",
+    "path": "docs/helpers/global_helpers.md",
+    "type": "module"
+  },
+  "purpose": "General-purpose server utilities for environment validation, JSON response formatting, service URL resolution, geocoding, type guards, data normalization, and HTTP request helpers. These are foundational utilities used across the entire application.",
+  "dependencies": [
+    "fs.readFileSync - File system operations for reading package.json",
+    "axios - HTTP client for API requests",
+    "https - HTTPS module for SSL configuration",
+    "cache_manager - Accesses cached settings for geocoding API keys",
+    "logger - Logging utility",
+    "JsonOK, JsonFailed from src/types",
+    "NxServiceNameMap from src/types",
+    "Geo, LanguageOptions, TObject from akeyless-types-commons"
+  ],
+  "sections": [
+    {
+      "title": "Environment Validation",
+      "exports": [
+        {
+          "name": "init_env_variables",
+          "signature": "init_env_variables(required_vars: string[] = []): TObject<string>",
+          "type": "function",
+          "description": "Validates required environment variables and returns all environment variables as a typed object.",
+          "parameters": [
+            {
+              "name": "required_vars",
+              "type": "string[]",
+              "optional": true,
+              "default": "[]",
+              "description": "Array of required environment variable names"
+            }
+          ],
+          "returns": "Object mapping all environment variable names to their string values",
+          "behavior": [
+            "Validates each required variable exists in process.env",
+            "Logs error and exits process (exit code 1) if any required variable is missing",
+            "Returns object containing all environment variables (not just required ones)"
+          ],
+          "throws": "Process exits with code 1 if required variable missing",
+          "examples": [
+            {
+              "code": "// Validates and loads all env vars\nconst env = init_env_variables(['mode', 'port', 'project_id']);\n\n// Access variables\nconst mode = env.mode;\nconst port = env.port;",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "JSON Response Helpers",
+      "exports": [
+        {
+          "name": "json_ok",
+          "signature": "json_ok(data: TObject<any> | TObject<any>[]): JsonOK",
+          "type": "function",
+          "description": "Creates a standardized success JSON response.",
+          "parameters": [
+            {
+              "name": "data",
+              "type": "TObject<any> | TObject<any>[]",
+              "description": "Data to return (object or array)"
+            }
+          ],
+          "returns": "Object with { success: true, data } structure",
+          "examples": [
+            {
+              "code": "res.json(json_ok({ user: 'John', id: '123' }));\n// Returns: { success: true, data: { user: 'John', id: '123' } }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "json_failed",
+          "signature": "json_failed(error: any, msg?: string): JsonFailed",
+          "type": "function",
+          "description": "Creates a standardized error JSON response.",
+          "parameters": [
+            {
+              "name": "error",
+              "type": "any",
+              "description": "Error object, Error instance, or error message string"
+            },
+            {
+              "name": "msg",
+              "type": "string",
+              "optional": true,
+              "description": "Optional additional error message"
+            }
+          ],
+          "returns": "Object with { success: false, error, msg } structure",
+          "behavior": [
+            "Extracts error message from Error instances",
+            "Falls back to error string or default message if error is not an Error",
+            "Default error message: \"general error: something happened \""
+          ],
+          "examples": [
+            {
+              "code": "res.json(json_failed(new Error('User not found'), 'Failed to fetch user'));\n// Returns: { success: false, error: 'User not found', msg: 'Failed to fetch user' }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "parse_error",
+          "signature": "parse_error(error: any): { name?: string, message?: string } | any",
+          "type": "function",
+          "description": "Normalizes error objects to a consistent format.",
+          "parameters": [
+            {
+              "name": "error",
+              "type": "any",
+              "description": "Error instance or any value"
+            }
+          ],
+          "returns": "If Error instance: { name: error.name, message: error.message }, Otherwise: returns error as-is",
+          "examples": [
+            {
+              "code": "const normalized = parse_error(new Error('Something went wrong'));\n// Returns: { name: 'Error', message: 'Something went wrong' }",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Utility Functions",
+      "exports": [
+        {
+          "name": "get_version",
+          "signature": "get_version(packageJsonPath: string): string",
+          "type": "function",
+          "description": "Reads and extracts version from package.json file.",
+          "parameters": [
+            {
+              "name": "packageJsonPath",
+              "type": "string",
+              "description": "Path to package.json file"
+            }
+          ],
+          "returns": "Version string from package.json",
+          "throws": "JSON parse errors if package.json is invalid",
+          "examples": [
+            {
+              "code": "const version = get_version('./package.json');\n// Returns: '1.0.168'",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "sleep",
+          "signature": "sleep(ms: number = 2500): Promise<void>",
+          "type": "function",
+          "description": "Creates a promise-based delay (sleep function).",
+          "parameters": [
+            {
+              "name": "ms",
+              "type": "number",
+              "optional": true,
+              "default": "2500",
+              "description": "Milliseconds to wait"
+            }
+          ],
+          "returns": "Promise that resolves after specified delay",
+          "examples": [
+            {
+              "code": "await sleep(1000); // Wait 1 second\nawait sleep(); // Wait 2.5 seconds (default)",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Service URL Resolution",
+      "exports": [
+        {
+          "name": "get_nx_service_urls",
+          "signature": "get_nx_service_urls(env_name: string = \"mode\"): NxServiceNameMap",
+          "type": "function",
+          "description": "Resolves base URLs for all NX microservices based on environment.",
+          "parameters": [
+            {
+              "name": "env_name",
+              "type": "string",
+              "optional": true,
+              "default": "\"mode\"",
+              "description": "Environment variable name to check"
+            }
+          ],
+          "returns": "Object mapping service names to base URLs",
+          "behavior": [
+            "Reads environment variable (default: process.env.mode)",
+            "Maps values: \"production\" or \"prod\" → prod URLs, \"qa\" → qa URLs, Otherwise → local URLs",
+            "Throws error if environment variable is missing"
+          ],
+          "throws": "Error if environment variable is missing",
+          "examples": [
+            {
+              "code": "const urls = get_nx_service_urls('mode');\nconst devicesUrl = urls.devices; // 'https://nx-api.info/api/devices' (prod)",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Geocoding",
+      "exports": [
+        {
+          "name": "get_address_by_geo",
+          "signature": "get_address_by_geo({ lat, lng }: Geo, currentLanguage: LanguageOptions): Promise<string>",
+          "type": "function",
+          "description": "Reverse geocodes coordinates to a formatted address using Google Geocoding API.",
+          "parameters": [
+            {
+              "name": "lat",
+              "type": "number",
+              "description": "Latitude (-90 to 90)"
+            },
+            {
+              "name": "lng",
+              "type": "number",
+              "description": "Longitude (-180 to 180)"
+            },
+            {
+              "name": "currentLanguage",
+              "type": "LanguageOptions",
+              "description": "Language preference (LanguageOptions.He or LanguageOptions.En)"
+            }
+          ],
+          "returns": "Promise resolving to formatted address string (truncated to 35 characters) or empty string",
+          "behavior": [
+            "Validates coordinates are within valid ranges",
+            "Maps language: LanguageOptions.He → \"iw\" (Hebrew), Otherwise → \"en\" (English)",
+            "Retrieves Google Geocoding API key from cached nx-settings.google.geocode_api_key",
+            "Calls Google Geocoding API with coordinates and language",
+            "Extracts formatted_address from first result",
+            "Truncates to 35 characters",
+            "Returns empty string on error or if no results"
+          ],
+          "throws": "Error(\"missing env google api key\") if API key not found in settings",
+          "error_handling": [
+            "Returns empty string on API errors (logged but not thrown)"
+          ],
+          "examples": [
+            {
+              "code": "const address = await get_address_by_geo(\n  { lat: 31.7683, lng: 35.2137 },\n  LanguageOptions.He\n);\n// Returns: 'ירושלים, ישראל' (truncated to 35 chars)",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Type Guards and Utilities",
+      "exports": [
+        {
+          "name": "validate_and_cast",
+          "signature": "validate_and_cast<T>(variable: any, condition: Boolean): variable is T",
+          "type": "function",
+          "description": "TypeScript type guard helper for runtime type validation.",
+          "parameters": [
+            {
+              "name": "variable",
+              "type": "any",
+              "description": "Value to validate"
+            },
+            {
+              "name": "condition",
+              "type": "Boolean",
+              "description": "Boolean condition to check"
+            }
+          ],
+          "returns": "Type predicate (TypeScript type guard)",
+          "examples": [
+            {
+              "code": "const value: unknown = getSomeValue();\nif (validate_and_cast<User>(value, typeof value === 'object' && 'id' in value)) {\n  // TypeScript now knows value is User\n  console.log(value.id);\n}",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_or_default",
+          "signature": "get_or_default<T>(value: T | undefined, default_value: T | (() => T)): T",
+          "type": "function",
+          "description": "Returns value if defined, otherwise returns default (supports lazy evaluation).",
+          "parameters": [
+            {
+              "name": "value",
+              "type": "T | undefined",
+              "description": "Value to check"
+            },
+            {
+              "name": "default_value",
+              "type": "T | (() => T)",
+              "description": "Default value or function returning default"
+            }
+          ],
+          "returns": "Value if defined, otherwise default value",
+          "behavior": [
+            "If value !== undefined, returns value",
+            "If default_value is a function, calls it and returns result",
+            "Otherwise returns default_value directly"
+          ],
+          "examples": [
+            {
+              "code": "const name = get_or_default(user.name, 'Anonymous');\nconst count = get_or_default(cache.count, () => expensiveCalculation());",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Data Normalization",
+      "exports": [
+        {
+          "name": "trim_strings",
+          "signature": "trim_strings<T>(input: any): any",
+          "type": "function",
+          "description": "Recursively trims all string values in objects and arrays.",
+          "parameters": [
+            {
+              "name": "input",
+              "type": "any",
+              "description": "Value to trim (string, array, object, or primitive)"
+            }
+          ],
+          "returns": "Trimmed value with same structure",
+          "behavior": [
+            "Strings: Returns trimmed string",
+            "Arrays: Recursively trims each element",
+            "Objects: Recursively trims all properties",
+            "Preserves special types: Date, RegExp, Map, Set (returns as-is)",
+            "Primitives: Returns as-is"
+          ],
+          "examples": [
+            {
+              "code": "const trimmed = trim_strings({\n  name: '  John  ',\n  tags: ['  tag1  ', '  tag2  '],\n  nested: { value: '  value  ' }\n});\n// Returns: { name: 'John', tags: ['tag1', 'tag2'], nested: { value: 'value' } }",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "remove_nulls_and_undefined",
+          "signature": "remove_nulls_and_undefined(obj: Record<string, any>): Record<string, any>",
+          "type": "function",
+          "description": "Removes properties with null or undefined values from an object.",
+          "parameters": [
+            {
+              "name": "obj",
+              "type": "Record<string, any>",
+              "description": "Object to clean"
+            }
+          ],
+          "returns": "New object without null/undefined properties",
+          "examples": [
+            {
+              "code": "const cleaned = remove_nulls_and_undefined({\n  name: 'John',\n  age: null,\n  email: undefined,\n  active: true\n});\n// Returns: { name: 'John', active: true }",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "HTTP Helpers",
+      "exports": [
+        {
+          "name": "ignore_ssl_request",
+          "signature": "ignore_ssl_request(config: AxiosRequestConfig): Promise<AxiosResponse>",
+          "type": "function",
+          "description": "Makes an HTTP request with optional SSL verification bypass for QA environment.",
+          "parameters": [
+            {
+              "name": "config",
+              "type": "AxiosRequestConfig",
+              "description": "Axios request configuration"
+            }
+          ],
+          "returns": "Promise resolving to Axios response",
+          "behavior": [
+            "Checks mode environment variable",
+            "If mode === \"qa\", disables SSL certificate verification",
+            "Otherwise, uses default SSL verification",
+            "Makes request using axios"
+          ],
+          "examples": [
+            {
+              "code": "const response = await ignore_ssl_request({\n  method: 'GET',\n  url: 'https://internal-api.example.com/data',\n  headers: { 'Authorization': 'Bearer token' }\n});",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These utilities provide foundational functionality used throughout the application:",
+    "Environment Management - Centralized env var validation and access",
+    "API Responses - Consistent JSON response format across all endpoints",
+    "Service Communication - Environment-aware service URL resolution",
+    "Data Normalization - String trimming and null removal for clean data",
+    "Geocoding - Address lookup from coordinates",
+    "Type Safety - TypeScript type guards and utilities"
+  ],
+  "best_practices": [
+    "Always use init_env_variables() at application startup",
+    "Use json_ok() and json_failed() for all API responses",
+    "Use trim_strings() on user input before processing",
+    "Use get_nx_service_urls() for inter-service communication",
+    "Use ignore_ssl_request() only when necessary (QA environment)"
+  ]
+}

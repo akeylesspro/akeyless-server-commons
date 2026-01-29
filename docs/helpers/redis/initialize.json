@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/redis/initialize.ts",
+    "path": "docs/helpers/redis/initialize.md",
+    "type": "module"
+  },
+  "purpose": "Initialize Redis commander and listener clients with connection management, retry logic, and Pub/Sub subscription setup. Uses a dual-client architecture: commander for read/write operations and listener for subscribing to update channels.",
+  "dependencies": [
+    "ioredis - Redis client library for Node.js",
+    "init_env_variables - Environment variable validation",
+    "logger - Logging manager",
+    "get_collection_keys - Redis key pattern helper",
+    "REDIS_UPDATES_PREFIX - Prefix constant from akeyless-types-commons"
+  ],
+  "architecture": {
+    "pattern": "Dual Client Pattern",
+    "description": "The module creates two separate Redis clients: Commander Client (redis_commander) for read/write operations, and Listener Client (redis_listener) for Pub/Sub subscriptions. Redis clients in subscriber mode cannot execute regular commands, so separating concerns allows both subscription and command execution.",
+    "details": [
+      "Commander Client: Used for read/write operations (GET, SET, MGET, SCAN, etc.), Can respond to PING commands, Used by snapshot loading and cache operations",
+      "Listener Client: Used exclusively for Pub/Sub subscriptions, Cannot respond to PING commands (subscriber mode), Listens for collection update events"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Exports and behavior",
+      "exports": [
+        {
+          "name": "redis_commander_connected",
+          "type": "variable",
+          "description": "Connection status flag for commander client. Updated automatically on connect/disconnect events."
+        },
+        {
+          "name": "redis_listener_connected",
+          "type": "variable",
+          "description": "Connection status flag for listener client. Updated automatically on connect/disconnect events."
+        },
+        {
+          "name": "init_redis",
+          "signature": "init_redis(): Promise<void>",
+          "type": "function",
+          "description": "Initializes both Redis clients and sets up Pub/Sub subscription.",
+          "returns": "Promise resolving when both clients are connected and listener is subscribed",
+          "behavior": [
+            "Idempotency: Returns immediately if already initialized, Prevents multiple initializations",
+            "Client Creation: Creates commander client via create_redis_instance(\"commander\"), Creates listener client via create_redis_instance(\"listener\"), Sets redis_initialized flag",
+            "Connection Tracking: Tracks commander_ready and listener_ready flags, Tracks listener_subscribed flag to prevent duplicate subscriptions",
+            "Commander Connection: Waits for connect event, Sets commander_ready = true, Checks if both clients ready",
+            "Listener Connection: Waits for connect event, Sets listener_ready = true, Subscription Setup: Only subscribes once (on first connect), Uses pattern subscription: get_collection_keys(REDIS_UPDATES_PREFIX), Pattern format: \"{REDIS_UPDATES_PREFIX}:*\", ioredis automatically resubscribes on reconnection, Checks if both clients ready",
+            "Resolution: Resolves promise when both clients are ready, Allows server to continue startup",
+            "Timeout Handling: 5-second timeout for connection, If timeout expires, resolves anyway (fail-open), Logs warning but doesn't block startup",
+            "Error Handling: Rejects promise only if both clients fail before timeout, Individual client errors don't block resolution, Errors are logged but don't prevent startup"
+          ],
+          "examples": [
+            {
+              "code": "try {\n  await init_redis();\n  console.log('Redis initialized');\n} catch (error) {\n  console.error('Redis initialization failed', error);\n}",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_redis_commander",
+          "signature": "get_redis_commander(): Redis",
+          "type": "function",
+          "description": "Returns the commander Redis client instance.",
+          "returns": "ioredis Redis client instance",
+          "throws": "Error(\"Redis commander not initialized. Call init_redis() first.\") if not initialized",
+          "examples": [
+            {
+              "code": "const commander = get_redis_commander();\nconst value = await commander.get('key');\nawait commander.set('key', 'value');",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_redis_listener",
+          "signature": "get_redis_listener(): Redis",
+          "type": "function",
+          "description": "Returns the listener Redis client instance.",
+          "returns": "ioredis Redis client instance",
+          "throws": "Error(\"Redis listener not initialized. Call init_redis() first.\") if not initialized"
+        }
+      ]
+    }
+  ],
+  "context": [
+    "This module provides the foundation for Redis integration:",
+    "Dual Client Architecture - Separates commands from subscriptions",
+    "Fail-Open Design - Server continues even if Redis unavailable",
+    "Automatic Reconnection - ioredis handles reconnection automatically",
+    "Connection Status - Exported flags for health checks",
+    "Pub/Sub Setup - Automatic subscription to update channels"
+  ],
+  "best_practices": [
+    "Always call init_redis() during server startup",
+    "Check connection flags before using Redis operations",
+    "Handle Redis unavailability gracefully",
+    "Use commander for all read/write operations",
+    "Don't use listener for regular commands"
+  ]
+}

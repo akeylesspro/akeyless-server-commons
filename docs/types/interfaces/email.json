@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "source_file": "src/types/interfaces/email.ts",
+    "path": "docs/types/interfaces/email.md",
+    "type": "module"
+  },
+  "purpose": "Defines TypeScript interfaces for email-related data structures used by the SendGrid email helpers. These interfaces provide type safety for email composition, attachments, and configuration settings stored in Firestore.",
+  "sections": [
+    {
+      "title": "Exports",
+      "type_definitions": [
+        {
+          "name": "EmailData",
+          "type": "interface",
+          "definition": "interface EmailData {\n    subject: string;\n    entity_for_audit: string;\n    to?: string | string[];\n    from?: string | { email: string; name?: string };\n    group_name?: string;\n    cc?: string | string[];\n    body_plain_text?: string;\n    body_html?: string;\n    attachments?: EmailAttachment[];\n}",
+          "description": "Main interface for email composition data passed to the send_email helper function.",
+          "properties": [
+            {
+              "name": "subject",
+              "type": "string",
+              "description": "Email subject line (required)"
+            },
+            {
+              "name": "entity_for_audit",
+              "type": "string",
+              "description": "Entity identifier for audit logging (required)"
+            },
+            {
+              "name": "to",
+              "type": "string | string[]",
+              "optional": true,
+              "description": "Recipient email address(es) (optional)"
+            },
+            {
+              "name": "from",
+              "type": "string | { email: string; name?: string }",
+              "optional": true,
+              "description": "Sender email/name (optional, uses default if not provided)"
+            },
+            {
+              "name": "group_name",
+              "type": "string",
+              "optional": true,
+              "description": "Email group name from settings (optional)"
+            },
+            {
+              "name": "cc",
+              "type": "string | string[]",
+              "optional": true,
+              "description": "CC recipient(s) (optional)"
+            },
+            {
+              "name": "body_plain_text",
+              "type": "string",
+              "optional": true,
+              "description": "Plain text email body (optional)"
+            },
+            {
+              "name": "body_html",
+              "type": "string",
+              "optional": true,
+              "description": "HTML email body (optional)"
+            },
+            {
+              "name": "attachments",
+              "type": "EmailAttachment[]",
+              "optional": true,
+              "description": "Array of email attachments (optional)"
+            }
+          ],
+          "examples": [
+            {
+              "code": "const emailData: EmailData = {\n  subject: \"Welcome to Our Service\",\n  entity_for_audit: \"user_registration\",\n  to: \"user@example.com\",\n  from: { email: \"noreply@example.com\", name: \"Support Team\" },\n  body_html: \"<h1>Welcome!</h1><p>Thank you for joining.</p>\",\n  body_plain_text: \"Welcome! Thank you for joining.\"\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "EmailAttachment",
+          "type": "interface",
+          "definition": "interface EmailAttachment {\n    content: string;\n    filename: string;\n    type?: string;\n    disposition?: \"attachment\" | \"inline\";\n    content_id?: string;\n}",
+          "description": "Interface for email attachment data. Attachments are sent as base64-encoded content.",
+          "properties": [
+            {
+              "name": "content",
+              "type": "string",
+              "description": "Base64-encoded file content (required)"
+            },
+            {
+              "name": "filename",
+              "type": "string",
+              "description": "Attachment filename (required)"
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "optional": true,
+              "description": "MIME type (optional, e.g., \"application/pdf\")"
+            },
+            {
+              "name": "disposition",
+              "type": "\"attachment\" | \"inline\"",
+              "optional": true,
+              "description": "Content disposition (optional)"
+            },
+            {
+              "name": "content_id",
+              "type": "string",
+              "optional": true,
+              "description": "Content ID for inline attachments (optional)"
+            }
+          ]
+        },
+        {
+          "name": "EmailSettings",
+          "type": "interface",
+          "definition": "interface EmailSettings {\n    default_from: { email: string; name?: string };\n    default_cc: string[];\n    groups: Record<string, { cc?: string[]; to: string[] }>;\n    sendgrid_api_key: string;\n}",
+          "description": "Interface for email configuration settings stored in Firestore. Defines default sender, default CC recipients, and email groups.",
+          "properties": [
+            {
+              "name": "default_from",
+              "type": "{ email: string; name?: string }",
+              "description": "Default sender configuration (required)"
+            },
+            {
+              "name": "default_cc",
+              "type": "string[]",
+              "description": "Default CC recipients for all emails (required)"
+            },
+            {
+              "name": "groups",
+              "type": "Record<string, { cc?: string[]; to: string[] }>",
+              "description": "Email groups configuration (required)"
+            },
+            {
+              "name": "sendgrid_api_key",
+              "type": "string",
+              "description": "SendGrid API key for authentication (required)"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These interfaces are used by:",
+    "EmailData - Used by email_helpers.send_email() function",
+    "EmailAttachment - Used for email attachments sent via SendGrid API",
+    "EmailSettings - Settings are typically stored in Firestore nx-settings collection"
+  ]
+}

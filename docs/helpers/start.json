@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/start.ts",
+    "path": "docs/helpers/start.md",
+    "type": "module"
+  },
+  "purpose": "Express server bootstrap with standardized middleware setup, logging, error handling, and optional Redis initialization. Provides two initialization functions: start_server for basic server setup and basic_init for complete initialization including snapshot loading.",
+  "dependencies": [
+    "express - Express.js web framework",
+    "cors - CORS middleware for cross-origin requests",
+    "logger - Logging manager",
+    "init_env_variables - Environment validation helper",
+    "init_snapshots - Firebase/Redis snapshot initialization",
+    "error_handler - Global error handling middleware",
+    "request_logger - Request logging middleware",
+    "trim_body_middleware - Request body trimming middleware",
+    "init_redis - Redis client initialization"
+  ],
+  "sections": [
+    {
+      "title": "Exports and behavior",
+      "exports": [
+        {
+          "name": "start_server",
+          "signature": "start_server(main_router: MainRouter, project_name: string, version: string, options?: AppOptions): Promise<Express>",
+          "type": "function",
+          "description": "Initializes and starts an Express server with common middleware and optional Redis initialization.",
+          "parameters": [
+            {
+              "name": "main_router",
+              "type": "MainRouter",
+              "description": "Function that receives Express app and sets up routes: (app: Express) => void"
+            },
+            {
+              "name": "project_name",
+              "type": "string",
+              "description": "Name of the project/service (for logging)"
+            },
+            {
+              "name": "version",
+              "type": "string",
+              "description": "Version string (typically from package.json)"
+            },
+            {
+              "name": "options",
+              "type": "AppOptions",
+              "optional": true,
+              "description": "Optional configuration: port, log_requests, initialize_redis"
+            }
+          ],
+          "returns": "Promise resolving to the running Express app instance",
+          "behavior": [
+            "Creates Express app instance",
+            "Validates mode environment variable (required)",
+            "Sets port from options or environment variable",
+            "Applies middleware in order: cors(), express.json({ limit: \"10mb\" }), express.urlencoded({ limit: \"10mb\", extended: true }), trim_body_middleware(), request_logger(log_requests)",
+            "Applies main router (user-defined routes)",
+            "Applies global error handler (must be last)",
+            "Starts server listening on specified port",
+            "Logs server startup information",
+            "Optionally initializes Redis (if initialize_redis is true)",
+            "Resolves with Express app instance"
+          ],
+          "error_handling": [
+            "Redis initialization errors are logged as warnings but don't block server startup",
+            "Server continues even if Redis is unavailable"
+          ],
+          "examples": [
+            {
+              "code": "const mainRouter = (app: Express) => {\n  app.get('/health', (req, res) => {\n    res.json({ status: 'ok' });\n  });\n};\n\nconst app = await start_server(\n  mainRouter,\n  'my-service',\n  '1.0.0',\n  {\n    port: 3000,\n    log_requests: { url: true, body: true },\n    initialize_redis: true\n  }\n);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "basic_init",
+          "signature": "basic_init(main_router: MainRouter, project_name: string, version: string, options?: AppOptions): Promise<Express>",
+          "type": "function",
+          "description": "Complete server initialization including snapshots. This is the recommended entry point for most services.",
+          "parameters": [
+            {
+              "name": "main_router",
+              "type": "MainRouter",
+              "description": "Function that receives Express app and sets up routes"
+            },
+            {
+              "name": "project_name",
+              "type": "string",
+              "description": "Name of the project/service"
+            },
+            {
+              "name": "version",
+              "type": "string",
+              "description": "Version string"
+            },
+            {
+              "name": "options",
+              "type": "AppOptions",
+              "optional": true,
+              "description": "Optional configuration including init_snapshot_options"
+            }
+          ],
+          "returns": "Promise resolving to the running Express app instance",
+          "behavior": [
+            "Calls start_server to initialize Express and start listening",
+            "Calls init_snapshots to load Firebase/Redis snapshots",
+            "Exits process with code 1 on any error"
+          ],
+          "error_handling": [
+            "Any error during initialization causes process exit (code 1)",
+            "Errors are logged before exit"
+          ],
+          "examples": [
+            {
+              "code": "const app = await basic_init(\n  mainRouter,\n  'my-service',\n  '1.0.0',\n  {\n    port: 3000,\n    log_requests: { url: true },\n    init_snapshot_options: {\n      subscription_type: 'firebase',\n      debug: { on_first_time: 'documents' }\n    },\n    initialize_redis: true\n  }\n);",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "This module provides the standard bootstrapping pattern for all Akeyless microservices:",
+    "Consistent Setup - All services use the same middleware stack",
+    "Environment Validation - Ensures required environment variables are present",
+    "Request Logging - Configurable logging for debugging and monitoring",
+    "Error Handling - Global error handler catches unhandled errors",
+    "Redis Integration - Optional Redis initialization for caching",
+    "Snapshot Loading - basic_init ensures caches are populated before serving requests"
+  ],
+  "best_practices": [
+    "Use basic_init for most services (includes snapshot loading)",
+    "Use start_server only if you need manual control over snapshot timing",
+    "Always provide project_name and version for logging",
+    "Configure log_requests appropriately for your environment (more verbose in dev, less in prod)",
+    "Set initialize_redis: false only if Redis is not available or not needed"
+  ]
+}

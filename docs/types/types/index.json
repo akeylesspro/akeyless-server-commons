@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "source_file": "src/types/types/index.ts",
+    "path": "docs/types/types/index.md",
+    "type": "barrel_export"
+  },
+  "purpose": "Barrel export file that re-exports all type aliases from the types subdirectory. This file allows importing all types from a single import path.",
+  "sections": [
+    {
+      "title": "Exports",
+      "description": "All exports are re-exported from their respective modules:",
+      "points": [
+        "global - Exports: JsonOK<T>, JsonFailed, MW, Service, Route, MainRouter, AddAuditRecord, LangOptions, EntityOptions",
+        "firebase_types - Exports: Query function types (QueryDocument, QueryDocuments, QueryDocumentOptional, etc.), Snapshot types (OnSnapshotConfig, Snapshot, SnapshotBulk, etc.), WhereCondition, InitSnapshotsOptions"
+      ]
+    }
+  ],
+  "context": [
+    "This barrel export pattern allows consumers to import multiple types from a single import statement, improving code organization and reducing import complexity."
+  ]
+}

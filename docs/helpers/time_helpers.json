@@ -1,0 +1,253 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/time_helpers.ts",
+    "path": "docs/helpers/time_helpers.md",
+    "type": "module"
+  },
+  "purpose": "Comprehensive time conversion and formatting utilities for Firebase timestamps, JavaScript Dates, strings, and numbers. Supports multiple input formats, timezone conversion, custom formatting, and provides both modern flexible functions and legacy compatibility functions.",
+  "dependencies": [
+    "moment - Date manipulation and formatting library",
+    "moment-timezone - Timezone support for moment",
+    "Firebase Timestamp - Firestore timestamp type",
+    "firebase_timestamp type from akeyless-types-commons - Legacy timestamp format"
+  ],
+  "sections": [
+    {
+      "title": "Sorting and Comparison",
+      "exports": [
+        {
+          "name": "sort_by_timestamp",
+          "signature": "sort_by_timestamp(a: Timestamp, b: Timestamp, reverse: boolean = false): number",
+          "type": "function",
+          "description": "Comparator function for sorting Firebase Timestamps.",
+          "parameters": [
+            {
+              "name": "a",
+              "type": "Timestamp",
+              "description": "First timestamp"
+            },
+            {
+              "name": "b",
+              "type": "Timestamp",
+              "description": "Second timestamp"
+            },
+            {
+              "name": "reverse",
+              "type": "boolean",
+              "optional": true,
+              "default": "false",
+              "description": "If true, sorts descending (default: false - ascending)"
+            }
+          ],
+          "returns": "Number for Array.sort(): Negative if a < b (ascending) or a > b (descending), Positive if a > b (ascending) or a < b (descending), Zero if equal",
+          "behavior": [
+            "Converts timestamps to milliseconds using any_datetime_to_millis",
+            "Compares millisecond values"
+          ],
+          "examples": [
+            {
+              "code": "const timestamps = [timestamp1, timestamp2, timestamp3];\ntimestamps.sort((a, b) => sort_by_timestamp(a, b)); // Ascending\ntimestamps.sort((a, b) => sort_by_timestamp(a, b, true)); // Descending",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Time Elapsed Calculation",
+      "exports": [
+        {
+          "name": "calculate_time_passed",
+          "signature": "calculate_time_passed(datetime: Date): TimePassedByDate",
+          "type": "function",
+          "description": "Calculates elapsed time from a given date to now.",
+          "parameters": [
+            {
+              "name": "datetime",
+              "type": "Date",
+              "description": "Past date to calculate from"
+            }
+          ],
+          "returns": "Object with elapsed time information: seconds_passed, minutes_passed, hours_passed, days_passed, time_passed_formatted_short, time_passed_formatted_long",
+          "behavior": [
+            "Calculates difference from datetime to current time",
+            "Uses Math.max(0, ...) to prevent negative values",
+            "Formats with zero-padding for short format",
+            "Includes only relevant units in long format"
+          ],
+          "examples": [
+            {
+              "code": "const pastDate = new Date('2024-01-01T10:00:00Z');\nconst elapsed = calculate_time_passed(pastDate);\n// Returns: {\n//   seconds_passed: 2592000,\n//   minutes_passed: 43200,\n//   hours_passed: 720,\n//   days_passed: 30,\n//   time_passed_formatted_short: \"30:00:00:00\",\n//   time_passed_formatted_long: \"30 d 0 h 0 min 0 sec\"\n// }",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Flexible Time Conversion",
+      "exports": [
+        {
+          "name": "any_datetime_to_string",
+          "signature": "any_datetime_to_string(firebaseTimestamp: Timestamp | Date | string | firebase_timestamp | number, options?: TimeToStringOptions): string",
+          "type": "function",
+          "description": "Converts any datetime format to a formatted string.",
+          "parameters": [
+            {
+              "name": "firebaseTimestamp",
+              "type": "Timestamp | Date | string | firebase_timestamp | number",
+              "description": "Datetime in any supported format: Timestamp, Date, string, number, or firebase_timestamp"
+            },
+            {
+              "name": "options",
+              "type": "TimeToStringOptions",
+              "optional": true,
+              "description": "Optional configuration: format, fromFormat, tz, defaultReturnedValue, debug"
+            }
+          ],
+          "returns": "Formatted date string or defaultReturnedValue if conversion fails",
+          "behavior": [
+            "Firebase Timestamp: Converts using toDate()",
+            "JavaScript Date: Uses directly",
+            "String/Number: Parses using moment with fromFormat, validates with moment.isValid(), returns default if invalid",
+            "Legacy Firebase Format: Converts to Date using new Date(seconds * 1000 + nanoseconds / 1000000)",
+            "If tz provided: Uses moment.tz() for timezone conversion, Otherwise: Uses moment.utc() for UTC conversion"
+          ],
+          "examples": [
+            {
+              "code": "// Firebase Timestamp\nconst timestamp = Timestamp.now();\nany_datetime_to_string(timestamp);\n// Returns: \"27/01/2024 14:30:45\"\n\n// Custom format\nany_datetime_to_string(timestamp, { format: 'YYYY-MM-DD' });\n// Returns: \"2024-01-27\"\n\n// With timezone\nany_datetime_to_string(timestamp, { \n  format: 'DD/MM/YYYY HH:mm:ss',\n  tz: 'Asia/Jerusalem'\n});\n// Returns: \"27/01/2024 16:30:45\" (UTC+2)",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "any_datetime_to_millis",
+          "signature": "any_datetime_to_millis(firebaseTimestamp: Timestamp | Date | string | number | firebase_timestamp, options?: TimeToMillisOptions): number",
+          "type": "function",
+          "description": "Converts any datetime format to milliseconds since Unix epoch.",
+          "parameters": [
+            {
+              "name": "firebaseTimestamp",
+              "type": "Timestamp | Date | string | number | firebase_timestamp",
+              "description": "Same as any_datetime_to_string"
+            },
+            {
+              "name": "options",
+              "type": "TimeToMillisOptions",
+              "optional": true,
+              "description": "Optional configuration: fromFormat, tz, defaultReturnedValue, debug"
+            }
+          ],
+          "returns": "Milliseconds since Unix epoch or defaultReturnedValue if conversion fails",
+          "behavior": [
+            "Similar conversion logic to any_datetime_to_string",
+            "Returns numeric milliseconds instead of formatted string",
+            "Uses Timestamp.toMillis() for Firebase Timestamps",
+            "Uses Date.getTime() for Date objects",
+            "Uses moment.valueOf() for string/number inputs"
+          ],
+          "examples": [
+            {
+              "code": "const timestamp = Timestamp.now();\nconst millis = any_datetime_to_millis(timestamp);\n// Returns: 1706365845000",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Legacy Functions",
+      "exports": [
+        {
+          "name": "timestamp_to_string",
+          "signature": "timestamp_to_string(firebaseTimestamp: firebase_timestamp, format: string = \"DD-MM-YYYY HH:mm:ss\"): string",
+          "type": "function",
+          "description": "Legacy function for converting Firebase timestamp to string (kept for backward compatibility).",
+          "parameters": [
+            {
+              "name": "firebaseTimestamp",
+              "type": "firebase_timestamp",
+              "description": "Legacy format { _seconds, _nanoseconds }"
+            },
+            {
+              "name": "format",
+              "type": "string",
+              "optional": true,
+              "default": "\"DD-MM-YYYY HH:mm:ss\"",
+              "description": "Output format"
+            }
+          ],
+          "returns": "Formatted date string",
+          "behavior": [
+            "Creates Firebase Timestamp from legacy format",
+            "Converts to Date and formats with moment UTC"
+          ],
+          "examples": [
+            {
+              "code": "const legacy = { _seconds: 1706365845, _nanoseconds: 0 };\ntimestamp_to_string(legacy, 'DD/MM/YYYY');\n// Returns: \"27/01/2024\"",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "timestamp_to_millis",
+          "signature": "timestamp_to_millis(firebaseTimestamp: firebase_timestamp): number",
+          "type": "function",
+          "description": "Legacy function for converting Firebase timestamp to milliseconds.",
+          "parameters": [
+            {
+              "name": "firebaseTimestamp",
+              "type": "firebase_timestamp",
+              "description": "Legacy format { _seconds, _nanoseconds }"
+            }
+          ],
+          "returns": "Milliseconds since Unix epoch",
+          "examples": [
+            {
+              "code": "const legacy = { _seconds: 1706365845, _nanoseconds: 0 };\ntimestamp_to_millis(legacy);\n// Returns: 1706365845000",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Type Definitions",
+      "type_definitions": [
+        {
+          "name": "TimePassedByDate",
+          "type": "interface",
+          "definition": "interface TimePassedByDate {\n  seconds_passed: number;\n  minutes_passed: number;\n  hours_passed: number;\n  days_passed: number;\n  time_passed_formatted_short: string;\n  time_passed_formatted_long: string;\n}",
+          "description": "Return type for calculate_time_passed function"
+        },
+        {
+          "name": "TimeToStringOptions",
+          "type": "interface",
+          "definition": "interface TimeToStringOptions {\n  format?: string;\n  fromFormat?: string;\n  tz?: string;\n  defaultReturnedValue?: string;\n  debug?: boolean;\n}",
+          "description": "Options for any_datetime_to_string function"
+        },
+        {
+          "name": "TimeToMillisOptions",
+          "type": "interface",
+          "definition": "interface TimeToMillisOptions extends Omit<TimeToStringOptions, \"defaultReturnedValue\" | \"format\"> {\n  defaultReturnedValue?: number;\n}",
+          "description": "Options for any_datetime_to_millis function"
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These helpers provide comprehensive datetime handling:",
+    "Format Flexibility - Accepts multiple input formats (Firebase, Date, string, number)",
+    "Timezone Support - Convert between timezones using moment-timezone",
+    "Custom Formatting - Use moment format strings for display",
+    "Error Handling - Graceful fallbacks for invalid inputs",
+    "Legacy Support - Maintains compatibility with old timestamp formats"
+  ],
+  "best_practices": [
+    "Use any_datetime_to_string for display formatting",
+    "Use any_datetime_to_millis for comparisons and calculations",
+    "Always provide defaultReturnedValue for error cases",
+    "Use timezone conversion for user-facing dates",
+    "Use sort_by_timestamp for consistent sorting"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "source_file": "src/types/interfaces/index.ts",
+    "path": "docs/types/interfaces/index.md",
+    "type": "barrel_export"
+  },
+  "purpose": "Barrel export file that re-exports all interfaces from the interfaces subdirectory. This file allows importing all interfaces from a single import path.",
+  "sections": [
+    {
+      "title": "Exports",
+      "description": "All exports are re-exported from their respective modules:",
+      "points": [
+        "global - Exports: MandatoryObject, MandatoryParams, LogRequests, AppOptions",
+        "email - Exports: EmailData, EmailAttachment, EmailSettings"
+      ]
+    }
+  ],
+  "context": [
+    "This barrel export pattern allows consumers to import multiple interfaces from a single import statement, improving code organization and reducing import complexity."
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/boards_helpers.ts",
+    "path": "docs/helpers/boards_helpers.md",
+    "type": "module"
+  },
+  "purpose": "Board-provider utilities for resolving board makers (providers) based on board types and cached settings. These helpers enable services to determine which board provider (ERM, Jimi, Ruptela, Servision, or Jimi IoT Hub) should handle a specific board type or vehicle.",
+  "dependencies": [
+    "cache_manager - Accesses cached settings and boards collections",
+    "Types from akeyless-types-commons:",
+    "  - Board - Board data structure with imei and type properties",
+    "  - Car - Vehicle data structure with carId and peripherals array",
+    "  - TObject - Generic object type"
+  ],
+  "sections": [
+    {
+      "title": "Exports and behavior",
+      "exports": [
+        {
+          "name": "extract_board_types_from_settings",
+          "signature": "extract_board_types_from_settings(settings: TObject<any>): BoardProviderWithBoardTypes[]",
+          "type": "function",
+          "description": "Extracts board type configurations from settings object and organizes them by provider.",
+          "parameters": [
+            {
+              "name": "settings",
+              "type": "TObject<any>",
+              "description": "Settings object containing board type arrays for each provider"
+            }
+          ],
+          "returns": "Array of objects with board_provider and board_types properties",
+          "behavior": [
+            "Extracts board types from: erm_board_types, jimi_board_types, jimi_iothub_board_types, ruptela_board_types, servision_board_types",
+            "Each entry contains values array with board type strings",
+            "Returns structured array mapping each provider to its board types"
+          ],
+          "examples": [
+            {
+              "code": "const settings = {\n  erm_board_types: { values: ['type1', 'type2'] },\n  jimi_board_types: { values: ['type3'] },\n  // ...\n};\nconst providers = extract_board_types_from_settings(settings);\n// Returns: [\n//   { board_provider: 'erm', board_types: ['type1', 'type2'] },\n//   { board_provider: 'jimi', board_types: ['type3'] },\n//   ...\n// ]",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_board_maker_by_board_type",
+          "signature": "get_board_maker_by_board_type(type: string): BoardMakerResult",
+          "type": "function",
+          "description": "Determines the board provider (maker) based on a board type string.",
+          "parameters": [
+            {
+              "name": "type",
+              "type": "string",
+              "description": "Board type string to look up"
+            }
+          ],
+          "returns": "\"erm\" | \"jimi\" | \"ruptela\" | \"servision\" | \"jimi_iothub\"",
+          "behavior": [
+            "Reads settings from cache manager",
+            "Checks each provider's board types array for a match",
+            "Returns the matching provider name",
+            "Throws error if no match found"
+          ],
+          "throws": "Error with message \"failed to get board maker from DB, type: {type}\" if type not found",
+          "examples": [
+            {
+              "code": "const provider = get_board_maker_by_board_type('jimi_v2');\n// Returns: 'jimi'",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_board_maker_by_car",
+          "signature": "get_board_maker_by_car(car: Car): BoardMakerResult",
+          "type": "function",
+          "description": "Determines the board provider for a vehicle by looking up its board via IMEI.",
+          "parameters": [
+            {
+              "name": "car",
+              "type": "Car",
+              "description": "Car object with carId and peripherals array"
+            }
+          ],
+          "returns": "\"erm\" | \"jimi\" | \"ruptela\" | \"servision\" | \"jimi_iothub\"",
+          "behavior": [
+            "1. Extracts IMEI from car.peripherals[0].mac",
+            "2. Throws if IMEI not found",
+            "3. Looks up board in cached boards array by matching imei",
+            "4. Throws if board not found or boards cache is empty",
+            "5. Determines provider by checking board type against settings",
+            "6. Returns matching provider or throws error"
+          ],
+          "throws": [
+            "Error if IMEI not found: \"IMEI not found for car number: {carId}\"",
+            "Error if boards cache empty: \"Boards are not in cache\"",
+            "Error if board not found: \"Board not found for imei: {imei}\"",
+            "Error if provider not found: \"failed to get board maker for board type: {type}\""
+          ],
+          "examples": [
+            {
+              "code": "const car = {\n  carId: '12345',\n  peripherals: [{ mac: '123456789012345' }]\n};\nconst provider = get_board_maker_by_car(car);\n// Returns: 'erm' (or other provider based on board type)",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Type Definitions",
+      "type_definitions": [
+        {
+          "name": "BoardProviderWithBoardTypes",
+          "type": "interface",
+          "definition": "interface BoardProviderWithBoardTypes {\n    board_provider: \"erm\" | \"jimi\" | \"ruptela\" | \"servision\" | \"jimi_iothub\";\n    board_types: string[];\n}"
+        },
+        {
+          "name": "BoardMakerResult",
+          "type": "type",
+          "definition": "type BoardMakerResult = \"erm\" | \"jimi\" | \"ruptela\" | \"servision\" | \"jimi_iothub\";"
+        }
+      ]
+    }
+  ],
+  "context": [
+    "Used by services that need to route device logic based on board vendor. Common use cases:",
+    "- Determining which API to call for a specific vehicle's board",
+    "- Routing commands to the correct provider service",
+    "- Validating board compatibility with provider-specific features",
+    "- Filtering or grouping vehicles by board provider",
+    "**Note:** These functions rely on cached data (settings and boards), which should be populated via Firebase snapshots or Redis subscriptions during server initialization."
+  ]
+}

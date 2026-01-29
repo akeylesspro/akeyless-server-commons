@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "source_file": "src/types/enums/global.ts",
+    "path": "docs/types/enums/global.md",
+    "type": "module"
+  },
+  "purpose": "Defines shared enumerations and service name type definitions used across the Akeyless platform. These enums provide type-safe constants for SIM providers and service identification.",
+  "sections": [
+    {
+      "title": "Exports",
+      "type_definitions": [
+        {
+          "name": "SimProvider",
+          "type": "enum",
+          "definition": "enum SimProvider {\n  partner = \"partner\",\n  pelephone = \"pelephone\",\n  celcom = \"celcom\",\n  monogoto = \"monogoto\",\n  unknown = \"unknown\"\n}",
+          "description": "Enumeration of supported SIM card providers in Israel. Used by phone number helpers to identify the carrier associated with a phone number.",
+          "values": [
+            "partner - Partner Communications (formerly Orange)",
+            "pelephone - Pelephone Communications",
+            "celcom - Celcom (formerly Golan Telecom)",
+            "monogoto - Monogoto (virtual operator)",
+            "unknown - Unknown or unrecognized provider"
+          ],
+          "examples": [
+            {
+              "code": "import { SimProvider } from 'akeyless-server-commons/types';\n\nconst provider = SimProvider.partner;\nif (provider === SimProvider.partner) {\n  // Handle Partner provider\n}",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "NxServiceName",
+          "type": "type",
+          "definition": "type NxServiceName = \"bi\" | \"call_center\" | \"dashboard\" | \"devices\" | \"installer\" | \"ox_server\" | \"toolbox\" | \"end_users\" | \"notifications\";",
+          "description": "Union type representing all available service names in the Akeyless microservices architecture. Used for service identification and routing.",
+          "examples": [
+            {
+              "code": "import { NxServiceName } from 'akeyless-server-commons/types';\n\nconst serviceName: NxServiceName = \"devices\";\nconst serviceUrl = getServiceUrl(serviceName);",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "NxServiceNameMap",
+          "type": "type",
+          "definition": "type NxServiceNameMap = Record<NxServiceName, string>;",
+          "description": "Record type that maps service names to their corresponding URLs. Provides type-safe service URL lookups.",
+          "examples": [
+            {
+              "code": "import { NxServiceNameMap } from 'akeyless-server-commons/types';\n\nconst serviceMap: NxServiceNameMap = {\n  bi: \"https://bi.akeyless.com\",\n  call_center: \"https://call-center.akeyless.com\",\n  dashboard: \"https://dashboard.akeyless.com\"\n};\n\nconst biUrl = serviceMap.bi; // Type-safe access",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These types provide:",
+    "Compile-time Safety - TypeScript will catch invalid service names or provider values at compile time",
+    "IntelliSense Support - IDEs can autocomplete valid enum values and service names",
+    "Refactoring Safety - Renaming services or providers is safer with type checking",
+    "Documentation - Types serve as inline documentation of available options"
+  ]
+}

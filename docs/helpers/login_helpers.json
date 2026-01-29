@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "source_file": "src/helpers/login_helpers.ts",
+    "path": "docs/helpers/login_helpers.md",
+    "type": "module"
+  },
+  "purpose": "User lookup helpers for finding NX users and mobile app users by various identifiers (email, phone number, UID). Supports flexible identifier resolution with automatic format detection and normalization.",
+  "dependencies": [
+    "query_document_optional from firebase_helpers - Non-throwing Firestore query helper",
+    "logger manager - Imported but not currently used",
+    "NxUser from akeyless-types-commons - NX user data structure",
+    "MobileAppUser from akeyless-types-commons - Mobile app user data structure"
+  ],
+  "sections": [
+    {
+      "title": "Exports and behavior",
+      "exports": [
+        {
+          "name": "convert_to_short_phone_number",
+          "signature": "convert_to_short_phone_number(phone_number: string): string",
+          "type": "function",
+          "description": "Converts an Israeli international phone number format to local format.",
+          "parameters": [
+            {
+              "name": "phone_number",
+              "type": "string",
+              "description": "Phone number in format +972XXXXXXXXX"
+            }
+          ],
+          "returns": "Phone number in format 0XXXXXXXXX",
+          "behavior": [
+            "Splits on \"+972\" and takes the second part",
+            "Prepends \"0\" to create local format",
+            "Example: \"+972501234567\" → \"0501234567\""
+          ],
+          "examples": [
+            {
+              "code": "const short = convert_to_short_phone_number('+972501234567');\n// Returns: '0501234567'",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_user_by_identifier",
+          "signature": "get_user_by_identifier(identifier: string, ignore_log: boolean = false): Promise<NxUser | null>",
+          "type": "function",
+          "description": "Finds an NX user by email or phone number with automatic format detection.",
+          "parameters": [
+            {
+              "name": "identifier",
+              "type": "string",
+              "description": "Email address or phone number"
+            },
+            {
+              "name": "ignore_log",
+              "type": "boolean",
+              "optional": true,
+              "default": "false",
+              "description": "Whether to suppress error logging"
+            }
+          ],
+          "returns": "Promise resolving to NxUser object or null if not found",
+          "behavior": [
+            "Email Detection: Checks if identifier contains \"@\" and \".\", If email format detected, queries nx-users collection by email field, Returns user or null",
+            "Phone Number Detection: If not email format, treats as phone number, Converts identifier to short format using convert_to_short_phone_number, Queries nx-users collection by phone_number field, Uses Firestore in operator to match both short format and original format, Returns user or null"
+          ],
+          "error_handling": [
+            "Never throws errors (uses query_document_optional)",
+            "Returns null if user not found",
+            "Logs errors unless ignore_log is true"
+          ],
+          "examples": [
+            {
+              "code": "// Find by email\nconst user1 = await get_user_by_identifier('user@example.com');\n// Queries: nx-users where email == 'user@example.com'\n\n// Find by phone (long format)\nconst user2 = await get_user_by_identifier('+972501234567');\n// Queries: nx-users where phone_number in ['0501234567', '+972501234567']",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "get_mobile_app_user_by_uid",
+          "signature": "get_mobile_app_user_by_uid(uid: string, ignore_log: boolean = false): Promise<MobileAppUser | null>",
+          "type": "function",
+          "description": "Finds a mobile app user by Firebase UID.",
+          "parameters": [
+            {
+              "name": "uid",
+              "type": "string",
+              "description": "Firebase user UID"
+            },
+            {
+              "name": "ignore_log",
+              "type": "boolean",
+              "optional": true,
+              "default": "false",
+              "description": "Whether to suppress error logging"
+            }
+          ],
+          "returns": "Promise resolving to MobileAppUser object or null if not found",
+          "behavior": [
+            "Queries mobile_users_app_pro collection by uid field",
+            "Uses query_document_optional (never throws)",
+            "Returns user or null"
+          ],
+          "error_handling": [
+            "Never throws errors",
+            "Returns null if user not found",
+            "Logs errors unless ignore_log is true"
+          ],
+          "examples": [
+            {
+              "code": "const mobileUser = await get_mobile_app_user_by_uid('firebase-uid-123');\nif (mobileUser) {\n  console.log(`Found user: ${mobileUser.short_phone_number}`);\n}",
+              "language": "typescript"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These helpers are used for:",
+    "- **Authentication** - Finding users during login/registration flows",
+    "- **User Lookup** - Resolving user identities from various identifiers",
+    "- **Phone/Email Resolution** - Converting between different identifier formats",
+    "- **Mobile App Integration** - Finding mobile app users by Firebase UID",
+    "**Common Use Cases:**",
+    "- Login endpoints that accept email or phone",
+    "- User verification flows",
+    "- Finding users from authentication tokens",
+    "- Phone number normalization for lookups",
+    "**Phone Number Handling:**",
+    "- The helpers handle both Israeli long format (+972) and short format (0)",
+    "- Phone queries use in operator to match both formats",
+    "- For other countries, consider extending the conversion logic",
+    "**Error Handling Philosophy:**",
+    "- These helpers use non-throwing queries (query_document_optional)",
+    "- Return null instead of throwing errors",
+    "- Allows callers to handle \"not found\" cases gracefully",
+    "- Reduces try-catch boilerplate in calling code"
+  ],
+  "best_practices": [
+    "Use get_user_by_identifier for flexible identifier resolution",
+    "Use get_mobile_app_user_by_uid specifically for Firebase Auth UIDs",
+    "Handle null returns appropriately (user not found)",
+    "Use ignore_log: true for non-critical lookups to reduce log noise",
+    "Consider caching user lookups when appropriate"
+  ]
+}

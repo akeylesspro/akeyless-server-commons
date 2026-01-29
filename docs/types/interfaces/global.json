@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "source_file": "src/types/interfaces/global.ts",
+    "path": "docs/types/interfaces/global.md",
+    "type": "module"
+  },
+  "purpose": "Defines TypeScript interfaces for request validation middleware configuration and application initialization options. These interfaces provide type safety for middleware parameters and server bootstrap configuration.",
+  "dependencies": [
+    "InitSnapshotsOptions - Imported from ../types for snapshot initialization options"
+  ],
+  "sections": [
+    {
+      "title": "Exports",
+      "type_definitions": [
+        {
+          "name": "MandatoryObject",
+          "type": "interface",
+          "definition": "interface MandatoryObject {\n    key: string;\n    type: \"string\" | \"number\" | \"boolean\" | \"object\" | \"array\";\n    length?: number;\n    required_keys?: string[];\n    array_types?: (\"string\" | \"number\" | \"boolean\" | \"object\")[];\n}",
+          "description": "Interface defining validation rules for a single request parameter. Used by the mandatory and optional middleware factories to specify validation requirements.",
+          "properties": [
+            {
+              "name": "key",
+              "type": "string",
+              "description": "Parameter name to validate (required)"
+            },
+            {
+              "name": "type",
+              "type": "\"string\" | \"number\" | \"boolean\" | \"object\" | \"array\"",
+              "description": "Expected parameter type (required)"
+            },
+            {
+              "name": "length",
+              "type": "number",
+              "optional": true,
+              "description": "Minimum length for strings/arrays (optional)"
+            },
+            {
+              "name": "required_keys",
+              "type": "string[]",
+              "optional": true,
+              "description": "Required keys for object types (optional)"
+            },
+            {
+              "name": "array_types",
+              "type": "(\"string\" | \"number\" | \"boolean\" | \"object\")[]",
+              "optional": true,
+              "description": "Allowed types for array elements (optional)"
+            }
+          ],
+          "examples": [
+            {
+              "code": "const emailRule: MandatoryObject = {\n  key: \"email\",\n  type: \"string\",\n  length: 5\n};",
+              "language": "typescript"
+            }
+          ]
+        },
+        {
+          "name": "MandatoryParams",
+          "type": "interface",
+          "definition": "interface MandatoryParams {\n    body?: MandatoryObject[];\n    headers?: MandatoryObject[];\n}",
+          "description": "Interface containing optional arrays of validation rules for request body and headers. Used as the parameter type for mandatory and optional middleware factories.",
+          "properties": [
+            {
+              "name": "body",
+              "type": "MandatoryObject[]",
+              "optional": true,
+              "description": "Validation rules for request body parameters (optional)"
+            },
+            {
+              "name": "headers",
+              "type": "MandatoryObject[]",
+              "optional": true,
+              "description": "Validation rules for request header parameters (optional)"
+            }
+          ]
+        },
+        {
+          "name": "LogRequests",
+          "type": "interface",
+          "definition": "interface LogRequests {\n    url?: boolean;\n    headers?: boolean;\n    query?: boolean;\n    body?: boolean;\n}",
+          "description": "Interface defining boolean flags for conditional request logging. Used by the request_logger middleware factory to configure which parts of the request should be logged.",
+          "properties": [
+            {
+              "name": "url",
+              "type": "boolean",
+              "optional": true,
+              "description": "Log request method and URL (optional)"
+            },
+            {
+              "name": "headers",
+              "type": "boolean",
+              "optional": true,
+              "description": "Log request headers (optional)"
+            },
+            {
+              "name": "query",
+              "type": "boolean",
+              "optional": true,
+              "description": "Log query parameters (optional)"
+            },
+            {
+              "name": "body",
+              "type": "boolean",
+              "optional": true,
+              "description": "Log request body for POST/PUT/PATCH (optional)"
+            }
+          ]
+        },
+        {
+          "name": "AppOptions",
+          "type": "interface",
+          "definition": "interface AppOptions {\n    port?: number;\n    log_requests?: LogRequests;\n    init_snapshot_options?: InitSnapshotsOptions;\n    initialize_redis?: boolean;\n}",
+          "description": "Interface defining options for server initialization and application configuration. Used by server bootstrap functions like basic_init and start_server.",
+          "properties": [
+            {
+              "name": "port",
+              "type": "number",
+              "optional": true,
+              "description": "Server port number (optional)"
+            },
+            {
+              "name": "log_requests",
+              "type": "LogRequests",
+              "optional": true,
+              "description": "Request logging configuration (optional)"
+            },
+            {
+              "name": "init_snapshot_options",
+              "type": "InitSnapshotsOptions",
+              "optional": true,
+              "description": "Snapshot initialization options (optional)"
+            },
+            {
+              "name": "initialize_redis",
+              "type": "boolean",
+              "optional": true,
+              "description": "Whether to initialize Redis connection (optional)"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": [
+    "These interfaces are used by:",
+    "MandatoryObject and MandatoryParams - Used by global_mw.mandatory() and global_mw.optional()",
+    "LogRequests - Used by global_mw.request_logger() and AppOptions",
+    "AppOptions - Used by server bootstrap functions in start.ts"
+  ]
+}

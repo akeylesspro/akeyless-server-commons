@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "source_file": "src/types/index.ts",
+    "path": "docs/types/index.md",
+    "type": "barrel_export"
+  },
+  "purpose": "Barrel export file that re-exports all type categories (types, interfaces, enums) for convenient importing. This file allows importing all types from a single import path, making it easier to use types from different categories in your code.",
+  "sections": [
+    {
+      "title": "Exports",
+      "description": "All exports are re-exported from their respective subdirectories:",
+      "points": [
+        "types - Exports from ./types: All type aliases from types/global.ts (MW, Service, Route, JsonOK, JsonFailed, MainRouter, AddAuditRecord, LangOptions, EntityOptions), All Firebase types from types/firebase_types.ts (QueryDocument, QueryDocuments, Snapshot, OnSnapshotConfig, etc.)",
+        "interfaces - Exports from ./interfaces: All interfaces from interfaces/global.ts (MandatoryObject, MandatoryParams, LogRequests, AppOptions), All email interfaces from interfaces/email.ts (EmailData, EmailAttachment, EmailSettings)",
+        "enums - Exports from ./enums: All enums from enums/global.ts (SimProvider, NxServiceName, NxServiceNameMap)"
+      ]
+    }
+  ],
+  "context": [
+    "This barrel export pattern provides:",
+    "Convenience - Import multiple types from different categories in a single statement",
+    "Organization - Types are logically grouped but accessible from one location",
+    "Flexibility - Can still import from specific subdirectories if needed",
+    "Type Safety - All exports maintain full TypeScript type information",
+    "Discoverability - Easy to find and use types across the entire package"
+  ]
+}

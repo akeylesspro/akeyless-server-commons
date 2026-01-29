@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "source_file": "akeyless-server-commons",
+    "path": "README.md",
+    "type": "readme"
+  },
+  "purpose": "Project summary for akeyless-server-commons - a comprehensive Node.js/TypeScript server utilities package that provides shared functionality for Akeyless microservices.",
+  "sections": [
+    {
+      "title": "Overview",
+      "description": "akeyless-server-commons is a comprehensive Node.js/TypeScript server utilities package that provides shared functionality for Akeyless microservices. It offers a standardized set of helpers, managers, middlewares, and types that ensure consistency across all server-side applications.",
+      "points": [
+        "Version: 1.0.168",
+        "Repository: GitHub (https://github.com/akeylesspro/akeyless-server-commons)"
+      ]
+    },
+    {
+      "title": "What This Package Contains",
+      "description": "The package exports four main modules:",
+      "points": [
+        "./helpers - Utility functions and service integrations",
+        "./managers - Singleton managers for shared state",
+        "./middlewares - Express middleware for common server needs",
+        "./types - Shared TypeScript types, interfaces, and enums"
+      ]
+    },
+    {
+      "title": "Key Features",
+      "points": [
+        "Environment Validation - Validates required environment variables on startup",
+        "Real-time Data Sync - Firebase snapshots and Redis Pub/Sub for live cache updates",
+        "Multi-provider SMS - Automatic routing (Multisend/Twilio/Monogoto) based on phone number",
+        "Audit Logging - Built-in audit trail for emails, SMS, and operations",
+        "Translation Support - Multi-language support for notifications and UI",
+        "Type Safety - Comprehensive TypeScript types for all APIs"
+      ]
+    }
+  ],
+  "context": [
+    "This package provides standardized functionality for Akeyless microservices:",
+    "Consistency - Same patterns and utilities across all services",
+    "Type Safety - Comprehensive TypeScript types",
+    "Real-time Sync - Firebase and Redis snapshot support",
+    "Communication - Email, SMS, and push notifications",
+    "Request Handling - Validation, auth, logging, error handling"
+  ]
+}
