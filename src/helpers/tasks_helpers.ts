@@ -8,6 +8,7 @@ export enum TaskName {
     collect_devices_health = "collect_devices_health",
     collect_charge_locations = "collect_charge_locations",
     collect_charge_cdrs = "collect_charge_cdrs",
+    auto_connect_to_call_center = "auto_connect_to_call_center",
 }
 
 export enum TaskStatus {
