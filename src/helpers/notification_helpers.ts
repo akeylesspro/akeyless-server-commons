@@ -70,15 +70,16 @@ const login_to_monogoto = async () => {
         const {
             sms_provider: { monogoto },
         } = cache_manager.getObjectData("nx-settings");
-        const data = { UserName: monogoto.user, Password: monogoto.password };
+        const data = { username: monogoto.user, password: monogoto.password };
 
         const response = await axios({
             method: "post",
-            url: `https://console.monogoto.io/Auth`,
+            url: `https://api.monogoto.io/api/v1/auth/login`,
             data,
         });
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
+        logger.error("monogoto login error:", error);
         throw `login_to_monogoto failed: ` + error;
     }
 };
@@ -88,14 +89,13 @@ const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
         sms_provider: { monogoto },
     } = cache_manager.getObjectData("nx-settings");
     const monogoto_auth = await login_to_monogoto();
-    const data = { Message: text, From: monogoto.from };
+    const data = { message: text, from: monogoto.from };
     const response = await axios({
         method: "post",
-        url: `https://console.monogoto.io/thing/ThingId_ICCID_${recepient}/sms`,
+        url: `https://api.monogoto.io/api/v1/things/sms/sendSMS/${recepient}`,
         data: data,
         headers: {
-            Authorization: `Bearer ${monogoto_auth.token}`,
-            apikey: monogoto_auth.CustomerId,
+            Authorization: `Bearer ${monogoto_auth.access_token}`,
         },
     });
     if (response.status !== 200) {
@@ -109,7 +109,7 @@ const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
 export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: TObject<any>) => {
     try {
         let sms_to_send = [];
-        
+
         const { sms_groups } = await get_nx_settings();
         if (sms_groups && sms_groups.values[recepient]) {
             sms_groups.values[recepient].forEach((number: string) => {
@@ -167,7 +167,7 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
     const app_pro_extra_pushes = cache_manager.getArrayData("app_pro_extra_pushes");
 
     console.log(
-        `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`
+        `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`,
     );
 
     if (!units.length || !users_units.length || !mobile_users_app_pro.length) {
@@ -192,7 +192,7 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
         const source = event.source == "erm" || event.source == "erm2" ? "erm" : event.source;
         if (mobile_user.disabled_events?.[event.car_number]?.[source]?.includes(event.event_id)) {
             logger.log(
-                `push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`
+                `push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`,
             );
             continue;
         }
@@ -208,7 +208,7 @@ type FuncSendFcmMessage = (
     title: string,
     body: string,
     fcm_tokens: string[],
-    custom_sound?: string
+    custom_sound?: string,
 ) => Promise<{ success: boolean; response: string; success_count?: number; failure_count?: number }>;
 
 export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_tokens, custom_sound) => {
