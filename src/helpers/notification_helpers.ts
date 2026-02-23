@@ -121,15 +121,15 @@ export const send_sms = async (recepient: string, text: string, entity_for_audit
         sms_to_send = [...new Set(sms_to_send)];
         const promises = sms_to_send.map(async (number) => {
             let service: SmsService | null = null;
-            if (is_iccid(number)) {
-                service = await send_iccid_sms(number, text, details);
-            }
             const is_international =
                 is_international_phone_number(number) && !is_thailand_long_phone_number(number) && !is_israel_long_phone_number(number);
-            if (is_international) {
+            if (is_iccid(number)) {
+                service = await send_iccid_sms(number, text, details);
+            } else if (is_international) {
                 service = await send_international_sms(number, text, details);
+            } else {
+                service = await send_local_sms(number, text, details);
             }
-            service = await send_local_sms(number, text, details);
             await add_audit_record("send_sms", entity_for_audit || "general", {
                 recepient: number,
                 message: text,
