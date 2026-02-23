@@ -9,6 +9,7 @@ export enum TaskName {
     collect_charge_locations = "collect_charge_locations",
     collect_charge_cdrs = "collect_charge_cdrs",
     auto_connect_to_call_center = "auto_connect_to_call_center",
+    make_erm_ev_events = "make_erm_ev_events",
 }
 
 export enum TaskStatus {
