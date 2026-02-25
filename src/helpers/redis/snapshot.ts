@@ -16,6 +16,9 @@ import { logger } from "../../managers";
 const subscription_collections = new Set<string>();
 
 export const redis_snapshots_bulk = async (configs: OnSnapshotConfig[]) => {
+    if (configs.length === 0) {
+        return;
+    }
     /// on first time
     for (const config of configs) {
         const validation = await validate_config(config);

@@ -310,11 +310,13 @@ export const parse_delete_as_object: OnSnapshotCallback = (documents, config) =>
 };
 
 export const parse_add_update_as_array: OnSnapshotCallback = (documents, config) => {
-    const { on_remove, collection_name, cache_name = collection_name } = config;
-    on_remove?.(documents, config);
-    const existing_array: any[] = cache_manager.getArrayData(cache_name);
-    const updated_array = [...existing_array, ...documents];
-    cache_manager.setArrayData(cache_name, updated_array);
+    const { collection_name, cache_name = collection_name } = config;
+    const keys_to_delete = documents.map((doc) => doc.id);
+    const existing_array: any[] = cache_manager.getArrayData(cache_name).filter((doc) => !keys_to_delete.includes(doc.id));
+    documents.forEach((new_doc) => {
+        existing_array.push(new_doc);
+    });
+    cache_manager.setArrayData(cache_name, existing_array);
 };
 
 export const parse_delete_as_array: OnSnapshotCallback = (documents, config) => {
@@ -358,7 +360,7 @@ export const snapshot: Snapshot = (config) => {
                         if (debug?.on_first_time) {
                             logger.log(
                                 `${cache_name} => Firebase snapshot on first time: `,
-                                debug.on_first_time === "documents" ? documents : { length: documents.length }
+                                debug.on_first_time === "documents" ? documents : { length: documents.length },
                             );
                         }
                         config.on_first_time?.(documents, config);
@@ -366,7 +368,7 @@ export const snapshot: Snapshot = (config) => {
                             if (debug?.extra_parsers?.on_first_time) {
                                 logger.log(
                                     `${cache_name} => Firebase snapshot extra parsers on first time: `,
-                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
+                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length },
                                 );
                             }
                             extra_parser.on_first_time?.(documents, config);
@@ -444,7 +446,7 @@ export const snapshot: Snapshot = (config) => {
                         logger.log(`Error listening to collection -> subscribe to: ${config.collection_name}`);
                         start();
                     }, delay_ms);
-                }
+                },
             );
         };
         start();
@@ -474,7 +476,7 @@ export const init_snapshots = async (options?: InitSnapshotsOptions): Promise<vo
             debug,
             parse_as: "object",
             label: "Common snapshots",
-        }
+        },
     );
 };
 
