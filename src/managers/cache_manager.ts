@@ -32,6 +32,17 @@ export class CacheManager {
     public getObjectData(key: string, default_value: any = null): any {
         return this.data[key] || default_value;
     }
+
+    public getObjectDataAsArray(key: string, default_value: any = []): any[] {
+        const value = this.data[key];
+        if (!value) {
+            return default_value;
+        }
+        if (Array.isArray(value)) {
+            return value;
+        }
+        return Object.values(value);
+    }
 }
 
 export const cache_manager: CacheManager = CacheManager.getInstance();
