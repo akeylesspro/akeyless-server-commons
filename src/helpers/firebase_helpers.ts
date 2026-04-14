@@ -140,8 +140,12 @@ export const query_document: QueryDocument = async (collection_path, field_name,
         const querySnapshot = await db.collection(collection_path).where(field_name, operator, value).get();
         const documentsData = querySnapshot.docs;
         const documents = documentsData.flatMap((doc: FirebaseFirestore.DocumentSnapshot) => simple_extract_data(doc));
+        const base_error = `collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
         if (documents.length < 1) {
-            throw `No data to return from: collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
+            throw `[Firebase] No data to return from: ${base_error}`;
+        }
+        if (documents.length > 1) {
+            throw `[Firebase] Multiple documents found in: ${base_error}`;
         }
         return documents[0];
     } catch (error) {
@@ -185,7 +189,7 @@ export const get_document_by_id_optional = async (collection_path: string, doc_i
         const docRef = db.collection(collection_path).doc(doc_id);
         const doc = await docRef.get();
         if (!doc.exists) {
-            throw "Document not found, document id: " + doc_id;
+            return null;
         }
         return simple_extract_data(doc);
     } catch (error) {
