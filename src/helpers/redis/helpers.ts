@@ -28,10 +28,6 @@ const should_use_redis = async (collection_path: string): Promise<boolean> => {
             logger.warn(`⚠️ Collection "${collection_path}" not found in cache_collections_config, falling back to Firebase`);
             return false;
         }
-        if (config.sync_direction === "redis_to_firebase") {
-            logger.warn(`⚠️ Collection "${collection_path}" sync_direction is "redis_to_firebase", falling back to Firebase`);
-            return false;
-        }
     } catch {
         logger.warn(`⚠️ Failed to validate Redis config for collection: "${collection_path}", falling back to Firebase`);
         return false;
@@ -52,6 +48,7 @@ const get_all_collection_docs = async (collection_path: string): Promise<TObject
     return values.filter(Boolean).map((v) => {
         const data = parse_redis_value(v!);
         const key = keys[values.indexOf(v)];
+        /// example key: "nx-users(collection):123(doc_id)"
         const id = key.split(":").slice(1).join(":");
         return { ...data, id };
     });
@@ -149,10 +146,10 @@ export const redis_query_documents_by_conditions = async (collection_path: strin
 export const redis_query_document_by_conditions = async (
     collection_path: string,
     where_conditions: WhereCondition[],
-    log = true
+    ignore_logs = false
 ): Promise<TObject<any>> => {
     if (!(await should_use_redis(collection_path))) {
-        return query_document_by_conditions(collection_path, where_conditions, log);
+        return query_document_by_conditions(collection_path, where_conditions, !ignore_logs);
     }
     try {
         const all_docs = await get_all_collection_docs(collection_path);
@@ -162,8 +159,8 @@ export const redis_query_document_by_conditions = async (
         }
         return documents[0];
     } catch (error) {
-        if (log) {
-            logger.error(`Error querying documents from Redis: ${collection_path} - ${JSON.stringify(where_conditions)} `, error);
+        if (!ignore_logs) {
+            logger.error(`Error querying document from Redis: ${collection_path} - ${JSON.stringify(where_conditions)} `, error);
         }
         throw error;
     }
@@ -184,8 +181,12 @@ export const redis_query_document = async (
     try {
         const all_docs = await get_all_collection_docs(collection_path);
         const documents = filter_by_condition(all_docs, field_name, operator, value);
+        const base_error = `collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
         if (documents.length < 1) {
-            throw `No data to return from Redis: collection: ${collection_path}, field_name: ${field_name}, operator: ${operator}, value:${value}`;
+            throw `[Redis] No data to return from: ${base_error}`;
+        }
+        if (documents.length > 1) {
+            throw `[Redis] Multiple documents found in: ${base_error}`;
         }
         return documents[0];
     } catch (error) {
@@ -245,7 +246,7 @@ export const redis_get_document_by_id_optional = async (collection_path: string,
         const key = get_doc_key(collection_path, doc_id);
         const raw = await commander.get(key);
         if (!raw) {
-            throw "Document not found in Redis, document id: " + doc_id;
+            return null;
         }
         return redis_simple_extract_data(raw);
     } catch (error) {
