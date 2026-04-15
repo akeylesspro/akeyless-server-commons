@@ -580,7 +580,7 @@ export const add_audit_record: AddAuditRecord = async (action, entity, details, 
     }
 };
 
-export const add_problem_record = async (problem: string, key: string, details: TObject<any>) => {
+export const add_nx_problem = async (problem: string, key: string, details: TObject<any>) => {
     const data = {
         problem,
         key,
@@ -590,7 +590,7 @@ export const add_problem_record = async (problem: string, key: string, details: 
     try {
         await add_document("nx-problems", data);
     } catch (error: any) {
-        logger.log("error from add_problem_record", error);
+        logger.log("error from add_nx_problem", error);
     }
 };
 
