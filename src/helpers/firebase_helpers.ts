@@ -364,7 +364,7 @@ export const snapshot: Snapshot = (config) => {
                         if (debug?.on_first_time) {
                             logger.log(
                                 `${cache_name} => Firebase snapshot on first time: `,
-                                debug.on_first_time === "documents" ? documents : { length: documents.length },
+                                debug.on_first_time === "documents" ? documents : { length: documents.length }
                             );
                         }
                         config.on_first_time?.(documents, config);
@@ -372,7 +372,7 @@ export const snapshot: Snapshot = (config) => {
                             if (debug?.extra_parsers?.on_first_time) {
                                 logger.log(
                                     `${cache_name} => Firebase snapshot extra parsers on first time: `,
-                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length },
+                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
                                 );
                             }
                             extra_parser.on_first_time?.(documents, config);
@@ -450,7 +450,7 @@ export const snapshot: Snapshot = (config) => {
                         logger.log(`Error listening to collection -> subscribe to: ${config.collection_name}`);
                         start();
                     }, delay_ms);
-                },
+                }
             );
         };
         start();
@@ -480,7 +480,7 @@ export const init_snapshots = async (options?: InitSnapshotsOptions): Promise<vo
             debug,
             parse_as: "object",
             label: "Common snapshots",
-        },
+        }
     );
 };
 
@@ -577,6 +577,21 @@ export const add_audit_record: AddAuditRecord = async (action, entity, details, 
         await db.collection("nx-audit").add(data);
     } catch (error: any) {
         throw { msg: "unable to add audit record", data, error };
+    }
+};
+
+export const add_problem_record = async (problem: string, key: string, details: TObject<any>) => {
+    const data = {
+        problem,
+        key,
+        details,
+        timestamp: Timestamp.now(),
+    };
+    try {
+        await add_document("nx-problems", data);
+    } catch (error: any) {
+        logger.log("error from add_problem_record", error);
+        throw { msg: "unable to add problem record", data, error };
     }
 };
 
