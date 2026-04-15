@@ -591,7 +591,6 @@ export const add_problem_record = async (problem: string, key: string, details: 
         await add_document("nx-problems", data);
     } catch (error: any) {
         logger.log("error from add_problem_record", error);
-        throw { msg: "unable to add problem record", data, error };
     }
 };
 
