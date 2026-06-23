@@ -231,7 +231,7 @@ export const delete_document = async (collection_path: string, doc_id: string): 
 };
 
 /// token
-export const verify_token = async (authorization: string | undefined): Promise<DecodedIdToken> => {
+export const verify_token = async (authorization: string | undefined, ignore_log: boolean = false): Promise<DecodedIdToken> => {
     try {
         if (!authorization) {
             throw "Authorization token is required";
@@ -250,7 +250,9 @@ export const verify_token = async (authorization: string | undefined): Promise<D
         }
         return res;
     } catch (error) {
-        logger.error("error from verify_token", error);
+        if (!ignore_log) {
+            logger.error("error from verify_token", error);
+        }
         throw error;
     }
 };
@@ -364,7 +366,7 @@ export const snapshot: Snapshot = (config) => {
                         if (debug?.on_first_time) {
                             logger.log(
                                 `${cache_name} => Firebase snapshot on first time: `,
-                                debug.on_first_time === "documents" ? documents : { length: documents.length }
+                                debug.on_first_time === "documents" ? documents : { length: documents.length },
                             );
                         }
                         config.on_first_time?.(documents, config);
@@ -372,7 +374,7 @@ export const snapshot: Snapshot = (config) => {
                             if (debug?.extra_parsers?.on_first_time) {
                                 logger.log(
                                     `${cache_name} => Firebase snapshot extra parsers on first time: `,
-                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length }
+                                    debug.extra_parsers.on_first_time === "documents" ? documents : { length: documents.length },
                                 );
                             }
                             extra_parser.on_first_time?.(documents, config);
@@ -450,7 +452,7 @@ export const snapshot: Snapshot = (config) => {
                         logger.log(`Error listening to collection -> subscribe to: ${config.collection_name}`);
                         start();
                     }, delay_ms);
-                }
+                },
             );
         };
         start();
@@ -480,7 +482,7 @@ export const init_snapshots = async (options?: InitSnapshotsOptions): Promise<vo
             debug,
             parse_as: "object",
             label: "Common snapshots",
-        }
+        },
     );
 };
 
