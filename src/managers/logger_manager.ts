@@ -16,6 +16,18 @@ class LoggerManager {
     private get_date(): string {
         return moment_timezone().tz("Asia/Jerusalem").format("DD/MM/YYYY HH:mm:ss.SS");
     }
+    private is_gcp(): boolean {
+        return !!(process.env.KUBERNETES_SERVICE_HOST || process.env.K_SERVICE);
+    }
+    private emit(severity: "INFO" | "WARNING" | "ERROR", text: string): void {
+        if (this.is_gcp()) {
+            // GCP: structured JSON on stdout so Cloud Logging reads `severity`, not the stream
+            console.log(JSON.stringify({ severity, message: text }));
+            return;
+        }
+        const method = severity === "ERROR" ? console.error : severity === "WARNING" ? console.warn : console.log;
+        method(text);
+    }
     public log(msg: string, data?: TObject<any> | any[]): void {
         const is_table =
             !process.env.KUBERNETES_SERVICE_HOST &&
@@ -33,24 +45,27 @@ class LoggerManager {
             console.table(data);
             return;
         }
-        console.log(
-            `${this.get_date()} - ${msg}`,
+        const text = `${this.get_date()} - ${msg}${
             data === undefined ? "" : `: ${isObject(data) || Array.isArray(data) ? JSON.stringify(data) : data}`
-        );
+        }`;
+        this.emit("INFO", text);
     }
     public error(msg: string, data?: any) {
+        let text: string;
         if (axios.isAxiosError(data)) {
             if (!!data.response?.data) {
-                console.error(`${this.get_date()} - ${msg}, axios error: ${data.message}, data: ${JSON.stringify(data)}`);
+                text = `${this.get_date()} - ${msg}, axios error: ${data.message}, data: ${JSON.stringify(data)}`;
             } else {
-                console.error(`${this.get_date()} - ${msg}, axios error: ${data.message}`);
+                text = `${this.get_date()} - ${msg}, axios error: ${data.message}`;
             }
         } else {
-            console.error(`${this.get_date()} - ${msg}`, data === undefined ? "" : `: ${JSON.stringify(parse_error(data))}`);
+            text = `${this.get_date()} - ${msg}${data === undefined ? "" : `: ${JSON.stringify(parse_error(data))}`}`;
         }
+        this.emit("ERROR", text);
     }
     public warn(msg: string, data?: any) {
-        console.warn(`${this.get_date()} - ${msg}`, data === undefined ? "" : `: ${JSON.stringify(data)}`);
+        const text = `${this.get_date()} - ${msg}${data === undefined ? "" : `: ${JSON.stringify(data)}`}`;
+        this.emit("WARNING", text);
     }
 }
 
