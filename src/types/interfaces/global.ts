@@ -25,4 +25,5 @@ export interface AppOptions {
     log_requests?: LogRequests;
     init_snapshot_options?: InitSnapshotsOptions;
     initialize_redis?: boolean;
+    enable_axios_keep_alive?: boolean;
 }
