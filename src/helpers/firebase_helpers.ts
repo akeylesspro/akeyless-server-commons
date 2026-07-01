@@ -568,12 +568,13 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, option
 };
 
 export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {
+    const { first_name, last_name, id } = user || {};
     const data = {
         action,
         entity,
         details,
         datetime: Timestamp.now(),
-        user: user || null,
+        user: { first_name, last_name, id },
     };
     try {
         await db.collection("nx-audit").add(data);
