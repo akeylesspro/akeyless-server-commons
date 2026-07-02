@@ -568,7 +568,7 @@ export const snapshot_bulk_by_names: SnapshotBulkByNames = async (params, option
 };
 
 export const add_audit_record: AddAuditRecord = async (action, entity, details, user) => {
-    const { first_name, last_name, id } = user || {};
+    const { first_name = "John", last_name = "Doe", id = "" } = user || {};
     const data = {
         action,
         entity,
