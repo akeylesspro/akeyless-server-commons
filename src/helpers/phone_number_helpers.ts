@@ -88,7 +88,7 @@ export const long_short_phone_numbers = (phone_number: string): LongShortPhoneNu
     let long_phone_number = phone_number;
     if (phone_number.startsWith("05")) {
         short_phone_number = phone_number;
-        long_phone_number = long_phone_number.replace("+9725", "05");
+        long_phone_number = long_phone_number.replace("05", "+9725");
     } else if (phone_number.startsWith("103")) {
         short_phone_number = phone_number;
         long_phone_number = `+972${short_phone_number}`;
