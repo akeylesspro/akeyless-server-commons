@@ -113,6 +113,8 @@ export class RabbitMQHelper {
         return event_id;
     }
 
+    private subscriptions: Subscription[] = [];
+
     async subscribe_for_channel<T extends JsonValue>(
         channel_name: string,
         subscriber_name: string,
@@ -131,13 +133,20 @@ export class RabbitMQHelper {
             { noAck: false }
         );
 
-        return {
+        const subscription = {
             queue_name,
             consumer_tag: reply.consumerTag,
             cancel: async () => {
                 await channel.cancel(reply.consumerTag);
             },
         };
+        this.subscriptions.push(subscription);
+
+        return subscription;
+    }
+
+    async cancel_subscriptions(): Promise<void> {
+        await Promise.all(this.subscriptions.map((subscription) => subscription.cancel()));
     }
 
     async pull_and_delete<T extends JsonValue>(channel_name: string, subscriber_name: string): Promise<RabbitEvent<T> | undefined> {
@@ -240,4 +249,4 @@ export class RabbitMQHelper {
     }
 }
 
-export const rabbitmq_helper = new RabbitMQHelper();
+export const rabbitmq = new RabbitMQHelper();
