@@ -10,3 +10,4 @@ export * from "./tasks_helpers";
 export * from "./boards_helpers";
 export * from "./redis";
 export * from "./location_helpers";
+export * from "./rabbitmq_helpers";
