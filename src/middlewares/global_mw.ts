@@ -103,8 +103,22 @@ export const optional = ({ body, headers }: MandatoryParams): MW => {
     };
 };
 
+const is_gcp_request = (req: Request): boolean => {
+    const user_agent = req.get("user-agent")?.toLowerCase();
+
+    return !!(
+        user_agent?.startsWith("googlehc") ||
+        user_agent?.startsWith("kube-probe") ||
+        user_agent?.startsWith("googlestackdrivermonitoring")
+    );
+};
+
 export const request_logger = (log_requests: LogRequests): RequestHandler => {
     return (req: Request, res: Response, next: NextFunction) => {
+        if (!log_requests?.gcp && is_gcp_request(req)) {
+            return next();
+        }
+
         if (log_requests?.url || log_requests?.headers || log_requests?.query || log_requests?.body) {
             logger.log(`${req.method} ${req.originalUrl}`);
         }

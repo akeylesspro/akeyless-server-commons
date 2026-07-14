@@ -1,4 +1,3 @@
-import { TObject } from "akeyless-types-commons";
 import { SimProvider } from "../types/enums";
 
 export const is_long_phone_number = (phone_number: string) => {
@@ -6,7 +5,7 @@ export const is_long_phone_number = (phone_number: string) => {
 };
 
 export const is_israel_long_phone_number = (phone_number: string) => {
-    return phone_number.startsWith("+9725") || phone_number.startsWith("+972 5");
+    return phone_number.startsWith("+972");
 };
 
 export const is_thailand_long_phone_number = (phone_number: string) => {
@@ -25,12 +24,13 @@ export const is_iccid = (number: string) => {
 };
 
 export const convert_to_short_israel_phone = (international_number: string) => {
-    return international_number.replace("+972", "0");
+    const base = international_number.replace("+972", "");
+    return base.startsWith("130") ? base : `0${base}`;
 };
 
 export const is_sim_provider_partner = (phone_number: string) => {
     const { short_phone_number } = long_short_phone_numbers(phone_number);
-    return short_phone_number.startsWith("054");
+    return short_phone_number.startsWith("054") || short_phone_number.startsWith("1302");
 };
 
 export const is_sim_provider_pelephone = (phone_number: string) => {
@@ -40,7 +40,7 @@ export const is_sim_provider_pelephone = (phone_number: string) => {
 
 export const is_sim_provider_celcom = (phone_number: string) => {
     const { short_phone_number } = long_short_phone_numbers(phone_number);
-    return short_phone_number.startsWith("052");
+    return short_phone_number.startsWith("052") || short_phone_number.startsWith("1303");
 };
 
 export const is_sim_provider_monogoto = (phone_number: string) => {
@@ -62,8 +62,12 @@ export const get_sim_provider = (phone_number: string): SimProvider => {
     }
     return SimProvider.unknown;
 };
-
-export const long_short_phone_numbers = (phone_number: string): TObject<any> => {
+interface LongShortPhoneNumbers {
+    short_phone_number: string;
+    long_phone_number: string;
+    is_israeli: boolean;
+}
+export const long_short_phone_numbers = (phone_number: string): LongShortPhoneNumbers => {
     phone_number = phone_number.trim();
     if (!phone_number.length) {
         return {
@@ -84,7 +88,10 @@ export const long_short_phone_numbers = (phone_number: string): TObject<any> => 
     let long_phone_number = phone_number;
     if (phone_number.startsWith("05")) {
         short_phone_number = phone_number;
-        long_phone_number = `+9725${short_phone_number.slice(2)}`;
+        long_phone_number = long_phone_number.replace("05", "+9725");
+    } else if (phone_number.startsWith("103")) {
+        short_phone_number = phone_number;
+        long_phone_number = `+972${short_phone_number}`;
     } else if (phone_number.startsWith("+972")) {
         long_phone_number = phone_number;
         short_phone_number = long_phone_number.replace("+9725", "05");

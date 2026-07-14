@@ -18,6 +18,7 @@ export interface LogRequests {
     headers?: boolean;
     query?: boolean;
     body?: boolean;
+    gcp?: boolean;
 }
 
 export interface AppOptions {
