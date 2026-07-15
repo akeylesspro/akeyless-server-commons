@@ -165,6 +165,9 @@ export class RabbitManager {
     }
 
     private async open_connection(): Promise<void> {
+        if (!(process.env.RABBITMQ_URL ?? "")) {
+            return;
+        }
         const connection_url = new URL(process.env.RABBITMQ_URL!);
         if (!connection_url.searchParams.has("heartbeat")) {
             connection_url.searchParams.set("heartbeat", "30");
