@@ -9,7 +9,7 @@ import { init_redis } from "./redis/initialize";
 import axios from "axios";
 import https from "https";
 import http from "http";
-import { rabbitmq, RabbitMQHelper } from "./rabbitmq_helpers";
+import { rabbitmq } from "../managers/rabbitmq_manager";
 
 export const start_server = async (main_router: MainRouter, project_name: string, version: string, options: AppOptions = {}): Promise<Express> => {
     let env_data = init_env_variables(["mode"]);
@@ -49,22 +49,20 @@ export const basic_init = async (main_router: MainRouter, project_name: string, 
         const app = await start_server(main_router, project_name, version, options);
         await init_snapshots(init_snapshot_options);
 
-        if (on_shutdown) {
-            const shutdown = async (signal: NodeJS.Signals) => {
-                logger.log(`Received ${signal}, shutting down...`);
-                try {
-                    await rabbitmq.cancel_subscriptions();
-                    await rabbitmq.close();
-                    await on_shutdown?.();
-                } catch (err) {
-                    logger.error("Shutdown error", err);
-                    process.exit(1);
-                }
-                process.exit(0);
-            };
-            process.once("SIGINT", () => void shutdown("SIGINT"));
-            process.once("SIGTERM", () => void shutdown("SIGTERM"));
-        }
+        const shutdown = async (signal: NodeJS.Signals) => {
+            logger.log(`Received ${signal}, shutting down...`);
+            try {
+                await rabbitmq.cancel_subscriptions();
+                await rabbitmq.close();
+                await on_shutdown?.();
+            } catch (err) {
+                logger.error("Shutdown error", err);
+                process.exit(1);
+            }
+            process.exit(0);
+        };
+        process.once("SIGINT", () => void shutdown("SIGINT"));
+        process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
         return app;
     } catch (error) {

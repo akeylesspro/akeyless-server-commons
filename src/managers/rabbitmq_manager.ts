@@ -1,6 +1,6 @@
 import amqp, { type ChannelModel, type ConfirmChannel, type ConsumeMessage, type GetMessage, type Message } from "amqplib";
 import { randomUUID as random_uuid } from "node:crypto";
-import { logger } from "../managers/logger_manager";
+import { logger } from "./logger_manager";
 
 const SAFE_NAME = /^[A-Za-z0-9_.:-]{1,120}$/;
 
@@ -42,24 +42,15 @@ export type EventHandler<T extends JsonValue = JsonValue> = (event: RabbitEvent<
  * queue and therefore its own copy of every event. Instances sharing the same
  * subscriber name compete for work, which supports horizontal scaling.
  */
-export class RabbitMQHelper {
-    readonly url: string;
-    readonly prefetch_count: number;
-
+export class RabbitManager {
+    readonly prefetch_count: number = 10;
     private connection: ChannelModel | undefined;
     private channel: ConfirmChannel | undefined;
     private connecting: Promise<void> | undefined;
 
-    constructor(options: { url?: string; prefetch_count?: number } = {}) {
-        this.url = process.env.RABBITMQ_URL ?? "";
-        if (!this.url) {
+    constructor() {
+        if (!(process.env.RABBITMQ_URL ?? "")) {
             logger.warn("Missing ENV parameter RABBITMQ_URL");
-        }
-
-        this.prefetch_count = options.prefetch_count ?? 10;
-
-        if (!Number.isInteger(this.prefetch_count) || this.prefetch_count <= 0) {
-            throw new Error("prefetch_count must be a positive integer");
         }
     }
 
@@ -174,7 +165,7 @@ export class RabbitMQHelper {
     }
 
     private async open_connection(): Promise<void> {
-        const connection_url = new URL(this.url);
+        const connection_url = new URL(process.env.RABBITMQ_URL!);
         if (!connection_url.searchParams.has("heartbeat")) {
             connection_url.searchParams.set("heartbeat", "30");
         }
@@ -249,4 +240,4 @@ export class RabbitMQHelper {
     }
 }
 
-export const rabbitmq = new RabbitMQHelper();
+export const rabbitmq = new RabbitManager();
