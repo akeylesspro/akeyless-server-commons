@@ -5,7 +5,7 @@ import { logger } from "../managers";
 
 const POSTPONED_ACTIONS_COLLECTION = "nx-postponed-actions";
 
-export enum PostponedActionStatus {
+enum PostponedActionStatus {
     pending = "pending",
     processing = "processing",
     completed = "completed",
@@ -13,11 +13,11 @@ export enum PostponedActionStatus {
     failed = "failed",
 }
 
-export type PostponedActionTime = Date | string | { minutes?: number; hours?: number };
+type PostponedActionTime = Date | string | { minutes?: number; hours?: number };
 
-export type JsonPayload = TObject<any>;
+type JsonPayload = TObject<any>;
 
-export interface PostponedAction {
+interface PostponedAction {
     key: string;
     details: JsonPayload;
     action_type: string;
@@ -34,7 +34,7 @@ export interface PostponedAction {
     error?: string;
 }
 
-export interface AddPostponedAction {
+interface AddPostponedAction {
     key: string;
     details: JsonPayload;
     action_type: string;
@@ -42,7 +42,7 @@ export interface AddPostponedAction {
     execute_at: PostponedActionTime;
 }
 
-export interface UpdatePostponedAction {
+interface UpdatePostponedAction {
     details?: JsonPayload;
     action_type?: string;
     description?: string;
@@ -59,7 +59,7 @@ const get_ref = (key: string) => {
     return db.collection(POSTPONED_ACTIONS_COLLECTION).doc(key);
 };
 
-export const resolve_postponed_action_time = (value: PostponedActionTime, now = new Date()): Date => {
+const resolve_postponed_action_time = (value: PostponedActionTime, now = new Date()): Date => {
     if (value instanceof Date || typeof value === "string") {
         const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
         if (!Number.isFinite(date.getTime())) {
@@ -346,16 +346,16 @@ const with_error_logging = <Args extends unknown[], Result>(
     };
 };
 
-export const get_postponed_action = with_error_logging("get", get_postponed_action_core, (key) => key);
-export const add_postponed_action = with_error_logging("add", add_postponed_action_core, (input) => input.key);
-export const update_postponed_action = with_error_logging("update", update_postponed_action_core, (key) => key);
-export const repostpone_postponed_action = with_error_logging("repostpone", repostpone_postponed_action_core, (key) => key);
-export const cancel_postponed_action = with_error_logging("cancel", cancel_postponed_action_core, (key) => key);
-export const complete_postponed_action = with_error_logging("complete", complete_postponed_action_core, (key) => key);
-export const fail_postponed_action = with_error_logging("mark as failed", fail_postponed_action_core, (key) => key);
-export const delete_postponed_action = with_error_logging("delete", delete_postponed_action_core, (key) => key);
-export const claim_postponed_action = with_error_logging("claim", claim_postponed_action_core, (key) => key);
-export const claim_due_postponed_actions = with_error_logging("claim due", claim_due_postponed_actions_core);
+const get_postponed_action = with_error_logging("get", get_postponed_action_core, (key) => key);
+const add_postponed_action = with_error_logging("add", add_postponed_action_core, (input) => input.key);
+const update_postponed_action = with_error_logging("update", update_postponed_action_core, (key) => key);
+const repostpone_postponed_action = with_error_logging("repostpone", repostpone_postponed_action_core, (key) => key);
+const cancel_postponed_action = with_error_logging("cancel", cancel_postponed_action_core, (key) => key);
+const complete_postponed_action = with_error_logging("complete", complete_postponed_action_core, (key) => key);
+const fail_postponed_action = with_error_logging("mark as failed", fail_postponed_action_core, (key) => key);
+const delete_postponed_action = with_error_logging("delete", delete_postponed_action_core, (key) => key);
+const claim_postponed_action = with_error_logging("claim", claim_postponed_action_core, (key) => key);
+const claim_due_postponed_actions = with_error_logging("claim due", claim_due_postponed_actions_core);
 
 /**
  * @example Add an action for a specific date and time.
@@ -405,6 +405,7 @@ export const claim_due_postponed_actions = with_error_logging("claim due", claim
  * }
  * ```
  */
+
 export const postponed_actions = {
     get: get_postponed_action,
     add: add_postponed_action,
