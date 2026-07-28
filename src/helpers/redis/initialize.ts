@@ -72,7 +72,8 @@ function create_redis_instance(role: "commander" | "listener") {
     return client;
 }
 
-export const init_redis = () => {
+export const init_redis = (options?: { subscribe?: boolean }) => {
+    const { subscribe = true } = options ?? {};
     return new Promise<void>((resolve, reject) => {
         if (redis_initialized) {
             resolve();
@@ -103,7 +104,7 @@ export const init_redis = () => {
             
             // Only subscribe once, not on every reconnect
             // ioredis will automatically resubscribe on reconnection
-            if (!listener_subscribed) {
+            if (subscribe && !listener_subscribed) {
                 listener_subscribed = true;
                 const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
                 redis_listener!

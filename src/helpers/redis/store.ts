@@ -17,8 +17,8 @@ export const parse_redis_value = (raw: string): TObject<any> => {
 const is_big_collection = async (collection: string): Promise<boolean> => {
     try {
         const nx_settings = await get_nx_settings();
-        const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
-        return cache_collections_config[collection]?.is_big_collection === true;
+        const cache_collections_config2: TObject<CollectionConfig> = nx_settings.cache_collections_config2 || {};
+        return cache_collections_config2[collection]?.is_big_collection === true;
     } catch {
         return false;
     }

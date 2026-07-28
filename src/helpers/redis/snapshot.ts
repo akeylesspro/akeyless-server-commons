@@ -50,7 +50,7 @@ interface ValidateConfigResult {
 
 const validate_config = async (config: OnSnapshotConfig): Promise<ValidateConfigResult> => {
     const nx_settings = await get_nx_settings();
-    const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
+    const cache_collections_config2: TObject<CollectionConfig> = nx_settings.cache_collections_config2 || {};
     const { collection_name, cache_name = collection_name, subscription_type = "firebase" } = config;
     if (!redis_commander_connected || !redis_listener_connected) {
         return {
@@ -68,11 +68,11 @@ const validate_config = async (config: OnSnapshotConfig): Promise<ValidateConfig
         };
     }
 
-    if (!cache_collections_config[collection_name] || cache_collections_config[collection_name].sync_direction === "redis_to_firebase") {
+    if (!cache_collections_config2[collection_name] || cache_collections_config2[collection_name].sync_direction === "redis_to_firebase") {
         return {
             success: false,
             trigger_firebase_snapshot: true,
-            message: `⚠️ collection: "${collection_name}" not found in cache_collections_config in "nx-settings" or sync_direction is "redis_to_firebase", triggered firebase snapshot for collection: "${collection_name}"`,
+            message: `⚠️ collection: "${collection_name}" not found in cache_collections_config2 in "nx-settings" or sync_direction is "redis_to_firebase", triggered firebase snapshot for collection: "${collection_name}"`,
         };
     }
 

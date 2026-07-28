@@ -22,10 +22,10 @@ const should_use_redis = async (collection_path: string): Promise<boolean> => {
     }
     try {
         const nx_settings = await get_nx_settings();
-        const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
-        const config = cache_collections_config[collection_path];
+        const cache_collections_config2: TObject<CollectionConfig> = nx_settings.cache_collections_config2 || {};
+        const config = cache_collections_config2[collection_path];
         if (!config) {
-            logger.warn(`⚠️ Collection "${collection_path}" not found in cache_collections_config, falling back to Firebase`);
+            logger.warn(`⚠️ Collection "${collection_path}" not found in cache_collections_config2, falling back to Firebase`);
             return false;
         }
     } catch {
