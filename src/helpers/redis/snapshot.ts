@@ -1,4 +1,4 @@
-import { get_redis_commander, get_redis_listener, redis_commander_connected, redis_listener_connected } from "./initialize";
+import { get_redis_listener, redis_commander_connected, redis_listener_connected } from "./initialize";
 import { OnSnapshotConfig } from "../../types";
 import { CollectionConfig, RedisUpdatePayload, RedisUpdateType, TObject } from "akeyless-types-commons";
 import {
@@ -9,7 +9,7 @@ import {
     parse_delete_as_object,
     snapshot,
 } from "../firebase_helpers";
-import { get_collection_keys, scan_redis_keys } from "./keys";
+import { read_collection } from "./store";
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "../../managers";
 
@@ -185,13 +185,7 @@ const default_parsers = (parse_as: "array" | "object" | undefined, update: TObje
 };
 
 const get_collection_data = async (collection_name: string) => {
-    const redis_commander = get_redis_commander();
-    const keys = await scan_redis_keys(get_collection_keys(collection_name), redis_commander);
-    let collection_data: any[] = [];
-    if (keys.length > 0) {
-        const values = await redis_commander.mget(keys);
-        collection_data = values.filter(Boolean).map((v: any) => JSON.parse(v).data);
-    }
+    const collection_data = await read_collection(collection_name);
     return collection_data.map((data) => convert_object_timestamps(data));
 };
 
