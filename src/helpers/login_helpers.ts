@@ -1,7 +1,5 @@
-import { NxUser, DefaultClient, MobileAppUser } from "akeyless-types-commons";
-import { query_document, query_document_optional } from "./firebase_helpers";
-import { logger } from "../managers";
-
+import { NxUser, MobileAppUser } from "akeyless-types-commons";
+import { query_document_optional } from "./firebase_helpers";
 export const convert_to_short_phone_number = (phone_number: string): string => {
     return `0${phone_number.split("+972")[1]}`;
 };

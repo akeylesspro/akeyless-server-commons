@@ -1,7 +1,6 @@
 import Redis, { ChainableCommander } from "ioredis";
 import { CollectionConfig, RedisUpdatePayload, RedisUpdateType, TObject } from "akeyless-types-commons";
 import { get_redis_commander } from "./initialize";
-import { get_collection_hash_key } from "./keys";
 import { get_nx_settings } from "../firebase_helpers";
 import { logger } from "../../managers";
 
@@ -57,23 +56,22 @@ export const write_doc = (
 ) => {
     const payload =
         opts?.ttl_ms === undefined ? envelope : { ...envelope, expires_at: (envelope.update_time ?? Date.now()) + opts.ttl_ms };
-    return target.hset(get_collection_hash_key(collection), id, JSON.stringify(payload));
+    return target.hset(collection, id, JSON.stringify(payload));
 };
 
 export const remove_doc = (target: RedisWriteTarget, collection: string, id: string) => {
-    return target.hdel(get_collection_hash_key(collection), id);
+    return target.hdel(collection, id);
 };
 
 export const read_doc = async (collection: string, id: string): Promise<TObject<any> | null> => {
     const commander = get_redis_commander();
-    const hash_key = get_collection_hash_key(collection);
-    const raw = await commander.hget(hash_key, id);
+    const raw = await commander.hget(collection, id);
     if (!raw) {
         return null;
     }
     const envelope = JSON.parse(raw);
     if (is_expired(envelope, Date.now())) {
-        drop_expired_fields(commander, hash_key, [id]);
+        drop_expired_fields(commander, collection, [id]);
         return null;
     }
     return envelope.data ?? envelope;
@@ -81,8 +79,7 @@ export const read_doc = async (collection: string, id: string): Promise<TObject<
 
 export const read_collection_entries = async (collection: string): Promise<Map<string, TObject<any>>> => {
     const commander = get_redis_commander();
-    const hash_key = get_collection_hash_key(collection);
-    const entries = (await is_big_collection(collection)) ? await hscan_all(commander, hash_key) : await commander.hgetall(hash_key);
+    const entries = (await is_big_collection(collection)) ? await hscan_all(commander, collection) : await commander.hgetall(collection);
 
     const now = Date.now();
     const expired_fields: string[] = [];
@@ -96,10 +93,10 @@ export const read_collection_entries = async (collection: string): Promise<Map<s
             }
             envelopes.set(field, envelope);
         } catch (error) {
-            logger.error(`Error parsing Redis hash field "${hash_key}" -> "${field}"`, error);
+            logger.error(`Error parsing Redis hash field "${collection}" -> "${field}"`, error);
         }
     }
-    drop_expired_fields(commander, hash_key, expired_fields);
+    drop_expired_fields(commander, collection, expired_fields);
     return envelopes;
 };
 

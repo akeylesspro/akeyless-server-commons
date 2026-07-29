@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { json_failed } from "../helpers";
-import { LogRequests, MandatoryObject, MandatoryParams, MW, Route, Service } from "../types";
+import { LogRequests, MandatoryObject, MandatoryParams, MW } from "../types";
 import { logger } from "../managers";
 
 const validateParameter = (data: any, parameter: MandatoryObject, is_mandatory: boolean) => {

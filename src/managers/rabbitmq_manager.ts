@@ -1,4 +1,4 @@
-import amqp, { type ChannelModel, type ConfirmChannel, type ConsumeMessage, type GetMessage, type Message } from "amqplib";
+import amqp, { type ChannelModel, type ConfirmChannel, type ConsumeMessage, type GetMessage } from "amqplib";
 import { randomUUID as random_uuid } from "node:crypto";
 import { logger } from "./logger_manager";
 
