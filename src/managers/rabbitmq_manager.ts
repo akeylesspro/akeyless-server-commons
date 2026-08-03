@@ -243,4 +243,10 @@ export class RabbitManager {
     }
 }
 
-export const rabbitmq = new RabbitManager();
+let _rabbitmq: RabbitManager | undefined;
+export const rabbitmq = new Proxy({} as RabbitManager, {
+    get(_, prop) {
+        _rabbitmq ??= new RabbitManager();
+        return (_rabbitmq as any)[prop];
+    },
+});
