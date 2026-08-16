@@ -7,6 +7,9 @@ import { logger } from "../../managers";
 export type RedisWriteTarget = Redis | ChainableCommander;
 
 const HSCAN_COUNT = 1000;
+/// Redis is single threaded, so HGETALL on a large hash blocks every other client for the
+/// duration. above this many fields we scan regardless of what the configuration says
+const HGETALL_FIELD_LIMIT = 5000;
 
 export const parse_redis_value = (raw: string): TObject<any> => {
     const parsed = JSON.parse(raw);
@@ -16,8 +19,8 @@ export const parse_redis_value = (raw: string): TObject<any> => {
 const is_big_collection = async (collection: string): Promise<boolean> => {
     try {
         const nx_settings = await get_nx_settings();
-        const cache_collections_config2: TObject<CollectionConfig> = nx_settings.cache_collections_config2 || {};
-        return cache_collections_config2[collection]?.is_big_collection === true;
+        const cache_collections_config: TObject<CollectionConfig> = nx_settings.cache_collections_config || {};
+        return cache_collections_config[collection]?.is_big_collection === true;
     } catch {
         return false;
     }
@@ -77,9 +80,21 @@ export const read_doc = async (collection: string, id: string): Promise<TObject<
     return envelope.data ?? envelope;
 };
 
+const should_scan = async (commander: Redis, collection: string): Promise<boolean> => {
+    if (await is_big_collection(collection)) {
+        return true;
+    }
+    const field_count = await commander.hlen(collection);
+    if (field_count > HGETALL_FIELD_LIMIT) {
+        logger.warn(`⚠️ "${collection}" holds ${field_count} fields but is not marked is_big_collection, scanning instead of HGETALL`);
+        return true;
+    }
+    return false;
+};
+
 export const read_collection_entries = async (collection: string): Promise<Map<string, TObject<any>>> => {
     const commander = get_redis_commander();
-    const entries = (await is_big_collection(collection)) ? await hscan_all(commander, collection) : await commander.hgetall(collection);
+    const entries = (await should_scan(commander, collection)) ? await hscan_all(commander, collection) : await commander.hgetall(collection);
 
     const now = Date.now();
     const expired_fields: string[] = [];
