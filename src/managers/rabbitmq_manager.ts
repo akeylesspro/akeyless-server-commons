@@ -243,4 +243,11 @@ export class RabbitManager {
     }
 }
 
-export const rabbitmq = new RabbitManager();
+let _rabbitmq: RabbitManager | undefined;
+export const rabbitmq = new Proxy({} as RabbitManager, {
+    get(_, prop) {
+        _rabbitmq ??= new RabbitManager();
+        const value = (_rabbitmq as any)[prop];
+        return typeof value === "function" ? value.bind(_rabbitmq) : value;
+    },
+});
