@@ -39,9 +39,7 @@ function create_redis_instance(role: "commander" | "listener") {
 
     // Listener needs enableReadyCheck: false because it will be in subscriber mode
     // and cannot respond to PING commands
-    const config = role === "listener" 
-        ? { ...base_config, enableReadyCheck: false }
-        : base_config;
+    const config = role === "listener" ? { ...base_config, enableReadyCheck: false } : base_config;
 
     const client = new Redis(config);
 
@@ -101,7 +99,7 @@ export const init_redis = (options?: { subscribe?: boolean }) => {
 
         redis_listener.on("connect", () => {
             listener_ready = true;
-            
+
             // Only subscribe once, not on every reconnect
             // ioredis will automatically resubscribe on reconnection
             if (subscribe && !listener_subscribed) {
@@ -112,7 +110,7 @@ export const init_redis = (options?: { subscribe?: boolean }) => {
                     .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
                     .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
             }
-            
+
             check_and_resolve();
         });
 
@@ -136,13 +134,6 @@ export const init_redis = (options?: { subscribe?: boolean }) => {
                 clearTimeout(connection_timeout);
                 reject();
             }
-        });
-
-        process.on("unhandledRejection", (err) => {
-            logger.error("❌ Unhandled promise rejection", err);
-        });
-        process.on("uncaughtException", (err) => {
-            logger.error("❌ Uncaught exception", err);
         });
     });
 };

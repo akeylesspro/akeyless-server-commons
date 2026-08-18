@@ -175,8 +175,29 @@ export class RabbitManager {
         const connection = await amqp.connect(connection_url.toString(), { timeout: 30_000 });
         const channel = await connection.createConfirmChannel();
         await channel.prefetch(this.prefetch_count);
+
+        /// an amqplib connection is an EventEmitter, so an "error" with no listener is rethrown
+        /// as an uncaught exception and takes the process down. a missed heartbeat is a normal
+        /// network event, not a fatal one
+        this.attach_lifecycle_handlers(connection, channel);
+
         this.connection = connection;
         this.channel = channel;
+    }
+
+    private attach_lifecycle_handlers(connection: ChannelModel, channel: ConfirmChannel): void {
+        const forget = (reason: string) => {
+            /// only drop the references still pointing at this connection, so a newer one
+            /// opened in the meantime is left alone
+            if (this.connection === connection) this.connection = undefined;
+            if (this.channel === channel) this.channel = undefined;
+            logger.warn(`RabbitMQ connection dropped (${reason}), the next call will reconnect`);
+        };
+
+        connection.on("error", (error: Error) => logger.error("RabbitMQ connection error", error));
+        connection.on("close", () => forget("connection closed"));
+        channel.on("error", (error: Error) => logger.error("RabbitMQ channel error", error));
+        channel.on("close", () => forget("channel closed"));
     }
 
     private async get_channel(): Promise<ConfirmChannel> {
