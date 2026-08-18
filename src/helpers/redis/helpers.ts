@@ -70,10 +70,12 @@ const filter_by_condition = (docs: TObject<any>[], field_name: string, operator:
     return docs.filter((doc) => apply_operator(doc[field_name], operator, value));
 };
 
+export const check_conditions = (doc: TObject<any>, conditions?: WhereCondition[]): boolean => {
+    return (conditions || []).every(({ field_name, operator, value }) => apply_operator(doc[field_name], operator, value));
+};
+
 const filter_by_conditions = (docs: TObject<any>[], conditions: WhereCondition[]): TObject<any>[] => {
-    return conditions.reduce((filtered, { field_name, operator, value }) => {
-        return filter_by_condition(filtered, field_name, operator, value);
-    }, docs);
+    return docs.filter((doc) => check_conditions(doc, conditions));
 };
 
 // ── extract ──
