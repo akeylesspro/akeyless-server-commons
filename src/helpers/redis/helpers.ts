@@ -1,8 +1,8 @@
 import { CollectionConfig, TObject } from "akeyless-types-commons";
 import { WhereCondition } from "../../types";
 import { logger } from "../../managers";
-import { get_redis_commander, redis_commander_connected } from "./initialize";
-import { get_doc_key, get_collection_keys, scan_redis_keys } from "./keys";
+import { redis_commander_connected } from "./initialize";
+import { parse_redis_value, read_collection, read_doc } from "./store";
 import {
     get_nx_settings,
     get_all_documents,
@@ -35,23 +35,8 @@ const should_use_redis = async (collection_path: string): Promise<boolean> => {
     return true;
 };
 
-const parse_redis_value = (raw: string): TObject<any> => {
-    const parsed = JSON.parse(raw);
-    return parsed.data ?? parsed;
-};
-
 const get_all_collection_docs = async (collection_path: string): Promise<TObject<any>[]> => {
-    const commander = get_redis_commander();
-    const keys = await scan_redis_keys(get_collection_keys(collection_path), commander);
-    if (keys.length === 0) return [];
-    const values = await commander.mget(keys);
-    return values.filter(Boolean).map((v) => {
-        const data = parse_redis_value(v!);
-        const key = keys[values.indexOf(v)];
-        /// example key: "nx-users(collection):123(doc_id)"
-        const id = key.split(":").slice(1).join(":");
-        return { ...data, id };
-    });
+    return read_collection(collection_path, { id_from_field: true });
 };
 
 const apply_operator = (doc_value: any, operator: FirebaseFirestore.WhereFilterOp, value: any): boolean => {
@@ -85,10 +70,12 @@ const filter_by_condition = (docs: TObject<any>[], field_name: string, operator:
     return docs.filter((doc) => apply_operator(doc[field_name], operator, value));
 };
 
+export const check_conditions = (doc: TObject<any>, conditions?: WhereCondition[]): boolean => {
+    return (conditions || []).every(({ field_name, operator, value }) => apply_operator(doc[field_name], operator, value));
+};
+
 const filter_by_conditions = (docs: TObject<any>[], conditions: WhereCondition[]): TObject<any>[] => {
-    return conditions.reduce((filtered, { field_name, operator, value }) => {
-        return filter_by_condition(filtered, field_name, operator, value);
-    }, docs);
+    return docs.filter((doc) => check_conditions(doc, conditions));
 };
 
 // ── extract ──
@@ -224,13 +211,11 @@ export const redis_get_document_by_id = async (collection_path: string, doc_id: 
         return get_document_by_id(collection_path, doc_id);
     }
     try {
-        const commander = get_redis_commander();
-        const key = get_doc_key(collection_path, doc_id);
-        const raw = await commander.get(key);
-        if (!raw) {
+        const document = await read_doc(collection_path, doc_id);
+        if (!document) {
             throw "Document not found in Redis, document id: " + doc_id;
         }
-        return redis_simple_extract_data(raw);
+        return document;
     } catch (error) {
         logger.error("error from redis_get_document_by_id", error);
         throw error;
@@ -242,13 +227,7 @@ export const redis_get_document_by_id_optional = async (collection_path: string,
         return get_document_by_id_optional(collection_path, doc_id);
     }
     try {
-        const commander = get_redis_commander();
-        const key = get_doc_key(collection_path, doc_id);
-        const raw = await commander.get(key);
-        if (!raw) {
-            return null;
-        }
-        return redis_simple_extract_data(raw);
+        return await read_doc(collection_path, doc_id);
     } catch (error) {
         logger.error("error from redis_get_document_by_id_optional", error);
         return null;

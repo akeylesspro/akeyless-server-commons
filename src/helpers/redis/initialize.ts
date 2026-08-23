@@ -39,9 +39,7 @@ function create_redis_instance(role: "commander" | "listener") {
 
     // Listener needs enableReadyCheck: false because it will be in subscriber mode
     // and cannot respond to PING commands
-    const config = role === "listener" 
-        ? { ...base_config, enableReadyCheck: false }
-        : base_config;
+    const config = role === "listener" ? { ...base_config, enableReadyCheck: false } : base_config;
 
     const client = new Redis(config);
 
@@ -72,7 +70,8 @@ function create_redis_instance(role: "commander" | "listener") {
     return client;
 }
 
-export const init_redis = () => {
+export const init_redis = (options?: { subscribe?: boolean }) => {
+    const { subscribe = true } = options ?? {};
     return new Promise<void>((resolve, reject) => {
         if (redis_initialized) {
             resolve();
@@ -100,10 +99,10 @@ export const init_redis = () => {
 
         redis_listener.on("connect", () => {
             listener_ready = true;
-            
+
             // Only subscribe once, not on every reconnect
             // ioredis will automatically resubscribe on reconnection
-            if (!listener_subscribed) {
+            if (subscribe && !listener_subscribed) {
                 listener_subscribed = true;
                 const redis_pattern = get_collection_keys(REDIS_UPDATES_PREFIX);
                 redis_listener!
@@ -111,7 +110,7 @@ export const init_redis = () => {
                     .then(() => logger.log(`✅ Subscribed to Redis pattern: ${redis_pattern}`))
                     .catch((err) => logger.error(`❌ Failed to psubscribe to ${redis_pattern}`, err));
             }
-            
+
             check_and_resolve();
         });
 
@@ -135,13 +134,6 @@ export const init_redis = () => {
                 clearTimeout(connection_timeout);
                 reject();
             }
-        });
-
-        process.on("unhandledRejection", (err) => {
-            logger.error("❌ Unhandled promise rejection", err);
-        });
-        process.on("uncaughtException", (err) => {
-            logger.error("❌ Uncaught exception", err);
         });
     });
 };

@@ -26,6 +26,13 @@ export const start_server = async (main_router: MainRouter, project_name: string
         keep_axios_alive();
     }
 
+    process.on("unhandledRejection", (err) => {
+        logger.error("❌ Unhandled promise rejection", err);
+    });
+    process.on("uncaughtException", (err) => {
+        logger.error("❌ Uncaught exception", err);
+    });
+    
     return new Promise<Express>((resolve) => {
         app.listen(port, async () => {
             logger.log(`Server is running at http://localhost:${port}`);

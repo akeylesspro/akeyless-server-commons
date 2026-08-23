@@ -1,4 +1,4 @@
-import { get_redis_commander, get_redis_listener, redis_commander_connected, redis_listener_connected } from "./initialize";
+import { get_redis_listener, redis_commander_connected, redis_listener_connected } from "./initialize";
 import { OnSnapshotConfig } from "../../types";
 import { CollectionConfig, RedisUpdatePayload, RedisUpdateType, TObject } from "akeyless-types-commons";
 import {
@@ -9,11 +9,13 @@ import {
     parse_delete_as_object,
     snapshot,
 } from "../firebase_helpers";
-import { get_collection_keys, scan_redis_keys } from "./keys";
+import { read_collection } from "./store";
+import { check_conditions } from "./helpers";
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "../../managers";
 
 const subscription_collections = new Set<string>();
+const matched_ids = new Map<string, Set<string>>();
 
 export const redis_snapshots_bulk = async (configs: OnSnapshotConfig[]) => {
     if (configs.length === 0) {
@@ -87,20 +89,46 @@ const validate_config = async (config: OnSnapshotConfig): Promise<ValidateConfig
     return { success: true };
 };
 
+const get_doc_id = (doc: TObject<any>, config: OnSnapshotConfig): string => {
+    const { doc_key_property = "id" } = config;
+    return doc[doc_key_property] ?? doc.id;
+};
+
+const get_matched_ids = (cache_name: string): Set<string> => {
+    const ids = matched_ids.get(cache_name) || new Set<string>();
+    matched_ids.set(cache_name, ids);
+    return ids;
+};
+
+const resolve_update_type = (config: OnSnapshotConfig, update_type: RedisUpdateType, doc: TObject<any>): RedisUpdateType | null => {
+    const { collection_name, cache_name = collection_name, conditions } = config;
+    if (!conditions?.length) {
+        return update_type;
+    }
+    const ids = get_matched_ids(cache_name);
+    const doc_id = get_doc_id(doc, config);
+    const was_matching = ids.has(doc_id);
+
+    if (update_type === "delete" || !check_conditions(doc, conditions)) {
+        if (!was_matching) {
+            return null;
+        }
+        ids.delete(doc_id);
+        return "delete";
+    }
+    ids.add(doc_id);
+    return was_matching ? "update" : "add";
+};
+
 const parse_redis_snapshot = async (config: OnSnapshotConfig, redis_update?: { update_type: RedisUpdateType; update: TObject<any>[] }) => {
-    const {
-        collection_name: config_collection_name,
-        cache_name = config_collection_name,
-        extra_parsers,
-        parse_as,
-        debug,
-        on_add,
-        on_remove,
-        on_modify,
-    } = config;
+    const { collection_name: config_collection_name, cache_name = config_collection_name, extra_parsers, parse_as, conditions, debug } = config;
 
     if (!redis_update) {
-        const init_data = await get_collection_data(config_collection_name);
+        const collection_data = await get_collection_data(config_collection_name);
+        const init_data = conditions?.length ? collection_data.filter((doc) => check_conditions(doc, conditions)) : collection_data;
+        if (conditions?.length) {
+            matched_ids.set(cache_name, new Set(init_data.map((doc) => get_doc_id(doc, config))));
+        }
         default_parsers(parse_as, init_data, config);
         if (debug?.on_first_time) {
             logger.log(
@@ -125,6 +153,22 @@ const parse_redis_snapshot = async (config: OnSnapshotConfig, redis_update?: { u
         return;
     }
     const { update_type, update } = redis_update;
+    const buckets: Record<RedisUpdateType, TObject<any>[]> = { add: [], update: [], delete: [] };
+    update.forEach((doc) => {
+        const resolved_type = resolve_update_type(config, update_type, doc);
+        if (resolved_type) {
+            buckets[resolved_type].push(doc);
+        }
+    });
+    (Object.keys(buckets) as RedisUpdateType[]).forEach((type) => {
+        if (buckets[type].length) {
+            dispatch_update(config, type, buckets[type]);
+        }
+    });
+};
+
+const dispatch_update = (config: OnSnapshotConfig, update_type: RedisUpdateType, update: TObject<any>[]) => {
+    const { collection_name, cache_name = collection_name, extra_parsers, parse_as, debug, on_add, on_remove, on_modify } = config;
     switch (update_type) {
         case "add":
             if (debug?.on_add) {
@@ -185,13 +229,7 @@ const default_parsers = (parse_as: "array" | "object" | undefined, update: TObje
 };
 
 const get_collection_data = async (collection_name: string) => {
-    const redis_commander = get_redis_commander();
-    const keys = await scan_redis_keys(get_collection_keys(collection_name), redis_commander);
-    let collection_data: any[] = [];
-    if (keys.length > 0) {
-        const values = await redis_commander.mget(keys);
-        collection_data = values.filter(Boolean).map((v: any) => JSON.parse(v).data);
-    }
+    const collection_data = await read_collection(collection_name);
     return collection_data.map((data) => convert_object_timestamps(data));
 };
 
