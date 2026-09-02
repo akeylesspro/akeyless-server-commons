@@ -136,7 +136,7 @@ const send_sms_by_number: SmsFunction = async (number, text, details) => {
 };
 export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: SendSmsDetails) => {
     const { status_options, ...rest_details } = details || {};
-    const { wait = true, timeout = 60000, throw_on_failure = true, retries = 0 } = status_options || {};
+    const { wait = false, timeout = 30000, throw_on_failure = true, retries = 0 } = status_options || {};
     const sms_details = Object.keys(rest_details).length ? rest_details : undefined;
     try {
         let sms_to_send = [];
