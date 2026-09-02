@@ -135,9 +135,9 @@ const send_sms_by_number: SmsFunction = async (number, text, details) => {
     return await send_local_sms(number, text, details);
 };
 export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: SendSmsDetails) => {
-    const { status_options, ...rest_details } = details || {};
+    const { status_options, ...other_sms_details } = details || {};
     const { wait = false, timeout = 30000, throw_on_failure = true, retries = 0 } = status_options || {};
-    const sms_details = Object.keys(rest_details).length ? rest_details : undefined;
+    const sms_details = Object.keys(other_sms_details).length ? other_sms_details : undefined;
     try {
         let sms_to_send = [];
         const { sms_groups } = await get_nx_settings();
