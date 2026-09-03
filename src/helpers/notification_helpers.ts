@@ -1,6 +1,6 @@
 import axios from "axios";
 import { cache_manager, logger, translation_manager } from "../managers";
-import { add_document, messaging, add_audit_record, get_nx_settings } from "./firebase_helpers";
+import { add_document, messaging, add_audit_record, get_nx_settings, db } from "./firebase_helpers";
 import { MulticastMessage } from "firebase-admin/messaging";
 import { EventFromDevice, TObject } from "akeyless-types-commons";
 import { is_iccid, is_international_phone_number, is_israel_long_phone_number, is_thailand_long_phone_number } from "./phone_number_helpers";
@@ -9,7 +9,8 @@ import { Timestamp } from "firebase-admin/firestore";
 import { v4 as uniqId } from "uuid";
 import FormData from "form-data";
 type SmsService = "multisend" | "twilio" | "monogoto";
-type SmsFunction = (recepient: string, text: string, details?: TObject<any>) => Promise<SmsService>;
+type SmsFunction = (recepient: string, text: string, details?: TObject<any>) => Promise<{ service: SmsService; sms_id: string }>;
+type SmsStatus = "delivered" | "failed" | "responded" | "timeout" | "error" | string;
 
 const send_local_sms: SmsFunction = async (recepient, text, details) => {
     const {
@@ -41,9 +42,9 @@ const send_local_sms: SmsFunction = async (recepient, text, details) => {
         throw `http request to multisend error ${JSON.stringify(response.data.error)}`;
     }
 
-    await keep_outgoing_sms(recepient, text, "multisend", msgId, details);
+    const sms_id = await keep_outgoing_sms(recepient, text, "multisend", msgId, details);
     logger.log("send_local_sms. message sent successfully", { number: recepient, text, response: response.data });
-    return "multisend";
+    return { service: "multisend", sms_id };
 };
 
 const send_international_sms: SmsFunction = async (recepient, text, details) => {
@@ -60,9 +61,9 @@ const send_international_sms: SmsFunction = async (recepient, text, details) => 
     if (message.errorMessage) {
         throw `twilioClient.messages.create failed: ${message.errorMessage} `;
     }
-    await keep_outgoing_sms(recepient, text, "twilio", message.sid, details);
+    const sms_id = await keep_outgoing_sms(recepient, text, "twilio", message.sid, details);
     logger.log("send_international_sms. message sent successfully", { number: recepient, text, response: message });
-    return "twilio";
+    return { service: "twilio", sms_id };
 };
 
 const login_to_monogoto = async () => {
@@ -101,15 +102,44 @@ const send_iccid_sms: SmsFunction = async (recepient, text, details) => {
     if (response.status !== 200) {
         throw `monogoto request failed , status: ${response.status} , data: ${JSON.stringify(response.data)}`;
     }
-    await keep_outgoing_sms(recepient, text, "monogoto", response.data, details);
+    const sms_id = await keep_outgoing_sms(
+        recepient,
+        text,
+        "monogoto",
+        typeof response.data === "string" ? response.data : response.data.id,
+        details
+    );
     logger.log("send_iccid_sms. message sent successfully", { number: recepient, text, response: response.data });
-    return "monogoto";
+    return { service: "monogoto", sms_id };
 };
+interface SmsStatusOptions {
+    wait?: boolean;
+    timeout?: number;
+    throw_on_failure?: boolean;
+    retries?: number;
+}
+interface SendSmsDetails {
+    [key: string]: any;
+    status_options?: SmsStatusOptions;
+}
+const successful_sms_statuses = ["delivered", "responded"] ;
 
-export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: TObject<any>) => {
+const send_sms_by_number: SmsFunction = async (number, text, details) => {
+    const is_international = is_international_phone_number(number) && !is_thailand_long_phone_number(number) && !is_israel_long_phone_number(number);
+    if (is_iccid(number)) {
+        return await send_iccid_sms(number, text, details);
+    }
+    if (is_international) {
+        return await send_international_sms(number, text, details);
+    }
+    return await send_local_sms(number, text, details);
+};
+export const send_sms = async (recepient: string, text: string, entity_for_audit: string, details?: SendSmsDetails) => {
+    const { status_options, ...other_sms_details } = details || {};
+    const { wait = false, timeout = 30000, throw_on_failure = true, retries = 0 } = status_options || {};
+    const sms_details = Object.keys(other_sms_details).length ? other_sms_details : undefined;
     try {
         let sms_to_send = [];
-
         const { sms_groups } = await get_nx_settings();
         if (sms_groups && sms_groups.values[recepient]) {
             sms_groups.values[recepient].forEach((number: string) => {
@@ -120,31 +150,82 @@ export const send_sms = async (recepient: string, text: string, entity_for_audit
         }
         sms_to_send = [...new Set(sms_to_send)];
         const promises = sms_to_send.map(async (number) => {
-            let service: SmsService | null = null;
-            const is_international =
-                is_international_phone_number(number) && !is_thailand_long_phone_number(number) && !is_israel_long_phone_number(number);
-            if (is_iccid(number)) {
-                service = await send_iccid_sms(number, text, details);
-            } else if (is_international) {
-                service = await send_international_sms(number, text, details);
-            } else {
-                service = await send_local_sms(number, text, details);
+            let attempt = 0;
+            while (true) {
+                attempt++;
+                const { service, sms_id } = await send_sms_by_number(number, text, sms_details);
+                const status = wait ? await wait_for_sms_status(sms_id, timeout) : null;
+
+                await add_audit_record("send_sms", entity_for_audit || "general", {
+                    recepient: number,
+                    message: text,
+                    service,
+                    ...(status ? { status } : {}),
+                    ...(attempt > 1 ? { attempt } : {}),
+                });
+
+                const succeeded = !status || successful_sms_statuses.includes(status);
+                if (succeeded || attempt > retries) {
+                    return { recepient: number, service, sms_id, status, attempts: attempt, succeeded };
+                }
+                logger.log(`send_sms. status "${status}" for ${number}, resending (retry ${attempt}/${retries})`);
             }
-            await add_audit_record("send_sms", entity_for_audit || "general", {
-                recepient: number,
-                message: text,
-                service,
-            });
         });
 
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
+        const failed = results.filter((result) => !result.succeeded);
+        if (throw_on_failure && failed.length) {
+            throw `sms not delivered to ${failed.map((result) => `${result.recepient} (${result.status})`).join(", ")}`;
+        }
+        return results;
     } catch (error) {
         logger.error(`${entity_for_audit}, send_sms failed:`, error);
         throw `${entity_for_audit}, send_sms failed: ` + error;
     }
 };
 
-const keep_outgoing_sms = async (recepient: string, content: string, service: string, external_id: string, details?: TObject<any>) => {
+const wait_for_sms_status = (sms_id: string, timeout: number): Promise<SmsStatus> =>
+    new Promise((resolve) => {
+        let unsubscribe: (() => void) | null = null;
+        let done = false;
+        const finish = (status: SmsStatus) => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            unsubscribe?.();
+            resolve(status);
+        };
+        const timer = setTimeout(() => {
+            logger.log(`wait_for_sms_status. timed out after ${timeout}ms`, { sms_id });
+            finish("timeout");
+        }, timeout);
+        unsubscribe = db
+            .collection("nx-sms-out")
+            .doc(sms_id)
+            .onSnapshot(
+                (doc) => {
+                    const status = doc.data()?.status;
+                    if (status && status !== "new") {
+                        finish(status);
+                    }
+                },
+                (error) => {
+                    logger.error(`wait_for_sms_status. snapshot failed, sms_id: ${sms_id}`, error);
+                    finish("error");
+                }
+            );
+        if (done) {
+            unsubscribe();
+        }
+    });
+
+const keep_outgoing_sms = async (
+    recepient: string,
+    content: string,
+    service: string,
+    external_id: string,
+    details?: TObject<any>
+): Promise<string> => {
     const timestamp = Timestamp.now();
     const data: TObject<any> = {
         external_id,
@@ -157,7 +238,7 @@ const keep_outgoing_sms = async (recepient: string, content: string, service: st
     if (details) {
         data.details = details;
     }
-    await add_document("nx-sms-out", data);
+    return await add_document("nx-sms-out", data);
 };
 
 export const push_event_to_mobile_users = async (event: EventFromDevice) => {
@@ -167,7 +248,7 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
     const app_pro_extra_pushes = cache_manager.getArrayData("app_pro_extra_pushes");
 
     console.log(
-        `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`,
+        `units: ${units.length}, users_units: ${users_units.length}, mobile_users_app_pro: ${mobile_users_app_pro.length}, app_pro_extra_pushes: ${app_pro_extra_pushes.length}`
     );
 
     if (!units.length || !users_units.length || !mobile_users_app_pro.length) {
@@ -192,7 +273,7 @@ export const push_event_to_mobile_users = async (event: EventFromDevice) => {
         const source = event.source == "erm" || event.source == "erm2" ? "erm" : event.source;
         if (mobile_user.disabled_events?.[event.car_number]?.[source]?.includes(event.event_id)) {
             logger.log(
-                `push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`,
+                `push_event_to_mobile_users. event ${event.event_id} / ${event.event_name} is disabled for user ${mobile_user.uid} / ${mobile_user.short_phone_number}`
             );
             continue;
         }
@@ -208,7 +289,7 @@ type FuncSendFcmMessage = (
     title: string,
     body: string,
     fcm_tokens: string[],
-    custom_sound?: string,
+    custom_sound?: string
 ) => Promise<{ success: boolean; response: string; success_count?: number; failure_count?: number }>;
 
 export const send_fcm_message: FuncSendFcmMessage = async (title, body, fcm_tokens, custom_sound) => {
