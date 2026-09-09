@@ -1,7 +1,7 @@
 import { JsonFailed, JsonOK, NxServiceNameMap } from "../types";
 import { readFileSync } from "fs";
 import { cache_manager, logger } from "../managers";
-import { Geo, LanguageOptions, TObject } from "akeyless-types-commons";
+import { Car, Geo, LanguageOptions, TObject } from "akeyless-types-commons";
 import axios, { AxiosRequestConfig } from "axios";
 import https from "https";
 
@@ -161,4 +161,11 @@ export const ignore_ssl_request = async (config: AxiosRequestConfig) => {
         config.httpsAgent = new https.Agent({ rejectUnauthorized: false });
     }
     return await axios(config);
+};
+
+export const is_backup_car = (car: Car | string): boolean => {
+    const car_number = typeof car === "string" ? car : car.carId || "";
+    const backup_unit_regex = / ?[B-G]$/;
+    const is_backup_car = backup_unit_regex.test(car_number);
+    return is_backup_car;
 };
