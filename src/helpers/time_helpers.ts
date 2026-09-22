@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
-import moment from "moment";
+import moment from "moment-timezone";
 import { firebase_timestamp } from "akeyless-types-commons";
 
 export function sort_by_timestamp(a: Timestamp, b: Timestamp, reverse: boolean = false) {
@@ -93,19 +93,27 @@ export function any_datetime_to_string(
             }
             break;
         }
-        case !!(firebaseTimestamp as firebase_timestamp)._seconds: {
+        case typeof (firebaseTimestamp as firebase_timestamp)._seconds === "number": {
             const ft = firebaseTimestamp as firebase_timestamp;
             date = new Date(ft._seconds * 1000 + (ft._nanoseconds ?? 0) / 1000000);
             break;
         }
-        case !!(firebaseTimestamp as any).seconds: {
+        case typeof (firebaseTimestamp as any).seconds === "number": {
             const ft: any = firebaseTimestamp as any;
-            date = new Date(ft.seconds * 1000 + ft.nanoseconds / 1000000);
+            date = new Date(ft.seconds * 1000 + (ft.nanoseconds ?? 0) / 1000000);
             break;
         }
         default: {
             if (debug) {
                 console.error("Invalid timestamp format: ", firebaseTimestamp);
+            }
+            return defaultReturnedValue;
+        }
+    }
+    switch (isNaN(date.getTime())) {
+        case true: {
+            if (debug) {
+                console.error("Invalid timestamp value: ", firebaseTimestamp);
             }
             return defaultReturnedValue;
         }
@@ -152,15 +160,17 @@ export function any_datetime_to_millis(
                     return defaultReturnedValue;
             }
         }
-        case !!(firebaseTimestamp as firebase_timestamp)._seconds: {
+        case typeof (firebaseTimestamp as firebase_timestamp)._seconds === "number": {
             const seconds = (firebaseTimestamp as firebase_timestamp)._seconds;
             const nanos = (firebaseTimestamp as firebase_timestamp)._nanoseconds ?? 0;
-            return seconds * 1000 + Math.floor(nanos / 1000000);
+            const ms = seconds * 1000 + Math.floor(nanos / 1000000);
+            return isNaN(ms) ? defaultReturnedValue : ms;
         }
-        case !!(firebaseTimestamp as any).seconds: {
+        case typeof (firebaseTimestamp as any).seconds === "number": {
             const seconds = (firebaseTimestamp as any).seconds;
             const nanos = (firebaseTimestamp as any).nanoseconds ?? 0;
-            return seconds * 1000 + Math.floor(nanos / 1000000);
+            const ms = seconds * 1000 + Math.floor(nanos / 1000000);
+            return isNaN(ms) ? defaultReturnedValue : ms;
         }
         default: {
             if (debug) {
@@ -178,19 +188,23 @@ export function any_datetime_to_millis(
  *
  * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
  * @param {string} [format="DD-MM-YYYY HH:mm:ss"] - Optional the format string used to format the date. Default is "DD-MM-YYYY HH:mm:ss".
+ * @param {string} [defaultReturnedValue="-"] - Optional value returned when the timestamp is missing or invalid.
  * @returns {string} - A formatted date string according to the specified format or the default format.
  */
-export function timestamp_to_string(firebaseTimestamp: firebase_timestamp, format: string = "DD-MM-YYYY HH:mm:ss"): string {
-    const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return moment(timestamp.toDate()).utc().format(format);
+export function timestamp_to_string(
+    firebaseTimestamp: firebase_timestamp,
+    format: string = "DD-MM-YYYY HH:mm:ss",
+    defaultReturnedValue: string = "-"
+): string {
+    return any_datetime_to_string(firebaseTimestamp, { format, defaultReturnedValue });
 }
 /**
  * Converts a Firebase Timestamp object into milliseconds since the Unix epoch.
  *
  * @param {firebase_timestamp} firebaseTimestamp - The Firebase timestamp object containing _seconds and _nanoseconds.
+ * @param {number} [defaultReturnedValue=0] - Optional value returned when the timestamp is missing or invalid.
  * @returns {number} - Time in milliseconds
  */
-export function timestamp_to_millis(firebaseTimestamp: firebase_timestamp): number {
-    const timestamp = new Timestamp(firebaseTimestamp._seconds, firebaseTimestamp._nanoseconds);
-    return timestamp.toMillis();
+export function timestamp_to_millis(firebaseTimestamp: firebase_timestamp, defaultReturnedValue: number = 0): number {
+    return any_datetime_to_millis(firebaseTimestamp, { defaultReturnedValue });
 }

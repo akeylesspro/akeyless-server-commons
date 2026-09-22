@@ -50,7 +50,7 @@ export const sleep = (ms: number = 2500) => new Promise((resolve) => setTimeout(
 const BASE_URLS: Record<"local" | "prod" | "qa", NxServiceNameMap> = {
     local: {
         bi: "http://localhost:9002/api/bi",
-        call_center: "http://localhost:9003/api/call-center",
+        call_center: "http://localhost:9008/api/call-center",
         dashboard: "http://localhost",
         devices: "http://localhost:9001/api/devices",
         end_users: "http://10.100.102.9:9011/api/end-users",
