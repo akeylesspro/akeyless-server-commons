@@ -116,6 +116,30 @@ export const get_address_by_geo = async ({ lat, lng }: Geo, currentLanguage: Lan
     }
 };
 
+export const get_geo_by_address = async (address: string): Promise<Geo | null> => {
+    const trimmed_address = address.trim();
+    if (!trimmed_address) {
+        return null;
+    }
+    const google_setting = cache_manager.getObjectData("nx-settings")["google"];
+    const geocode_api_key = google_setting?.["geocode_api_key"];
+    if (!geocode_api_key) {
+        throw new Error("missing env google api key");
+    }
+    const response = await axios.get("https://maps.googleapis.com/maps/api/geocode/json", {
+        params: { address: trimmed_address, key: geocode_api_key },
+    });
+    const { status, results } = response.data || {};
+    if (status === "ZERO_RESULTS") {
+        return null;
+    }
+    const location = results?.[0]?.geometry?.location;
+    if (status !== "OK" || typeof location?.lat !== "number" || typeof location?.lng !== "number") {
+        throw new Error(`google geocode failed: ${status || "no status"}`);
+    }
+    return { lat: location.lat, lng: location.lng };
+};
+
 export const validate_and_cast = <T extends any>(variable: any, condition: Boolean): variable is T => !!condition;
 
 export const get_or_default = <T>(value: T | undefined, default_value: T | (() => T)): T => {
