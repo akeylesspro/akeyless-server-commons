@@ -30,7 +30,7 @@ Stateless utility functions organized by domain:
 - **`firebase_helpers`** - Firebase Admin SDK integration, Firestore CRUD operations, real-time snapshots, storage, audit logging
 
 #### Data & Communication
-- **`email_helpers`** - SendGrid email sending with attachment support
+- **`email_helpers`** - SendGrid and Google Workspace email sending with attachment support
 - **`notification_helpers`** - SMS (Multisend/Twilio/Monogoto) and FCM push notifications
 - **`phone_number_helpers`** - Phone number normalization, validation, SIM provider detection
 
@@ -80,7 +80,7 @@ Shared TypeScript definitions:
 1. **Server Bootstrap** - Standardized Express server initialization with common middleware
 2. **Firebase Integration** - Complete Firestore/Storage/Auth/Messaging integration
 3. **Caching System** - In-memory cache with Redis and Firebase snapshot support
-4. **Communication** - Email (SendGrid) and SMS/Push notification services
+4. **Communication** - Email (SendGrid/Google Workspace) and SMS/Push notification services
 5. **Request Handling** - Validation, authentication, logging, error handling middleware
 6. **Data Utilities** - Phone normalization, time formatting, geocoding, task orchestration
 
@@ -248,8 +248,34 @@ The package requires various environment variables depending on usage:
 #### Google Services (For geocoding)
 - Configured in `nx-settings` collection: `google.geocode_api_key`
 
-#### Email (SendGrid)
-- Configured in `nx-settings` collection: `emails.sendgrid_api_key`
+#### Email (SendGrid or Google Workspace)
+
+Configure the `emails` document in the `nx-settings` collection. `send_email` reads it on each call:
+
+```json
+{
+  "provider": "google",
+  "google": {
+    "email": "avraham@akeyless-sys.com",
+    "app_password": "YOUR_GOOGLE_APP_PASSWORD"
+  },
+  "default_from": {
+    "email": "avraham@akeyless-sys.com",
+    "name": "Akeyless"
+  },
+  "default_cc": [],
+  "groups": {}
+}
+```
+
+- Set `provider` to `"sendgrid"` and supply `sendgrid_api_key` to use SendGrid. Existing settings without `provider` continue to use SendGrid.
+- Google uses `smtp.gmail.com:465` with TLS and an [App Password](https://support.google.com/accounts/answer/185833), which requires 2-Step Verification and must be allowed by your Workspace administrator. Use an App Password, never the account's normal password. See [Google's SMTP setup instructions](https://knowledge.workspace.google.com/admin/gmail/send-email-from-a-printer-scanner-or-app).
+- The default Google sender is `google.email`, with the display name from `default_from.name`. An explicit `EmailData.from` must be the authenticated account or an alias authorized in Gmail.
+- Recipient groups, default CC, HTML/plain text, attachments, inline content IDs, and success audits work with both providers. Credentials are excluded from audit data and debug payloads. Restrict access to this settings document to trusted server code and administrators.
+- `send_email_google(email_data, google_settings)` is the exported low-level SMTP sender. Pass resolved recipients; it does not resolve groups or write audits and throws on failure. Use `send_email` for settings, recipient resolution, auditing, and the existing log-on-error behavior.
+- SMTP rejection, including partial recipient rejection, is logged as a send failure and does not create a success audit. Some recipients may already have received a partially rejected message; no automatic retry or provider fallback occurs.
+
+Run the builds and offline email regression tests with `npm test`. Tests mock provider delivery and check MIME generation with the real Nodemailer library; they do not send emails or access Firebase.
 
 #### SMS Providers
 - Configured in `nx-settings` collection:

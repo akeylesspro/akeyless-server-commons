@@ -18,12 +18,19 @@ export interface EmailAttachment {
     content_id?: string;
 }
 
+export interface GoogleEmailSettings {
+    email: string;
+    app_password: string;
+}
+
 export interface EmailSettings {
+    provider?: "sendgrid" | "google";
     default_from: {
         email: string;
         name?: string;
     };
     default_cc: string[];
     groups: Record<string, { cc?: string[]; to: string[] }>;
-    sendgrid_api_key: string;
+    sendgrid_api_key?: string;
+    google?: GoogleEmailSettings;
 }
