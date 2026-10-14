@@ -1,6 +1,7 @@
 import sendgrid, { MailDataRequired } from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 import { add_audit_record, get_document_by_id, ignore_ssl_request } from ".";
-import { EmailSettings, EmailData, EmailAttachment } from "../types";
+import { EmailSettings, EmailData, EmailAttachment, GoogleEmailSettings } from "../types";
 import { logger } from "../managers";
 import * as fs from "fs";
 import * as path from "path";
@@ -98,10 +99,51 @@ const get_mime_type = (file_path: string): string => {
     return mime_types[ext] || "application/octet-stream";
 };
 
+export const send_email_google = async (email_data: EmailData, google_settings: GoogleEmailSettings) => {
+    if (!google_settings?.email?.trim() || !google_settings?.app_password?.trim()) {
+        throw new Error("Google email settings require email and app_password");
+    }
+    const { subject, to, cc, body_html, body_plain_text, attachments } = email_data;
+    const from = email_data.from || google_settings.email;
+    const transport = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: google_settings.email,
+            pass: google_settings.app_password.replace(/\s/g, ""),
+        },
+        disableFileAccess: true,
+        disableUrlAccess: true,
+    });
+    const email_result = await transport.sendMail({
+        subject,
+        from: typeof from === "string" ? from : { address: from.email, name: from.name || "" },
+        to,
+        cc,
+        html: body_html,
+        text: body_html ? undefined : body_plain_text,
+        attachments: attachments?.map(({ content, filename, type, disposition, content_id }) => ({
+            content,
+            filename,
+            encoding: "base64",
+            contentType: type,
+            contentDisposition: disposition,
+            cid: content_id,
+        })),
+    });
+    if (email_result.rejected.length) {
+        throw new Error(`Google email rejected recipients: ${email_result.rejected.join(", ")}`);
+    }
+};
+
 export const send_email = async (email_data: EmailData, options?: { debug?: boolean }) => {
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
-        const { sendgrid_api_key, groups, default_from, default_cc } = emails_settings;
+        const { provider = "sendgrid", sendgrid_api_key, google, groups, default_from, default_cc = [] } = emails_settings;
+        if (provider !== "sendgrid" && provider !== "google") {
+            throw new Error(`Unsupported email provider: ${provider}`);
+        }
         let { from, to, cc, group_name, body_html, body_plain_text, subject, entity_for_audit, attachments } = email_data;
         const cc_array: string[] = cc ? (Array.isArray(cc) ? cc : [cc as string]) : [];
         cc = [...cc_array, ...default_cc];
@@ -112,11 +154,9 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
         if (!body_html?.length && !body_plain_text?.length) {
             throw "must supply a 'body_plain_text' or 'html' value ";
         }
-        if (to?.length && !group_name?.length) {
-        }
         /// merge to and cc
         if (group_name) {
-            if (!groups[group_name]) {
+            if (!groups?.[group_name]) {
                 throw "must supply a valid 'group_name'";
             }
             if (!to) {
@@ -126,13 +166,12 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
             }
             cc.push(...(groups[group_name].cc || []));
         }
-        /// set sendgrid account
-        sendgrid.setApiKey(sendgrid_api_key);
+        const sender = from || (provider === "google" && google ? { email: google.email, name: default_from?.name } : default_from);
         /// prepare message
         const msg: MailDataRequired = body_html
             ? {
                   subject,
-                  from: from || default_from,
+                  from: sender,
                   to,
                   cc,
                   html: body_html,
@@ -140,7 +179,7 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
               }
             : {
                   subject,
-                  from: from || default_from,
+                  from: sender,
                   to,
                   cc,
                   text: body_plain_text!,
@@ -150,9 +189,20 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
             delete msg.attachments;
         }
         /// send email
-        const email_result = await sendgrid.send(msg);
-        if (email_result[0].statusCode !== 202) {
-            throw email_result[0].body;
+        if (provider === "google") {
+            if (!google) {
+                throw new Error("Missing Google email settings");
+            }
+            await send_email_google({ ...email_data, from: msg.from, to, cc }, google);
+        } else {
+            if (!sendgrid_api_key?.trim()) {
+                throw new Error("SendGrid email settings require sendgrid_api_key");
+            }
+            sendgrid.setApiKey(sendgrid_api_key);
+            const email_result = await sendgrid.send(msg);
+            if (email_result[0].statusCode !== 202) {
+                throw email_result[0].body;
+            }
         }
         /// add audit
         await add_audit_record("send_email", entity_for_audit, { ...email_data, ...msg });
