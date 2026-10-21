@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const sendgrid = require("@sendgrid/mail");
 const create_real_transport = nodemailer.createTransport.bind(nodemailer);
 
-let settings, smtp_result, smtp_error, sendgrid_result, sendgrid_error;
+let settings, smtp_result, smtp_error, sendgrid_result, sendgrid_error, audit_error;
 const smtp_options = [], google_messages = [], sendgrid_messages = [], api_keys = [], audits = [], logs = [], errors = [];
 
 // Stub the barrels to avoid initializing Firebase or other services when loading this helper.
@@ -15,7 +15,10 @@ require.cache[require.resolve("../dist/cjs/helpers/index.js")] = {
             assert.equal(id, "emails");
             return settings;
         },
-        add_audit_record: async (...args) => audits.push(args),
+        add_audit_record: async (...args) => {
+            if (audit_error) throw audit_error;
+            audits.push(args);
+        },
     },
 };
 require.cache[require.resolve("../dist/cjs/managers/index.js")] = {
@@ -55,7 +58,7 @@ beforeEach(() => {
     };
     smtp_result = { accepted: [email.to], rejected: [], messageId: "test-message" };
     sendgrid_result = [{ statusCode: 202, body: "" }, {}];
-    smtp_error = sendgrid_error = undefined;
+    smtp_error = sendgrid_error = audit_error = undefined;
     for (const values of [smtp_options, google_messages, sendgrid_messages, api_keys, audits, logs, errors]) values.length = 0;
 });
 
@@ -66,7 +69,7 @@ const use_google = () => {
 };
 
 test("legacy settings keep SendGrid delivery, HTML priority, default CC and success audit", async () => {
-    await send_email({ ...email, body_html: "<p>Hello</p>" }, { debug: true });
+    assert.equal(await send_email({ ...email, body_html: "<p>Hello</p>" }, { debug: true }), true);
     assert.deepEqual(api_keys, ["test-sendgrid-key"]);
     assert.deepEqual(sendgrid_messages, [{
         subject: email.subject, from: settings.default_from, to: email.to,
@@ -91,7 +94,7 @@ test("explicit SendGrid provider preserves groups, text and attachments", async 
 
 test("Google uses its configured mailbox, TLS and App Password without SendGrid credentials", async () => {
     use_google();
-    await send_email(email, { debug: true });
+    assert.equal(await send_email(email, { debug: true }), true);
     assert.deepEqual(smtp_options, [{
         host: "smtp.gmail.com", port: 465, secure: true,
         auth: { user: settings.google.email, pass: "abcdefghijklmnop" },
@@ -177,7 +180,7 @@ for (const [name, configure, input, expected] of [
 ]) {
     test(`${name} fails before provider delivery or audit`, async () => {
         configure();
-        await send_email(input);
+        assert.equal(await send_email(input), false);
         assert.equal(google_messages.length + sendgrid_messages.length + smtp_options.length + audits.length, 0);
         assert.match(String(errors[0][1]), expected);
     });
@@ -197,7 +200,7 @@ for (const partial of [false, true]) {
         use_google();
         if (partial) smtp_result.rejected = ["rejected@example.com"];
         else smtp_error = new Error("SMTP authentication failed");
-        await send_email(email, { debug: true });
+        assert.equal(await send_email(email, { debug: true }), false);
         assert.equal(audits.length + sendgrid_messages.length + logs.length, 0);
         assert.match(errors[0][1].message, partial ? /rejected@example.com/ : /SMTP authentication failed/);
         assert.ok(!JSON.stringify(errors).includes(settings.google.app_password));
@@ -208,9 +211,19 @@ for (const throws of [false, true]) {
     test(`SendGrid ${throws ? "transport error" : "non-202 response"} preserves existing failure handling`, async () => {
         if (throws) sendgrid_error = new Error("SendGrid failed");
         else sendgrid_result = [{ statusCode: 400, body: "SendGrid failed" }, {}];
-        await send_email(email);
+        assert.equal(await send_email(email), false);
         assert.equal(audits.length + google_messages.length, 0);
         assert.match(String(errors[0][1]), /SendGrid failed/);
+    });
+}
+
+for (const provider of ["sendgrid", "google"]) {
+    test(`${provider} reports a delivered email as sent even when the success audit fails`, async () => {
+        if (provider === "google") use_google();
+        audit_error = new Error("audit failed");
+        assert.equal(await send_email(email), true);
+        assert.equal(google_messages.length + sendgrid_messages.length, 1);
+        assert.match(String(errors[0][1]), /audit failed/);
     });
 }
 

@@ -273,6 +273,7 @@ Configure the `emails` document in the `nx-settings` collection. `send_email` re
 - The default Google sender is `google.email`, with the display name from `default_from.name`. An explicit `EmailData.from` must be the authenticated account or an alias authorized in Gmail.
 - Recipient groups, default CC, HTML/plain text, attachments, inline content IDs, and success audits work with both providers. Credentials are excluded from audit data and debug payloads. Restrict access to this settings document to trusted server code and administrators.
 - `send_email_google(email_data, google_settings)` is the exported low-level SMTP sender. Pass resolved recipients; it does not resolve groups or write audits and throws on failure. Use `send_email` for settings, recipient resolution, auditing, and the existing log-on-error behavior.
+- `send_email` never throws: it logs failures and resolves to `true` once the provider accepted the message (even if the success audit then fails) and `false` otherwise. Callers that must know whether an email went out check the result.
 - SMTP rejection, including partial recipient rejection, is logged as a send failure and does not create a success audit. Some recipients may already have received a partially rejected message; no automatic retry or provider fallback occurs.
 
 Run the builds and offline email regression tests with `npm test`. Tests mock provider delivery and check MIME generation with the real Nodemailer library; they do not send emails or access Firebase.

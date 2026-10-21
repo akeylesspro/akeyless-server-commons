@@ -137,7 +137,8 @@ export const send_email_google = async (email_data: EmailData, google_settings: 
     }
 };
 
-export const send_email = async (email_data: EmailData, options?: { debug?: boolean }) => {
+export const send_email = async (email_data: EmailData, options?: { debug?: boolean }): Promise<boolean> => {
+    let is_sent = false;
     try {
         const emails_settings = (await get_document_by_id("nx-settings", "emails")) as EmailSettings;
         const { provider = "sendgrid", sendgrid_api_key, google, groups, default_from, default_cc = [] } = emails_settings;
@@ -204,6 +205,7 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
                 throw email_result[0].body;
             }
         }
+        is_sent = true;
         /// add audit
         await add_audit_record("send_email", entity_for_audit, { ...email_data, ...msg });
 
@@ -216,4 +218,5 @@ export const send_email = async (email_data: EmailData, options?: { debug?: bool
             logger.error("email payload", { message: JSON.stringify(email_data) });
         }
     }
+    return is_sent;
 };
