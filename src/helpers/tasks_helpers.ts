@@ -12,6 +12,7 @@ export enum TaskName {
     make_erm_ev_events = "make_erm_ev_events",
     collect_jimi_cars_odometer = "collect_jimi_cars_odometer",
     send_email_polygon_left = "send_email_polygon_left",
+    send_email_non_charging_cars = "send_email_non_charging_cars",
 }
 
 export enum TaskStatus {
